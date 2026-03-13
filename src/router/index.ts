@@ -3,6 +3,7 @@ import {
   createWebHistory,
   type RouteRecordRaw,
 } from "vue-router";
+
 // Подключаем твои страницы (проверь пути!)
 import Auth from "../pages/auth/auth.vue";
 import Dashboard from "../pages/dashboard.vue";
@@ -27,6 +28,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
     name: "Dashboard",
+    path: "/",
     component: Dashboard,
     // Мета-поле, чтобы пометить страницу как "только для залогиненных"
     meta: { requireAuth: true } as CustomRouteMeta,
