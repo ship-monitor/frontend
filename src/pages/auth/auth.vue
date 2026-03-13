@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router'; // Добавь импорт
-import textbox from '../components/textbox.vue';
+import textbox from '../../components/textbox.vue';
 
 const email = ref(''); // Переименовали переменную
 const password = ref('');

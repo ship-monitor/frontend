@@ -1,45 +1,66 @@
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import {
+  createRouter,
+  createWebHistory,
+  type RouteRecordRaw,
+} from "vue-router";
 // Подключаем твои страницы (проверь пути!)
-import Auth from '../pages/auth.vue'
-import Dashboard from '../pages/dashboard.vue' 
+import Auth from "../pages/auth/auth.vue";
+import Dashboard from "../pages/dashboard.vue";
+import registr from "../pages/auth/registr.vue";
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    requireAuth?: boolean
+    onlyAnonymous?: boolean
+  }
+}
+
+type CustomRouteMeta = { requireAuth: boolean; onlyAnonymous: boolean };
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/auth',
-    name: 'Auth',
-    component: Auth
+    path: "/auth",
+    name: "Auth",
+    component: Auth,
+    meta: { onlyAnonymous: true } as CustomRouteMeta,
   },
   {
-    path: '/',
-    name: 'Dashboard',
+    path: "/",
+    name: "Dashboard",
     component: Dashboard,
     // Мета-поле, чтобы пометить страницу как "только для залогиненных"
-    meta: { requiresAuth: true }
-  }
-]
+    meta: { requireAuth: true } as CustomRouteMeta,
+  },
+  {
+    path: "/registr",
+    name: "Registr",
+    component: registr,
+    meta: { onlyAnonymous: true } as CustomRouteMeta,
+  },
+];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
-})
+  routes,
+});
 
 // Навигационный гард (защита роутов)
 router.beforeEach((to) => {
-  const isAuthenticated = !!localStorage.getItem('token');
+  const isAuthenticated = !!localStorage.getItem("token");
+  const routeMeta = to.meta as CustomRouteMeta;
 
-  // Если страница требует авторизации, а токена нет — возвращаем путь на логин
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    return '/auth';
+  // 1. Если страница только для своих, а мы анонимы — гоним на логин
+  if (routeMeta?.requireAuth && !isAuthenticated) {
+    return "/auth";
   }
 
-  // Если юзер уже залогинен и лезет на страницу логина — возвращаем путь на главную
-  if (to.path === '/auth' && isAuthenticated) {
-    return '/';
+  // 2. Если страница ТОЛЬКО для анонимов (логин/рега), а мы уже вошли — гоним на главную
+  if (routeMeta?.onlyAnonymous && isAuthenticated) {
+    return "/";
   }
 
-  // В остальных случаях просто разрешаем переход (ничего не возвращаем или return true)
   return true;
 });
 
 
-export default router
+export default router;
