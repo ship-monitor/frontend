@@ -7,12 +7,11 @@ const api = axios.create({
 // Перехватчик: перед каждым запросом добавляем токен из localStorage
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  // Проверяем, что токен существует и это не пустая строка
-  if (token && token !== 'undefined' && token !== 'null') {
-    config.headers.Authorization = `Bearer ${token}`;
-  } else {
-    // Если токена нет, лучше вообще не слать заголовок Authorization
-    delete config.headers.Authorization;
+  
+  if (token) {
+    const cleanToken = token.replace(/"/g, '');
+    // Шлем ТОЛЬКО токен, так как бэкенд Петрова не умеет отрезать "Bearer "
+    config.headers.Authorization = cleanToken; 
   }
   return config;
 });
