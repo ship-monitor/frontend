@@ -7,12 +7,12 @@ import {
 // Подключаем твои страницы (проверь пути!)
 import Auth from "../pages/AuthPage.vue";
 import Dashboard from "../pages/DashboardPage.vue";
-import registr from "../pages/auth/registr.vue";
+import registr from "../pages/auth/RegisterPage.vue";
 
-declare module 'vue-router' {
+declare module "vue-router" {
   interface RouteMeta {
-    requireAuth?: boolean
-    onlyAnonymous?: boolean
+    requireAuth?: boolean;
+    onlyAnonymous?: boolean;
   }
 }
 
@@ -33,7 +33,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requireAuth: true } as CustomRouteMeta,
   },
   {
-    path: "/registr",
+    path: "/auth/register",
     name: "Registr",
     component: registr,
     meta: { onlyAnonymous: true } as CustomRouteMeta,
@@ -62,6 +62,5 @@ router.beforeEach((to) => {
 
   return true;
 });
-
 
 export default router;
