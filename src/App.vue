@@ -1,11 +1,15 @@
 <template>
-  <!-- Обертка, которая делает этот div единственным корневым элементом -->
-  <div class="app-layout">
-    <!-- Хедер показываем везде, кроме страницы авторизации -->
-    <TheHeader v-if="$route.path !== '/auth'" />
-
-    <!-- Сюда роутер будет подставлять Auth.vue или Dashboard.vue -->
-    <router-view />
+  <div class="flex flex-row min-h-svh">
+    <aside
+      v-if="$route.meta.hideNav !== true"
+      class="w-64 bg-[#1E293B] text-white"
+    >
+      Sidebar
+    </aside>
+    <div class="flex flex-col grow">
+      <TheHeader v-if="$route.meta.hideNav !== true" />
+      <router-view />
+    </div>
   </div>
 </template>
 

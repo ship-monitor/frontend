@@ -5,38 +5,39 @@ import {
 } from "vue-router";
 
 // Подключаем твои страницы (проверь пути!)
-import Auth from "../pages/AuthPage.vue";
-import Dashboard from "../pages/DashboardPage.vue";
-import registr from "../pages/auth/RegisterPage.vue";
+import Auth from "@/pages/auth/LoginPage.vue";
+import Dashboard from "@/pages/DashboardPage.vue";
+import registr from "@/pages/auth/RegisterPage.vue";
 
-declare module "vue-router" {
-  interface RouteMeta {
-    requireAuth?: boolean;
-    onlyAnonymous?: boolean;
-  }
-}
-
-type CustomRouteMeta = { requireAuth: boolean; onlyAnonymous: boolean };
+export type CustomRouteMeta = {
+  requireAuth: boolean;
+  onlyAnonymous: boolean;
+  hideNav?: boolean;
+};
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: "/auth",
     name: "Auth",
+    redirect: "/auth/login",
+  },
+  {
+    path: "/auth/login",
+    name: "Login",
     component: Auth,
-    meta: { onlyAnonymous: true } as CustomRouteMeta,
+    meta: { onlyAnonymous: true, hideNav: true } as CustomRouteMeta,
   },
   {
     path: "/",
     name: "Dashboard",
     component: Dashboard,
-    // Мета-поле, чтобы пометить страницу как "только для залогиненных"
     meta: { requireAuth: true } as CustomRouteMeta,
   },
   {
     path: "/auth/register",
-    name: "Registr",
+    name: "Register",
     component: registr,
-    meta: { onlyAnonymous: true } as CustomRouteMeta,
+    meta: { onlyAnonymous: true, hideNav: true } as CustomRouteMeta,
   },
 ];
 
