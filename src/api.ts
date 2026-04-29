@@ -4,7 +4,7 @@ const TOKEN_KEY = "token";
 const REFRESH_TOKEN_KEY = "refreshToken";
 
 const api = axios.create({
-  baseURL: "", // Оставляем пустым, так как работает прокси в Vite
+  baseURL: "",
 });
 
 api.interceptors.request.use((config) => {
@@ -12,6 +12,7 @@ api.interceptors.request.use((config) => {
 
   if (token) {
     const cleanToken = token.replace(/"/g, "");
+    // ❌ НЕ добавляем Bearer, бэкенд ждет чистый токен
     config.headers.Authorization = cleanToken;
   }
   return config;
@@ -24,7 +25,6 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Проверяем, что ошибка 401 и мы ещё не пытались повторить этот запрос
     if (error.response?.status === UNAUTHORIZED && !originalRequest._retry) {
       originalRequest._retry = true;
 
@@ -33,24 +33,20 @@ api.interceptors.response.use(
           .getItem(REFRESH_TOKEN_KEY)
           ?.replace(/"/g, "");
 
-        // Делаем запрос на обновление токена
-        // Важно использовать axios, а не api, чтобы не зациклиться
-        const { data } = await axios.post("/api/refresh", { refreshToken });
+        // Используем правильный эндпоинт для рефреша
+        const { data } = await axios.post("/api/auth/refresh", { refreshToken });
 
-        // Сохраняем новые токены
-        localStorage.setItem(TOKEN_KEY, data.accessToken);
+        localStorage.setItem(TOKEN_KEY, JSON.stringify(data.token));
         if (data.refreshToken) {
-          localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
+          localStorage.setItem(REFRESH_TOKEN_KEY, JSON.stringify(data.refreshToken));
         }
 
-        // Обновляем заголовок в упавшем запросе и повторяем его
-        originalRequest.headers.Authorization = data.accessToken;
+        originalRequest.headers.Authorization = data.token;
         return api(originalRequest);
       } catch (refreshError) {
-        // Если рефреш тоже протух — разлогиниваем пользователя
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(REFRESH_TOKEN_KEY);
-        window.location.href = "/login";
+        window.location.href = "/auth/login";
         return Promise.reject(refreshError);
       }
     }
@@ -58,4 +54,5 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 export default api;

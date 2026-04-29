@@ -4,10 +4,12 @@ import {
   type RouteRecordRaw,
 } from "vue-router";
 
-// Подключаем твои страницы (проверь пути!)
 import Auth from "@/pages/auth/LoginPage.vue";
 import Dashboard from "@/pages/DashboardPage.vue";
-import registr from "@/pages/auth/RegisterPage.vue";
+import Register from "@/pages/auth/RegisterPage.vue";
+import Organizations from "@/pages/OrganizationsPage.vue";
+import Invitations from "@/pages/InvitationsPage.vue";
+import Profile from "@/pages/ProfilePage.vue";
 
 export type CustomRouteMeta = {
   requireAuth: boolean;
@@ -28,16 +30,34 @@ const routes: Array<RouteRecordRaw> = [
     meta: { onlyAnonymous: true, hideNav: true } as CustomRouteMeta,
   },
   {
+    path: "/auth/register",
+    name: "Register",
+    component: Register,
+    meta: { onlyAnonymous: true, hideNav: true } as CustomRouteMeta,
+  },
+  {
     path: "/",
     name: "Dashboard",
     component: Dashboard,
     meta: { requireAuth: true } as CustomRouteMeta,
   },
   {
-    path: "/auth/register",
-    name: "Register",
-    component: registr,
-    meta: { onlyAnonymous: true, hideNav: true } as CustomRouteMeta,
+    path: "/organizations",
+    name: "Organizations",
+    component: Organizations,
+    meta: { requireAuth: true } as CustomRouteMeta,
+  },
+  {
+    path: "/invitations",
+    name: "Invitations",
+    component: Invitations,
+    meta: { requireAuth: true } as CustomRouteMeta,
+  },
+  {
+    path: "/profile",
+    name: "Profile",
+    component: Profile,
+    meta: { requireAuth: true } as CustomRouteMeta,
   },
 ];
 
@@ -46,17 +66,14 @@ const router = createRouter({
   routes,
 });
 
-// Навигационный гард (защита роутов)
 router.beforeEach((to) => {
   const isAuthenticated = !!localStorage.getItem("token");
   const routeMeta = to.meta as CustomRouteMeta;
 
-  // 1. Если страница только для своих, а мы анонимы — гоним на логин
   if (routeMeta?.requireAuth && !isAuthenticated) {
     return "/auth";
   }
 
-  // 2. Если страница ТОЛЬКО для анонимов (логин/рега), а мы уже вошли — гоним на главную
   if (routeMeta?.onlyAnonymous && isAuthenticated) {
     return "/";
   }

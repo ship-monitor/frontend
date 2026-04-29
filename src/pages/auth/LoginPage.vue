@@ -1,30 +1,26 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
-import axios from "axios";
-import { useRouter } from "vue-router"; // Добавь импорт
+import api from "@/api";
+import { useRouter } from "vue-router";
 import textbox from "@/components/textbox.vue";
 
-const email = ref(""); // Переименовали переменную
+const email = ref("");
 const password = ref("");
-const router = useRouter(); // Инициализируй роутер
+const router = useRouter();
 
 const handleLogin = async () => {
   try {
-    const response = await axios.post("/api/auth/login", {
+    const response = await api.post("/api/auth/login", {
       email: email.value,
       password: password.value,
     });
 
-    // 1. Сохраняем токены
-    localStorage.setItem("token", response.data.token);
-    localStorage.setItem("refreshToken", response.data.refreshToken);
-
-    // 2. Сохраняем инфу о юзере (опционально)
+    // Сохраняем как JSON строку (как ожидает api.ts)
+    localStorage.setItem("token", JSON.stringify(response.data.token));
+    localStorage.setItem("refreshToken", JSON.stringify(response.data.refreshToken));
     localStorage.setItem("user", JSON.stringify(response.data.user));
 
     console.log("Успешный вход!", response.data.user);
-
-    // 3. ПЕРЕХОДИМ на главную страницу (или /dashboard)
     router.push("/");
   } catch (error) {
     console.error("Ошибка:", error.response?.data || error.message);
@@ -34,17 +30,21 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <!-- Все элементы ДОЛЖНЫ быть внутри одного общего тега -->
-  <div class="auth-container">
-    <textbox v-model="email" placeholder="Email" class="mb-4" />
-
-    <textbox
-      v-model="password"
-      placeholder="Password"
-      type="password"
-      class="mb-6"
-    />
-
-    <button @click="handleLogin">Login</button>
+  <div class="min-h-screen flex items-center justify-center bg-gray-100">
+    <div class="bg-white p-8 rounded-lg shadow-md w-96">
+      <h1 class="text-2xl font-bold mb-6 text-center">Вход</h1>
+      <textbox v-model="email" placeholder="Email" class="mb-4" />
+      <textbox v-model="password" placeholder="Password" type="password" class="mb-6" />
+      <button @click="handleLogin"
+        class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors">
+        Войти
+      </button>
+      <p class="mt-4 text-center text-sm text-gray-600">
+        Нет аккаунта?
+        <router-link to="/auth/register" class="text-blue-600 hover:underline">
+          Зарегистрироваться
+        </router-link>
+      </p>
+    </div>
   </div>
 </template>
