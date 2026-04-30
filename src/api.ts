@@ -5,6 +5,7 @@ const REFRESH_TOKEN_KEY = "refreshToken";
 
 const api = axios.create({
   baseURL: "",
+  validateStatus: () => true,
 });
 
 api.interceptors.request.use((config) => {
@@ -12,7 +13,6 @@ api.interceptors.request.use((config) => {
 
   if (token) {
     const cleanToken = token.replace(/"/g, "");
-    // ❌ НЕ добавляем Bearer, бэкенд ждет чистый токен
     config.headers.Authorization = cleanToken;
   }
   return config;
@@ -34,11 +34,16 @@ api.interceptors.response.use(
           ?.replace(/"/g, "");
 
         // Используем правильный эндпоинт для рефреша
-        const { data } = await axios.post("/api/auth/refresh", { refreshToken });
+        const { data } = await axios.post("/api/auth/refresh", {
+          refreshToken,
+        });
 
         localStorage.setItem(TOKEN_KEY, JSON.stringify(data.token));
         if (data.refreshToken) {
-          localStorage.setItem(REFRESH_TOKEN_KEY, JSON.stringify(data.refreshToken));
+          localStorage.setItem(
+            REFRESH_TOKEN_KEY,
+            JSON.stringify(data.refreshToken)
+          );
         }
 
         originalRequest.headers.Authorization = data.token;

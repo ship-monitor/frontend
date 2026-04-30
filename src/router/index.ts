@@ -7,7 +7,6 @@ import {
 import Auth from "@/pages/auth/LoginPage.vue";
 import Dashboard from "@/pages/DashboardPage.vue";
 import Register from "@/pages/auth/RegisterPage.vue";
-import Organizations from "@/pages/OrganizationsPage.vue";
 import Invitations from "@/pages/InvitationsPage.vue";
 import Profile from "@/pages/ProfilePage.vue";
 
@@ -44,7 +43,13 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/organizations",
     name: "Organizations",
-    component: Organizations,
+    component: () => import("../pages/organizations/ListPage.vue"),
+    meta: { requireAuth: true } as CustomRouteMeta,
+  },
+  {
+    path: "/organizations/:id",
+    name: "Organization details",
+    component: () => import("../pages/organizations/DetailsPage.vue"),
     meta: { requireAuth: true } as CustomRouteMeta,
   },
   {
