@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive } from "vue";
-import api from "@/api"; // ✅ Используем наш api
+import api from "@/api";
 import type { AxiosError } from "axios";
 import { useRouter } from "vue-router";
 import textbox from "../../components/textbox.vue";
@@ -15,21 +15,15 @@ const formData = reactive({
 
 const handleRegister = async () => {
   try {
-    const response = await api.post("/api/auth/register", {
-      name: formData.name,
-      email: formData.email,
+    await api.post("/api/auth/register", {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
       password: formData.password,
     });
 
-    console.log("Регистрация успешна!", response.data);
-
-    // После регистрации отправляем на логин
     router.push("/auth");
   } catch (error) {
-    console.error(
-      "Ошибка регистрации:",
-      (error as AxiosError).response?.data || (error as Error).message
-    );
+    console.error("Ошибка регистрации:", (error as AxiosError).response?.data || (error as Error).message);
   }
 };
 </script>

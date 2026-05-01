@@ -11,16 +11,14 @@ const router = useRouter();
 const handleLogin = async () => {
   try {
     const response = await api.post("/api/auth/login", {
-      email: email.value,
+      email: email.value.trim(),
       password: password.value,
     });
 
-    // Сохраняем как JSON строку (как ожидает api.ts)
-    localStorage.setItem("token", JSON.stringify(response.data.token));
-    localStorage.setItem("refreshToken", JSON.stringify(response.data.refreshToken));
+    localStorage.setItem("token", response.data.token);
+    localStorage.setItem("refreshToken", response.data.refreshToken);
     localStorage.setItem("user", JSON.stringify(response.data.user));
 
-    console.log("Успешный вход!", response.data.user);
     router.push("/");
   } catch (error) {
     console.error("Ошибка:", error.response?.data || error.message);
