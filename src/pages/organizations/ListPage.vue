@@ -2,103 +2,90 @@
   <div class="p-8 max-w-5xl mx-auto">
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold text-gray-800">Мои организации</h1>
-      <button @click="openCreateModal" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+      <button
+        @click="showCreateModal = true"
+        class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
         + Создать организацию
       </button>
     </div>
 
-    <div v-if="loading" class="text-center py-8"><p class="text-gray-500">Загрузка...</p></div>
+    <div v-if="loading" class="text-center py-8">
+      <p class="text-gray-500">Загрузка...</p>
+    </div>
 
-    <div v-else-if="organizations && organizations.length === 0" class="text-center py-8">
+    <div v-else-if="organizations.length === 0" class="text-center py-12 bg-gray-50 rounded">
       <p class="text-gray-500">У вас пока нет организаций</p>
+      <button
+        @click="showCreateModal = true"
+        class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        Создать первую организацию
+      </button>
     </div>
 
-    <div v-else class="grid gap-4">
-      <div v-for="org in organizations" :key="org.id"
-        class="bg-white rounded-lg shadow p-6 flex justify-between items-center hover:shadow-md transition-shadow cursor-pointer"
-        @click="goToOrganization(org.id)">
-        <div><h3 class="text-xl font-semibold text-gray-800">{{ org.name }}</h3></div>
-        <div class="flex gap-2" @click.stop>
-          <button @click="openMembersModal(org)" class="text-green-600 hover:text-green-800 px-3 py-1 rounded border border-green-300 hover:border-green-500">Участники</button>
-          <button @click="openEditModal(org)" class="text-blue-600 hover:text-blue-800 px-3 py-1 rounded border border-blue-300 hover:border-blue-500">Изменить</button>
-          <button @click="confirmDelete(org)" class="text-red-600 hover:text-red-800 px-3 py-1 rounded border border-red-300 hover:border-red-500">Удалить</button>
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div
+        v-for="org in organizations"
+        :key="org.id"
+        class="border rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer"
+        @click="router.push(`/organizations/${org.id}`)"
+      >
+        <h3 class="text-xl font-semibold mb-2">{{ org.name }}</h3>
+        <p class="text-sm text-gray-500 mb-4">ID: {{ org.id }}</p>
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-400">
+            Создано: {{ formatDate(org.createdAt) }}
+          </span>
+          <router-link
+            :to="`/organizations/${org.id}`"
+            class="text-blue-500 hover:text-blue-700 text-sm"
+            @click.stop
+          >
+            Открыть →
+          </router-link>
         </div>
       </div>
     </div>
 
-    <!-- Модальное окно создания/редактирования -->
-    <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click.self="closeModal">
-      <div class="bg-white rounded-lg p-6 w-96">
-        <h2 class="text-xl font-bold mb-4">{{ editingOrg ? "Изменить организацию" : "Создать организацию" }}</h2>
-        <input v-model="orgName" placeholder="Название организации" class="border rounded px-3 py-2 w-full mb-4" @keyup.enter="handleSave" />
-        <p v-if="errorMessage" class="text-red-500 text-sm mb-4">{{ errorMessage }}</p>
-        <div class="flex justify-end gap-2">
-          <button @click="closeModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Отмена</button>
-          <button @click="handleSave" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400" :disabled="!orgName.trim() || saving">{{ saving ? "Сохранение..." : editingOrg ? "Сохранить" : "Создать" }}</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Модальное окно участников -->
-    <div v-if="showMembersModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click.self="showMembersModal = false">
-      <div class="bg-white rounded-lg p-6 w-[600px] max-h-[80vh] overflow-y-auto">
-        <h2 class="text-xl font-bold mb-4">Участники: {{ selectedOrg?.name }}</h2>
-
-        <div v-if="membersLoading" class="text-center py-4"><p class="text-gray-500">Загрузка участников...</p></div>
-
-        <div v-else-if="members.length > 0" class="space-y-2 mb-4">
-          <div v-for="member in members" :key="member.userId" class="flex justify-between items-center p-3 bg-gray-50 rounded">
-            <div>
-              <p class="font-medium">{{ member.name || "Пользователь" }}</p>
-              <p class="text-sm text-gray-500">{{ member.email || member.userId }}</p>
-            </div>
-            <button @click="handleRemoveMember(member.userId)" class="text-red-500 hover:text-red-700 text-sm px-2 py-1 border border-red-300 rounded hover:border-red-500" :disabled="removingMember === member.userId">
-              {{ removingMember === member.userId ? "Удаление..." : "Удалить" }}
-            </button>
+    <!-- Модальное окно создания организации -->
+    <div
+      v-if="showCreateModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      @click.self="showCreateModal = false"
+    >
+      <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 class="text-lg font-semibold mb-4">Создать организацию</h3>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Название организации
+            </label>
+            <input
+              v-model="newOrgName"
+              type="text"
+              placeholder="Моя организация"
+              class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
+              @keyup.enter="createOrg"
+            />
           </div>
         </div>
-        <div v-else class="text-center py-4"><p class="text-gray-500">Нет участников</p></div>
 
-        <!-- Приглашение участника -->
-        <div class="border-t pt-4 mt-4">
-          <h3 class="font-semibold mb-2">Пригласить участника</h3>
-          <div class="flex gap-2 mb-2">
-            <input v-model="inviteEmail" placeholder="Email участника" class="border rounded px-3 py-2 flex-1" @keyup.enter="handleInviteMember" />
-            <button @click="handleInviteMember" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400" :disabled="!inviteEmail.trim() || inviting">
-              {{ inviting ? "..." : "Пригласить" }}
-            </button>
-          </div>
-
-          <!-- Приглашение нескольких участников -->
-          <div class="mt-3">
-            <p class="text-sm text-gray-600 mb-1">Или пригласить нескольких (email через запятую):</p>
-            <div class="flex gap-2">
-              <input v-model="inviteEmails" placeholder="email1@test.com, email2@test.com" class="border rounded px-3 py-2 flex-1" @keyup.enter="handleInviteMultiple" />
-              <button @click="handleInviteMultiple" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400" :disabled="!inviteEmails.trim() || inviting">
-                {{ inviting ? "..." : "Пригласить" }}
-              </button>
-            </div>
-          </div>
-
-          <p v-if="membersError" class="text-red-500 text-sm mt-2">{{ membersError }}</p>
-          <p v-if="membersSuccess" class="text-green-500 text-sm mt-2">{{ membersSuccess }}</p>
-        </div>
-
-        <div class="flex justify-end mt-4">
-          <button @click="showMembersModal = false" class="px-4 py-2 text-gray-600 hover:text-gray-800">Закрыть</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Модальное окно удаления -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click.self="showDeleteModal = false">
-      <div class="bg-white rounded-lg p-6 w-96">
-        <h2 class="text-xl font-bold mb-4">Удалить организацию?</h2>
-        <p class="text-gray-600 mb-4">Вы уверены, что хотите удалить "{{ orgToDelete?.name }}"?</p>
-        <p v-if="errorMessage" class="text-red-500 text-sm mb-4">{{ errorMessage }}</p>
-        <div class="flex justify-end gap-2">
-          <button @click="showDeleteModal = false" class="px-4 py-2 text-gray-600 hover:text-gray-800">Отмена</button>
-          <button @click="handleDelete" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-gray-400" :disabled="deleting">{{ deleting ? "Удаление..." : "Удалить" }}</button>
+        <div class="mt-6 flex justify-end gap-3">
+          <button
+            @click="showCreateModal = false"
+            class="px-4 py-2 text-gray-600 border rounded hover:bg-gray-50"
+          >
+            Отмена
+          </button>
+          <button
+            @click="createOrg"
+            :disabled="!newOrgName.trim()"
+            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+          >
+            Создать
+          </button>
         </div>
       </div>
     </div>
@@ -106,190 +93,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-import {
-  getUsersOrganizations, createOrganization, updateOrganization,
-  deleteOrganization, getOrganizationMembers, inviteMembers,
-  removeMembers, type Organization, type Member,
-} from "@/data";
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { getUsersOrganizations, createOrganization, type Organization } from '@/data';
 
 const router = useRouter();
+
 const organizations = ref<Organization[]>([]);
 const loading = ref(true);
-const errorMessage = ref("");
-const showModal = ref(false);
-const showDeleteModal = ref(false);
-const showMembersModal = ref(false);
-const saving = ref(false);
-const deleting = ref(false);
-const membersLoading = ref(false);
-const inviting = ref(false);
-const removingMember = ref<string | null>(null);
-const orgName = ref("");
-const editingOrg = ref<Organization | null>(null);
-const orgToDelete = ref<Organization | null>(null);
-const selectedOrg = ref<Organization | null>(null);
-const members = ref<Member[]>([]);
-const inviteEmail = ref("");
-const inviteEmails = ref("");
-const membersError = ref("");
-const membersSuccess = ref("");
-
-const goToOrganization = (id: string) => router.push(`/organizations/${id}`);
+const showCreateModal = ref(false);
+const newOrgName = ref('');
 
 const loadOrganizations = async () => {
   try {
-    loading.value = true;
     organizations.value = await getUsersOrganizations();
-  } catch (error: any) {
-    console.error("Ошибка загрузки:", error);
-    organizations.value = [];
+  } catch (error) {
+    console.error('Failed to load organizations:', error);
   } finally {
     loading.value = false;
   }
 };
 
-const openCreateModal = () => {
-  editingOrg.value = null;
-  orgName.value = "";
-  errorMessage.value = "";
-  showModal.value = true;
-};
-
-const openEditModal = (org: Organization) => {
-  editingOrg.value = org;
-  orgName.value = org.name;
-  errorMessage.value = "";
-  showModal.value = true;
-};
-
-const closeModal = () => {
-  showModal.value = false;
-  editingOrg.value = null;
-  orgName.value = "";
-  errorMessage.value = "";
-};
-
-const handleSave = async () => {
-  if (!orgName.value.trim()) return;
+const createOrg = async () => {
+  if (!newOrgName.value.trim()) return;
+  
   try {
-    saving.value = true;
-    errorMessage.value = "";
-    if (editingOrg.value) {
-      await updateOrganization(editingOrg.value.id, orgName.value);
-    } else {
-      await createOrganization(orgName.value);
-    }
-    closeModal();
-    await loadOrganizations();
-  } catch (error: any) {
-    console.error("Ошибка сохранения:", error);
-    errorMessage.value = error.response?.data?.message || "Ошибка при сохранении";
-  } finally {
-    saving.value = false;
+    const org = await createOrganization(newOrgName.value);
+    organizations.value.unshift(org);
+    showCreateModal.value = false;
+    newOrgName.value = '';
+  } catch (error) {
+    console.error('Failed to create organization:', error);
   }
 };
 
-const confirmDelete = (org: Organization) => {
-  orgToDelete.value = org;
-  errorMessage.value = "";
-  showDeleteModal.value = true;
+const formatDate = (dateStr: string) => {
+  return new Date(dateStr).toLocaleDateString('ru-RU');
 };
 
-const handleDelete = async () => {
-  if (!orgToDelete.value) return;
-  try {
-    deleting.value = true;
-    errorMessage.value = "";
-    await deleteOrganization(orgToDelete.value.id);
-    showDeleteModal.value = false;
-    await loadOrganizations();
-  } catch (error: any) {
-    console.error("Ошибка удаления:", error);
-    errorMessage.value = error.response?.data?.message || "Ошибка при удалении";
-  } finally {
-    deleting.value = false;
-  }
-};
-
-const openMembersModal = async (org: Organization) => {
-  selectedOrg.value = org;
-  showMembersModal.value = true;
-  inviteEmail.value = "";
-  inviteEmails.value = "";
-  membersError.value = "";
-  membersSuccess.value = "";
-  await loadMembers();
-};
-
-const loadMembers = async () => {
-  if (!selectedOrg.value) return;
-  try {
-    membersLoading.value = true;
-    membersError.value = "";
-    members.value = await getOrganizationMembers(selectedOrg.value.id);
-  } catch (error: any) {
-    console.error("Ошибка загрузки участников:", error);
-    membersError.value = "Не удалось загрузить участников";
-    members.value = [];
-  } finally {
-    membersLoading.value = false;
-  }
-};
-
-const handleInviteMember = async () => {
-  if (!selectedOrg.value || !inviteEmail.value.trim()) return;
-  try {
-    inviting.value = true;
-    membersError.value = "";
-    membersSuccess.value = "";
-    await inviteMembers(selectedOrg.value.id, [inviteEmail.value.trim()]);
-    membersSuccess.value = `Приглашение отправлено на ${inviteEmail.value}`;
-    inviteEmail.value = "";
-  } catch (error: any) {
-    console.error("Ошибка приглашения:", error);
-    membersError.value = error.response?.data?.details || "Ошибка при приглашении";
-  } finally {
-    inviting.value = false;
-  }
-};
-
-const handleInviteMultiple = async () => {
-  if (!selectedOrg.value || !inviteEmails.value.trim()) return;
-  const emails = inviteEmails.value.split(",").map(e => e.trim()).filter(e => e);
-  if (emails.length === 0) return;
-
-  try {
-    inviting.value = true;
-    membersError.value = "";
-    membersSuccess.value = "";
-    await inviteMembers(selectedOrg.value.id, emails);
-    membersSuccess.value = `Приглашения отправлены: ${emails.join(", ")}`;
-    inviteEmails.value = "";
-  } catch (error: any) {
-    console.error("Ошибка приглашения:", error);
-    membersError.value = error.response?.data?.details || "Ошибка при приглашении";
-  } finally {
-    inviting.value = false;
-  }
-};
-
-const handleRemoveMember = async (userId: string) => {
-  if (!selectedOrg.value) return;
-  if (!confirm("Вы уверены, что хотите удалить этого участника?")) return;
-  try {
-    removingMember.value = userId;
-    membersError.value = "";
-    await removeMembers(selectedOrg.value.id, [userId]);
-    await loadMembers();
-  } catch (error: any) {
-    console.error("Ошибка удаления участника:", error);
-    membersError.value = error.response?.data?.message || "Ошибка при удалении участника";
-  } finally {
-    removingMember.value = null;
-  }
-};
-
-loadOrganizations();
+onMounted(loadOrganizations);
 </script>

@@ -4,35 +4,29 @@ import {
   type RouteRecordRaw,
 } from "vue-router";
 
-import Auth from "@/pages/auth/LoginPage.vue";
+import { checkAuthStatus } from "@/api";
+
 import Dashboard from "@/pages/DashboardPage.vue";
-import Register from "@/pages/auth/RegisterPage.vue";
-import Invitations from "@/pages/InvitationsPage.vue";
 import Profile from "@/pages/ProfilePage.vue";
+import Settings from "@/pages/SettingsPage.vue";
 
 export type CustomRouteMeta = {
   requireAuth: boolean;
   onlyAnonymous: boolean;
-  hideNav?: boolean;
 };
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: "/auth",
-    name: "Auth",
-    redirect: "/auth/login",
-  },
-  {
     path: "/auth/login",
     name: "Login",
-    component: Auth,
-    meta: { onlyAnonymous: true, hideNav: true } as CustomRouteMeta,
+    component: () => import("../pages/auth/LoginPage.vue"),
+    meta: { onlyAnonymous: true } as CustomRouteMeta,
   },
   {
     path: "/auth/register",
     name: "Register",
-    component: Register,
-    meta: { onlyAnonymous: true, hideNav: true } as CustomRouteMeta,
+    component: () => import("../pages/auth/RegisterPage.vue"),
+    meta: { onlyAnonymous: true } as CustomRouteMeta,
   },
   {
     path: "/",
@@ -53,16 +47,20 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requireAuth: true } as CustomRouteMeta,
   },
   {
-    path: "/invitations",
-    name: "Invitations",
-    component: Invitations,
-    meta: { requireAuth: true } as CustomRouteMeta,
-  },
-  {
     path: "/profile",
     name: "Profile",
     component: Profile,
     meta: { requireAuth: true } as CustomRouteMeta,
+  },
+  {
+    path: "/settings",
+    name: "Settings",
+    component: Settings,
+    meta: { requireAuth: true } as CustomRouteMeta,
+  },
+  {
+    path: "/:pathMatch(.*)*",
+    redirect: "/",
   },
 ];
 
@@ -72,11 +70,14 @@ const router = createRouter({
 });
 
 router.beforeEach((to) => {
-  const isAuthenticated = !!localStorage.getItem("token");
+  const isAuthenticated = checkAuthStatus();
   const routeMeta = to.meta as CustomRouteMeta;
 
   if (routeMeta?.requireAuth && !isAuthenticated) {
-    return "/auth";
+    return {
+      path: "/auth/login",
+      query: { redirect: to.fullPath },
+    };
   }
 
   if (routeMeta?.onlyAnonymous && isAuthenticated) {

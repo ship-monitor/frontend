@@ -15,9 +15,33 @@ const handleLogin = async () => {
       password: password.value,
     });
 
-    localStorage.setItem("token", response.data.token);
-    localStorage.setItem("refreshToken", response.data.refreshToken);
-    localStorage.setItem("user", JSON.stringify(response.data.user));
+    // Получаем токен и очищаем от кавычек
+    let token = response.data.token;
+    let refreshToken = response.data.refreshToken;
+    let user = response.data.user;
+
+    // Если токен пришел как объект - берем значение
+    if (typeof token === 'object') {
+      token = token.token || token.accessToken || token.access_token;
+    }
+    if (typeof refreshToken === 'object') {
+      refreshToken = refreshToken.refreshToken || refreshToken.refresh_token;
+    }
+
+    // Очищаем от кавычек и пробелов
+    token = String(token || '').replace(/["'\s]/g, '');
+    refreshToken = String(refreshToken || '').replace(/["'\s]/g, '');
+    
+    if (!token) {
+      throw new Error('No token in response');
+    }
+
+    console.log('Saving token:', token.substring(0, 20) + '...');
+    
+    // Сохраняем чистыми строками без JSON.stringify
+    localStorage.setItem("token", token);
+    localStorage.setItem("refreshToken", refreshToken);
+    localStorage.setItem("user", typeof user === 'object' ? JSON.stringify(user) : user);
 
     router.push("/");
   } catch (error) {
