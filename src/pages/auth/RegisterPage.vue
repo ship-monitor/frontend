@@ -3,6 +3,7 @@ import { ref } from "vue";
 import api from "@/api";
 import { useRouter } from "vue-router";
 import textbox from "@/components/textbox.vue";
+import { AxiosError } from "axios";
 
 const email = ref("");
 const password = ref("");
@@ -22,24 +23,30 @@ const handleRegister = async () => {
     let refreshToken = response.data.refreshToken;
     let user = response.data.user;
 
-    if (typeof token === 'object') {
+    if (typeof token === "object") {
       token = token.token || token.accessToken || token.access_token;
     }
-    if (typeof refreshToken === 'object') {
+    if (typeof refreshToken === "object") {
       refreshToken = refreshToken.refreshToken || refreshToken.refresh_token;
     }
 
-    token = String(token || '').replace(/["'\s]/g, '');
-    refreshToken = String(refreshToken || '').replace(/["'\s]/g, '');
+    token = String(token || "").replace(/["'\s]/g, "");
+    refreshToken = String(refreshToken || "").replace(/["'\s]/g, "");
 
     localStorage.setItem("token", token);
     localStorage.setItem("refreshToken", refreshToken);
-    localStorage.setItem("user", typeof user === 'object' ? JSON.stringify(user) : user);
+    localStorage.setItem(
+      "user",
+      typeof user === "object" ? JSON.stringify(user) : user
+    );
 
     router.push("/");
   } catch (error) {
-    console.error("Ошибка:", error.response?.data || error.message);
-    alert("Ошибка регистрации");
+    if (error instanceof AxiosError) {
+      console.error("Ошибка:", error.response?.data || error.message);
+      alert("Ошибка регистрации");
+    }
+    console.error("Ошибка:", error);
   }
 };
 </script>
@@ -50,9 +57,16 @@ const handleRegister = async () => {
       <h1 class="text-2xl font-bold mb-6 text-center">Регистрация</h1>
       <textbox v-model="name" placeholder="Имя" class="mb-4" />
       <textbox v-model="email" placeholder="Email" class="mb-4" />
-      <textbox v-model="password" placeholder="Password" type="password" class="mb-6" />
-      <button @click="handleRegister"
-        class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition-colors">
+      <textbox
+        v-model="password"
+        placeholder="Password"
+        type="password"
+        class="mb-6"
+      />
+      <button
+        @click="handleRegister"
+        class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition-colors"
+      >
         Зарегистрироваться
       </button>
       <p class="mt-4 text-center text-sm text-gray-600">

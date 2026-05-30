@@ -53,8 +53,8 @@ api.interceptors.response.use(
         throw new Error("No refresh token available");
       }
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || ""}/api/auth/refresh`,
+      const response = await api.post(
+        "/api/auth/refresh",
         { refreshToken },
         { validateStatus: () => true }
       );
@@ -97,7 +97,10 @@ export const checkAuthStatus = (): boolean => {
   if (!token) return false;
 
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
+    const [, payloadString] = token.split(".");
+    if (!payloadString) return false;
+
+    const payload = JSON.parse(atob(payloadString));
     const isExpired = payload.exp * 1000 < Date.now();
 
     if (isExpired) {

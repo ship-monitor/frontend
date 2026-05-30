@@ -1,4 +1,4 @@
-FROM node:24-alpine AS build-stage
+FROM node:26-alpine AS build-stage
 ENV VITE_API_URL=http://157.22.206.199:8080
 
 WORKDIR /app
