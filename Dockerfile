@@ -1,25 +1,21 @@
-# Dockerfile
-FROM node:24-alpine
+FROM node:24-alpine AS build-stage
+ENV VITE_API_URL=http://157.22.206.199:8080
 
 WORKDIR /app
 
-# Копируем файлы зависимостей
 COPY package*.json ./
 
-# Устанавливаем зависимости
-RUN npm install
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 
-# Копируем исходный код
 COPY . .
 
-# Собираем приложение, пропуская проверку типов
-RUN npm run build-only
+RUN npm run build
 
-# Устанавливаем простой HTTP сервер для раздачи статики
-RUN npm install -g serve
+FROM nginx:1.31-alpine-slim AS production-stage
 
-# Открываем порт
-EXPOSE 3000
+COPY --from=build-stage /app/dist /usr/share/nginx/html
 
-# Запускаем serve для раздачи собранного приложения
-CMD ["serve", "-s", "dist", "-l", "3000"]
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
