@@ -11,7 +11,7 @@ export default defineConfig({
     proxy: {
       // Когда ты пишешь во Vue запрос к /api, Vite перенаправит его на Go
       "/api": {
-        target: "http://localhost:8080",
+        target: "http://157.22.206.199:8080",
         changeOrigin: true,
         secure: false,
       },
