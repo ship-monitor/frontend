@@ -83,9 +83,9 @@ export const deleteOrganization = async (id: string): Promise<void> => {
 
 export const getOrganizationMembers = async (id: string): Promise<Member[]> => {
   const result = await api.get(`/api/organizations/${id}/members`);
-  const data = checkResponse<{ members: any[] }>(result);
-  return (data.members ?? []).map((m: any) => ({
-    userId: m.memberId || m.userId,
+  const data = checkResponse<{ members: Member[] }>(result);
+  return (data.members ?? []).map((m) => ({
+    userId: m.userId,
     email: m.email,
     name: m.name,
     role: m.role,
@@ -125,15 +125,8 @@ export const removeMembers = async (
 
 export const getInvitations = async (): Promise<Invitation[]> => {
   const result = await api.get("/api/invitations");
-  const data = checkResponse<{ invitations: any[] }>(result);
-  return (data.invitations ?? []).map((inv: any) => ({
-    id: inv.id,
-    organizationId: inv.organizationId,
-    organizationName: inv.organizationName,
-    inviteeEmail: inv.inviteeEmail,
-    status: inv.status,
-    creationDate: inv.createdAt,
-  }));
+  const data = checkResponse<{ invitations: Invitation[] }>(result);
+  return data.invitations ?? [];
 };
 
 export const acceptInvitation = async (invitationId: string): Promise<void> => {
@@ -159,20 +152,11 @@ export const connectDevice = async (
   deviceId?: string,
   name?: string
 ): Promise<Device> => {
-  // Пробуем разные варианты payload которые может ожидать API
-  const payload: any = {};
+  console.log("Connecting device with id:", deviceId, "and name:", name);
 
-  if (deviceId) {
-    payload.nodeId = deviceId;
-    payload.id = deviceId;
-  }
-  if (name) {
-    payload.name = name;
-  }
-
-  console.log("Connecting device with payload:", payload);
-
-  const result = await api.post(`/api/organizations/${orgId}/devices`, payload);
+  const result = await api.post(`/api/organizations/${orgId}/devices`, {
+    deviceId,
+  });
   return checkResponse<Device>(result);
 };
 
