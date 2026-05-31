@@ -1,94 +1,76 @@
 <template>
-  <div class="p-8 max-w-5xl mx-auto">
-    <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold text-gray-800">Мои организации</h1>
-      <button
-        @click="showCreateModal = true"
-        class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
+  <div class="max-w-5xl mx-auto">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
+      <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Мои организации</h1>
+      <button @click="showCreateModal = true"
+        class="px-4 py-3 sm:py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:bg-blue-700 transition-colors font-medium touch-target self-start sm:self-auto">
         + Создать организацию
       </button>
     </div>
 
-    <div v-if="loading" class="text-center py-8">
+    <!-- Загрузка -->
+    <div v-if="loading" class="text-center py-12">
+      <div class="animate-spin text-3xl mb-2">⚡</div>
       <p class="text-gray-500">Загрузка...</p>
     </div>
 
-    <div v-else-if="organizations.length === 0" class="text-center py-12 bg-gray-50 rounded">
-      <p class="text-gray-500">У вас пока нет организаций</p>
-      <button
-        @click="showCreateModal = true"
-        class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
+    <!-- Пусто -->
+    <div v-else-if="organizations.length === 0" class="text-center py-12 bg-gray-50 rounded-xl">
+      <p class="text-gray-500 text-base mb-4">У вас пока нет организаций</p>
+      <button @click="showCreateModal = true"
+        class="px-5 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 touch-target">
         Создать первую организацию
       </button>
     </div>
 
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div
-        v-for="org in organizations"
-        :key="org.id"
-        class="border rounded-lg p-6 hover:shadow-md transition-shadow cursor-pointer"
-        @click="router.push(`/organizations/${org.id}`)"
-      >
-        <h3 class="text-xl font-semibold mb-2">{{ org.name }}</h3>
-        <p class="text-sm text-gray-500 mb-4">ID: {{ org.id }}</p>
+    <!-- Список -->
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      <div v-for="org in organizations" :key="org.id"
+        class="bg-white border rounded-xl p-4 sm:p-5 hover:shadow-md active:scale-[0.98] transition-all cursor-pointer touch-target"
+        @click="router.push(`/organizations/${org.id}`)">
+        <h3 class="text-lg font-semibold mb-1 truncate">{{ org.name }}</h3>
+        <p class="text-xs text-gray-400 mb-3 font-mono truncate">{{ org.id }}</p>
         <div class="flex justify-between items-center">
-          <span class="text-sm text-gray-400">
-            Создано: {{ formatDate(org.createdAt) }}
+          <span class="text-xs text-gray-400">
+            {{ formatDate(org.createdAt) }}
           </span>
-          <router-link
-            :to="`/organizations/${org.id}`"
-            class="text-blue-500 hover:text-blue-700 text-sm"
-            @click.stop
-          >
-            Открыть →
-          </router-link>
+          <span class="text-blue-500 text-sm font-medium">Открыть →</span>
         </div>
       </div>
     </div>
 
     <!-- Модальное окно создания организации -->
-    <div
-      v-if="showCreateModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      @click.self="showCreateModal = false"
-    >
-      <div class="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 class="text-lg font-semibold mb-4">Создать организацию</h3>
-        
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Название организации
-            </label>
-            <input
-              v-model="newOrgName"
-              type="text"
-              placeholder="Моя организация"
-              class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-              @keyup.enter="createOrg"
-            />
+    <Teleport to="body">
+      <div v-if="showCreateModal"
+        class="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4"
+        @click.self="showCreateModal = false">
+        <div class="bg-white rounded-t-xl sm:rounded-xl p-5 sm:p-6 w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
+          <h3 class="text-lg font-semibold mb-4">Создать организацию</h3>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                Название организации
+              </label>
+              <input v-model="newOrgName" type="text" placeholder="Моя организация"
+                class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none"
+                @keyup.enter="createOrg" />
+            </div>
+          </div>
+
+          <div class="mt-6 flex gap-3">
+            <button @click="showCreateModal = false"
+              class="flex-1 px-4 py-3 text-gray-600 border rounded-lg hover:bg-gray-50 touch-target">
+              Отмена
+            </button>
+            <button @click="createOrg" :disabled="!newOrgName.trim()"
+              class="flex-1 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 touch-target font-medium">
+              Создать
+            </button>
           </div>
         </div>
-
-        <div class="mt-6 flex justify-end gap-3">
-          <button
-            @click="showCreateModal = false"
-            class="px-4 py-2 text-gray-600 border rounded hover:bg-gray-50"
-          >
-            Отмена
-          </button>
-          <button
-            @click="createOrg"
-            :disabled="!newOrgName.trim()"
-            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-          >
-            Создать
-          </button>
-        </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
@@ -98,7 +80,6 @@ import { useRouter } from 'vue-router';
 import { getUsersOrganizations, createOrganization, type Organization } from '@/data';
 
 const router = useRouter();
-
 const organizations = ref<Organization[]>([]);
 const loading = ref(true);
 const showCreateModal = ref(false);
@@ -116,7 +97,6 @@ const loadOrganizations = async () => {
 
 const createOrg = async () => {
   if (!newOrgName.value.trim()) return;
-  
   try {
     const org = await createOrganization(newOrgName.value);
     organizations.value.unshift(org);
