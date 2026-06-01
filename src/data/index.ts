@@ -50,20 +50,29 @@ const checkResponse = <T extends object>(response: AxiosResponse): T => {
 
 export const getUsersOrganizations = async (): Promise<Organization[]> => {
   const result = await api.get("/api/organizations/my");
-  return checkResponse<{ organizations: Organization[] }>(result).organizations || [];
+  return (
+    checkResponse<{ organizations: Organization[] }>(result).organizations || []
+  );
 };
 
-export const getOrganizationById = async (id: string): Promise<Organization> => {
+export const getOrganizationById = async (
+  id: string
+): Promise<Organization> => {
   const result = await api.get(`/api/organizations/${id}`);
   return checkResponse<Organization>(result);
 };
 
-export const createOrganization = async (name: string): Promise<Organization> => {
-  const result = await api.post("/api/organizations", { name });
+export const createOrganization = async (
+  name: string
+): Promise<Organization> => {
+  const result = await api.post("/api/organizations/", { name });
   return checkResponse<Organization>(result);
 };
 
-export const updateOrganization = async (id: string, name: string): Promise<Organization> => {
+export const updateOrganization = async (
+  id: string,
+  name: string
+): Promise<Organization> => {
   const result = await api.patch(`/api/organizations/${id}`, { name });
   return checkResponse<Organization>(result);
 };
@@ -74,9 +83,9 @@ export const deleteOrganization = async (id: string): Promise<void> => {
 
 export const getOrganizationMembers = async (id: string): Promise<Member[]> => {
   const result = await api.get(`/api/organizations/${id}/members`);
-  const data = checkResponse<{ members: any[] }>(result);
-  return (data.members ?? []).map((m: any) => ({
-    userId: m.memberId || m.userId,
+  const data = checkResponse<{ members: Member[] }>(result);
+  return (data.members ?? []).map((m) => ({
+    userId: m.userId,
     email: m.email,
     name: m.name,
     role: m.role,
@@ -84,21 +93,31 @@ export const getOrganizationMembers = async (id: string): Promise<Member[]> => {
   }));
 };
 
-export const inviteMembers = async (orgId: string, emails: string | string[]): Promise<void> => {
-  const emailsArray = typeof emails === 'string' 
-    ? emails.split(',').map(e => e.trim()).filter(Boolean)
-    : emails;
-    
+export const inviteMembers = async (
+  orgId: string,
+  emails: string | string[]
+): Promise<void> => {
+  const emailsArray =
+    typeof emails === "string"
+      ? emails
+          .split(",")
+          .map((e) => e.trim())
+          .filter(Boolean)
+      : emails;
+
   if (emailsArray.length === 0) {
-    throw new Error('No valid emails provided');
+    throw new Error("No valid emails provided");
   }
-  
+
   await api.post(`/api/organizations/${orgId}/invitations`, {
     inviteeEmails: emailsArray,
   });
 };
 
-export const removeMembers = async (id: string, userIds: string[]): Promise<void> => {
+export const removeMembers = async (
+  id: string,
+  userIds: string[]
+): Promise<void> => {
   for (const userId of userIds) {
     await api.delete(`/api/organizations/${id}/members/${userId}`);
   }
@@ -106,15 +125,8 @@ export const removeMembers = async (id: string, userIds: string[]): Promise<void
 
 export const getInvitations = async (): Promise<Invitation[]> => {
   const result = await api.get("/api/invitations");
-  const data = checkResponse<{ invitations: any[] }>(result);
-  return (data.invitations ?? []).map((inv: any) => ({
-    id: inv.id,
-    organizationId: inv.organizationId,
-    organizationName: inv.organizationName,
-    inviteeEmail: inv.inviteeEmail,
-    status: inv.status,
-    creationDate: inv.createdAt,
-  }));
+  const data = checkResponse<{ invitations: Invitation[] }>(result);
+  return data.invitations ?? [];
 };
 
 export const acceptInvitation = async (invitationId: string): Promise<void> => {
@@ -126,7 +138,9 @@ export const rejectInvitation = async (invitationId: string): Promise<void> => {
 };
 
 // API для устройств
-export const getOrganizationDevices = async (orgId: string): Promise<Device[]> => {
+export const getOrganizationDevices = async (
+  orgId: string
+): Promise<Device[]> => {
   const result = await api.get(`/api/organizations/${orgId}/devices`);
   const data = checkResponse<{ devices: Device[] }>(result);
   return data.devices || [];
@@ -138,20 +152,11 @@ export const connectDevice = async (
   deviceId?: string,
   name?: string
 ): Promise<Device> => {
-  // Пробуем разные варианты payload которые может ожидать API
-  const payload: any = {};
-  
-  if (deviceId) {
-    payload.nodeId = deviceId;
-    payload.id = deviceId;
-  }
-  if (name) {
-    payload.name = name;
-  }
-  
-  console.log('Connecting device with payload:', payload);
-  
-  const result = await api.post(`/api/organizations/${orgId}/devices`, payload);
+  console.log("Connecting device with id:", deviceId, "and name:", name);
+
+  const result = await api.post(`/api/organizations/${orgId}/devices`, {
+    deviceId,
+  });
   return checkResponse<Device>(result);
 };
 
@@ -166,6 +171,8 @@ export const getDeviceInfo = async (
   orgId: string,
   deviceId: string
 ): Promise<Device> => {
-  const result = await api.get(`/api/organizations/${orgId}/devices/${deviceId}`);
+  const result = await api.get(
+    `/api/organizations/${orgId}/devices/${deviceId}`
+  );
   return checkResponse<Device>(result);
 };

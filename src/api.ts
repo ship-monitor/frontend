@@ -1,46 +1,34 @@
-// src/api.ts
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 const TOKEN_KEY = "token";
 const REFRESH_TOKEN_KEY = "refreshToken";
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "",
-  validateStatus: () => true,
-  timeout: 10000,
-});
+const createApi = () => {
+  const backendUrl = import.meta.env.VITE_API_URL;
 
-// ============ Флаг для предотвращения множественных запросов на обновление ============
-let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (token: string) => void;
-  reject: (error: unknown) => void;
-}> = [];
-
-const processQueue = (error: unknown, token: string | null = null) => {
-  failedQueue.forEach((promise) => {
-    if (error) {
-      promise.reject(error);
-    } else if (token) {
-      promise.resolve(token);
-    }
+  if (!backendUrl) {
+    console.error("VITE_API_URL is not defined in environment variables");
+    throw new Error("API base URL is not configured");
+  }
+  return axios.create({
+    baseURL: backendUrl,
+    validateStatus: () => true,
+    timeout: 10000,
   });
-  failedQueue = [];
 };
 
-// ============ Request interceptor ============
+const api = createApi();
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem(TOKEN_KEY);
 
   if (token) {
     const cleanToken = token.replace(/^"|"$/g, "");
-    // ✅ Добавляем префикс Bearer
-    config.headers.Authorization = `Bearer ${cleanToken}`;
+    config.headers.Authorization = `${cleanToken}`;
   }
   return config;
 });
 
-// ============ Response interceptor ============
 const UNAUTHORIZED = 401;
 
 api.interceptors.response.use(
@@ -50,45 +38,23 @@ api.interceptors.response.use(
       _retry?: boolean;
     };
 
-    if (
-      error.response?.status !== UNAUTHORIZED ||
-      originalRequest?._retry
-    ) {
+    if (error.response?.status !== UNAUTHORIZED || originalRequest?._retry) {
       return Promise.reject(error);
-    }
-
-    // Если уже пытались обновить — пропускаем
-    if (originalRequest._retry) {
-      return Promise.reject(error);
-    }
-
-    // Если прямо сейчас идёт обновление токена — ставим запрос в очередь
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        failedQueue.push({
-          resolve: (token: string) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            resolve(api(originalRequest));
-          },
-          reject,
-        });
-      });
     }
 
     originalRequest._retry = true;
-    isRefreshing = true;
 
     try {
       const refreshToken = localStorage
         .getItem(REFRESH_TOKEN_KEY)
-        ?.replace(/^"|$/g, "");
+        ?.replace(/^"|"$/g, "");
 
       if (!refreshToken) {
         throw new Error("No refresh token available");
       }
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || ""}/api/auth/refresh`,
+      const response = await api.post(
+        "/api/auth/refresh",
         { refreshToken },
         { validateStatus: () => true }
       );
@@ -103,20 +69,13 @@ api.interceptors.response.use(
             localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
           }
 
-          // Обновляем заголовок у оригинального запроса
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-
-          // Обрабатываем очередь — все ждущие запросы получат новый токен
-          processQueue(null, token);
-
+          originalRequest.headers.Authorization = `${token}`;
           return api(originalRequest);
         }
       }
 
       throw new Error("Failed to refresh token");
     } catch (refreshError) {
-      processQueue(refreshError, null);
-
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(REFRESH_TOKEN_KEY);
 
@@ -127,8 +86,6 @@ api.interceptors.response.use(
 
       window.location.href = "/auth/login";
       return Promise.reject(refreshError);
-    } finally {
-      isRefreshing = false;
     }
   }
 );
@@ -140,7 +97,10 @@ export const checkAuthStatus = (): boolean => {
   if (!token) return false;
 
   try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
+    const [, payloadString] = token.split(".");
+    if (!payloadString) return false;
+
+    const payload = JSON.parse(atob(payloadString));
     const isExpired = payload.exp * 1000 < Date.now();
 
     if (isExpired) {
