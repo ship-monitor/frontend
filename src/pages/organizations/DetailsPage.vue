@@ -88,55 +88,57 @@
           Нет участников
         </div>
 
-        <!-- Десктоп: таблица -->
-        <div v-else class="hidden sm:block bg-white rounded-xl border overflow-hidden">
-          <table class="w-full">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">Участник</th>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">Email</th>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">Роль</th>
-                <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">Действия</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="member in members" :key="member.userId" class="border-t hover:bg-gray-50">
-                <td class="px-4 py-3">{{ member.name || '—' }}</td>
-                <td class="px-4 py-3 text-gray-600 text-sm">{{ member.email }}</td>
-                <td class="px-4 py-3">
-                  <span :class="getRoleBadgeClass(member.role)">
-                    {{ getRoleLabel(member.role) }}
-                  </span>
-                </td>
-                <td class="px-4 py-3">
-                  <button v-if="member.role !== 'owner'" @click="removeMember(member.userId)"
-                    class="text-red-600 hover:text-red-800 text-sm">
-                    Удалить
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Мобильные: карточки -->
-        <div v-else class="space-y-3 sm:hidden">
-          <div v-for="member in members" :key="member.userId" class="bg-white border rounded-xl p-4">
-            <div class="flex justify-between items-start mb-2">
-              <div>
-                <p class="font-medium">{{ member.name || 'Без имени' }}</p>
-                <p class="text-sm text-gray-500">{{ member.email }}</p>
-              </div>
-              <span :class="getRoleBadgeClass(member.role)">
-                {{ getRoleLabel(member.role) }}
-              </span>
-            </div>
-            <button v-if="member.role !== 'owner'" @click="removeMember(member.userId)"
-              class="mt-2 w-full px-3 py-2 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 touch-target">
-              Удалить
-            </button>
+        <template v-else>
+          <!-- Десктоп: таблица -->
+          <div class="hidden sm:block bg-white rounded-xl border overflow-hidden">
+            <table class="w-full">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">Участник</th>
+                  <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">Email</th>
+                  <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">Роль</th>
+                  <th class="px-4 py-3 text-left text-sm font-medium text-gray-500">Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="member in members" :key="member.userId" class="border-t hover:bg-gray-50">
+                  <td class="px-4 py-3">{{ member.name || '—' }}</td>
+                  <td class="px-4 py-3 text-gray-600 text-sm">{{ member.email }}</td>
+                  <td class="px-4 py-3">
+                    <span :class="getRoleBadgeClass(member.role)">
+                      {{ getRoleLabel(member.role) }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <button v-if="member.role !== 'owner'" @click="removeMember(member.userId)"
+                      class="text-red-600 hover:text-red-800 text-sm">
+                      Удалить
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-        </div>
+
+          <!-- Мобильные: карточки -->
+          <div class="space-y-3 sm:hidden">
+            <div v-for="member in members" :key="member.userId" class="bg-white border rounded-xl p-4">
+              <div class="flex justify-between items-start mb-2">
+                <div>
+                  <p class="font-medium">{{ member.name || 'Без имени' }}</p>
+                  <p class="text-sm text-gray-500">{{ member.email }}</p>
+                </div>
+                <span :class="getRoleBadgeClass(member.role)">
+                  {{ getRoleLabel(member.role) }}
+                </span>
+              </div>
+              <button v-if="member.role !== 'owner'" @click="removeMember(member.userId)"
+                class="mt-2 w-full px-3 py-2 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 touch-target">
+                Удалить
+              </button>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
 
