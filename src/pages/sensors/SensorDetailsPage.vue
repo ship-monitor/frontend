@@ -292,7 +292,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useWebSocket } from '@/composables/useWebSocket'
-import { sendDeviceCommand } from '@/data'
+import { sendDeviceCommand, getUsersOrganizations, getOrganizationDevices } from '@/data'
 
 const route = useRoute()
 const deviceId = route.params.id as string
@@ -300,7 +300,7 @@ const deviceId = route.params.id as string
 const organizationId = ref((route.query.orgId as string) || localStorage.getItem(`device_org_${deviceId}`) || '')
 
 console.log('📡 Device ID:', deviceId)
-console.log('🏢 Organization ID:', organizationId.value)
+console.log('🏢 Organization ID from query/localStorage:', organizationId.value)
 
 // Состояние
 const loading = ref(true)
@@ -513,6 +513,31 @@ const getTempColor = (value: number) => {
     return 'text-green-600'
 }
 
+// Автоматическое получение organizationId если его нет
+const loadOrganizationIdIfNeeded = async () => {
+    if (organizationId.value) return true
+
+    console.log('🔍 Organization ID not found, trying to find it...')
+    try {
+        const orgs = await getUsersOrganizations()
+        for (const org of orgs) {
+            const devices = await getOrganizationDevices(org.id)
+            const found = devices.some(d => d.id === deviceId)
+            if (found) {
+                organizationId.value = org.id
+                localStorage.setItem(`device_org_${deviceId}`, org.id)
+                console.log(`✅ Found organization ${org.id} for device ${deviceId}`)
+                return true
+            }
+        }
+        console.error('❌ Device not found in any organization')
+        return false
+    } catch (error) {
+        console.error('Failed to find organization:', error)
+        return false
+    }
+}
+
 const executeCommand = async () => {
     if (!commandName.value.trim()) return
 
@@ -638,10 +663,12 @@ const simulateData = () => {
 
 let simInterval: ReturnType<typeof setInterval> | null = null
 
-onMounted(() => {
-    if (!organizationId.value) {
-        console.error('No organization ID found for device:', deviceId)
-        alert('Ошибка: не удалось определить организацию для этого устройства. Пожалуйста, вернитесь на главную страницу и попробуйте снова.')
+onMounted(async () => {
+    // Сначала пытаемся найти organizationId если его нет
+    const hasOrgId = await loadOrganizationIdIfNeeded()
+
+    if (!hasOrgId) {
+        alert('Ошибка: не удалось определить организацию для этого устройства. Пожалуйста, убедитесь, что устройство подключено к организации.')
         loading.value = false
         return
     }

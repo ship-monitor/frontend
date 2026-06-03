@@ -219,7 +219,6 @@ const sendCommand = async (deviceId: string, action: string) => {
     payload: {},
   });
 
-  // Также отправляем через HTTP API для надежности
   try {
     await sendDeviceCommand(sensor.organizationId, deviceId, action, {});
   } catch (error) {
@@ -234,19 +233,32 @@ const sendCommand = async (deviceId: string, action: string) => {
 };
 
 const goToSensor = (sensor: SensorDisplay) => {
-  // Сохраняем organizationId для этого устройства
+  console.log('🖱️ Going to sensor:', sensor.id);
+  console.log('🏢 Organization ID from sensor:', sensor.organizationId);
+
+  if (!sensor.organizationId) {
+    console.error('❌ No organizationId for sensor:', sensor);
+    showToast('Ошибка: не удалось определить организацию для датчика', 'error');
+    return;
+  }
+
   localStorage.setItem(`device_org_${sensor.id}`, sensor.organizationId);
-  router.push(`/sensors/${sensor.id}?orgId=${sensor.organizationId}`);
+  const url = `/sensors/${sensor.id}?orgId=${sensor.organizationId}`;
+  console.log('🔗 Navigating to:', url);
+  router.push(url);
 };
 
 const loadSensors = async () => {
   try {
     const orgs = await getUsersOrganizations();
+    console.log('📋 Organizations loaded:', orgs.length);
     const allSensors: SensorDisplay[] = [];
 
     for (const org of orgs) {
+      console.log(`📡 Loading devices for org: ${org.id} - ${org.name}`);
       try {
         const devices = await getOrganizationDevices(org.id);
+        console.log(`✅ Found ${devices.length} devices in org ${org.id}`);
 
         devices.forEach((device: Device) => {
           allSensors.push({
@@ -266,6 +278,10 @@ const loadSensors = async () => {
       }
     }
 
+    console.log(`🎯 Total sensors loaded: ${allSensors.length}`);
+    if (allSensors[0]) {
+      console.log('📊 First sensor example:', { id: allSensors[0].id, name: allSensors[0].name, orgId: allSensors[0].organizationId });
+    }
     sensors.value = allSensors;
   } catch (error) {
     console.error("Failed to load sensors:", error);
