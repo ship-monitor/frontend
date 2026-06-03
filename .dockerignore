@@ -11,3 +11,8 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 *.log
+.*/
+etc/
+docker-compose.yml
+.git*
+.git/
