@@ -33,7 +33,7 @@
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <div v-for="sensor in sensors" :key="sensor.id"
           class="bg-white rounded-lg border p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer"
-          @click="router.push(`/sensors/${sensor.id}`)">
+          @click="goToSensor(sensor)">
           <!-- Заголовок карточки -->
           <div class="flex justify-between items-start mb-3 sm:mb-4">
             <h3 class="font-semibold text-gray-800 text-sm sm:text-base truncate mr-2">
@@ -97,7 +97,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import { getUsersOrganizations, getOrganizationDevices, type Device } from "@/data";
+import { getUsersOrganizations, getOrganizationDevices, sendDeviceCommand, type Device } from "@/data";
 import { useWebSocket } from "@/composables/useWebSocket";
 
 const router = useRouter();
@@ -111,6 +111,7 @@ interface SensorDisplay {
   maxThreshold?: number;
   status: "online" | "offline";
   organizationName: string;
+  organizationId: string;
 }
 
 // ============ Состояние ============
@@ -139,7 +140,6 @@ const {
   url: wsUrl,
   token,
   onMessage: (message) => {
-    // При получении данных от датчика — обновляем соответствующий сенсор
     if (message.type === "sensor_data" && message.deviceId && message.data) {
       const sensor = sensors.value.find((s) => s.id === message.deviceId);
       if (sensor) {
@@ -149,7 +149,6 @@ const {
       }
     }
 
-    // При изменении статуса устройства
     if (message.type === "device_status" && message.deviceId) {
       const sensor = sensors.value.find((s) => s.id === message.deviceId);
       if (sensor) {
@@ -207,18 +206,37 @@ const showToast = (message: string, type: "success" | "error" = "success") => {
   }, 3000);
 };
 
-const sendCommand = (deviceId: string, action: string) => {
+const sendCommand = async (deviceId: string, action: string) => {
+  const sensor = sensors.value.find(s => s.id === deviceId);
+  if (!sensor) {
+    showToast("Устройство не найдено", "error");
+    return;
+  }
+
   const success = wsSendCommand({
     deviceId,
     action,
     payload: {},
   });
 
+  // Также отправляем через HTTP API для надежности
+  try {
+    await sendDeviceCommand(sensor.organizationId, deviceId, action, {});
+  } catch (error) {
+    console.error('HTTP command error:', error);
+  }
+
   if (success) {
     showToast(`Команда "${action}" отправлена на устройство`, "success");
   } else {
     showToast("Не удалось отправить команду — нет соединения", "error");
   }
+};
+
+const goToSensor = (sensor: SensorDisplay) => {
+  // Сохраняем organizationId для этого устройства
+  localStorage.setItem(`device_org_${sensor.id}`, sensor.organizationId);
+  router.push(`/sensors/${sensor.id}?orgId=${sensor.organizationId}`);
 };
 
 const loadSensors = async () => {
@@ -234,11 +252,10 @@ const loadSensors = async () => {
           allSensors.push({
             id: device.id,
             name: device.name || "Без названия",
-            // Статус берём из WebSocket, если доступен, иначе из device.connected
             status: deviceStatuses.value.get(device.id) ??
               (device.connected ? "online" : "offline"),
             organizationName: org.name,
-            // Данные из WebSocket, если есть
+            organizationId: org.id,
             value: sensorData.value.get(device.id)?.value,
             minThreshold: sensorData.value.get(device.id)?.minThreshold,
             maxThreshold: sensorData.value.get(device.id)?.maxThreshold,
@@ -260,7 +277,6 @@ const loadSensors = async () => {
 // ============ Жизненный цикл ============
 onMounted(async () => {
   await loadSensors();
-  // Подключаем WebSocket после загрузки устройств
   wsConnect();
 });
 

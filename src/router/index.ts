@@ -44,7 +44,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/sensors/:id',
     name: 'sensor-details',
     component: SensorDetailsPage,
-    meta: { requiresAuth: true }
+    meta: { requireAuth: true } as CustomRouteMeta,
   },
   {
     path: "/organizations/:id",

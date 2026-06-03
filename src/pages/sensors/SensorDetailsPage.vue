@@ -16,7 +16,7 @@
                     <div>
                         <h1 class="text-2xl font-bold">{{ sensorName }}</h1>
                         <p class="text-xs text-gray-400 font-mono">ID: {{ deviceId }}</p>
-                        <p class="text-xs text-gray-500 mt-1">Организация: {{ organizationId }}</p>
+                        <p class="text-xs text-green-600 font-mono mt-1">Организация: {{ organizationId }}</p>
                     </div>
                     <div class="flex gap-2">
                         <span :class="[
@@ -292,14 +292,15 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useWebSocket } from '@/composables/useWebSocket'
-import { sendDeviceCommand } from '@/data'  // <--- ИСПРАВЛЕНО
+import { sendDeviceCommand } from '@/data'
 
 const route = useRoute()
 const deviceId = route.params.id as string
-const organizationId = localStorage.getItem('currentOrganizationId') || ''
+// Получаем organizationId из query параметра или localStorage
+const organizationId = ref((route.query.orgId as string) || localStorage.getItem(`device_org_${deviceId}`) || '')
 
-console.log('Device ID:', deviceId)
-console.log('Organization ID:', organizationId)
+console.log('📡 Device ID:', deviceId)
+console.log('🏢 Organization ID:', organizationId.value)
 
 // Состояние
 const loading = ref(true)
@@ -402,7 +403,6 @@ const addToHistory = (value: number) => {
     cutoffTime.setHours(cutoffTime.getHours() - periodHours)
 
     historyData.value = historyData.value.filter(item => new Date(item.time) > cutoffTime)
-
     drawChart()
 }
 
@@ -516,6 +516,14 @@ const getTempColor = (value: number) => {
 const executeCommand = async () => {
     if (!commandName.value.trim()) return
 
+    if (!organizationId.value) {
+        commandResult.value = {
+            success: false,
+            message: 'Ошибка: ID организации не найден. Пожалуйста, вернитесь на главную и зайдите заново.'
+        }
+        return
+    }
+
     sendingCommand.value = true
     commandResult.value = null
 
@@ -534,7 +542,7 @@ const executeCommand = async () => {
     }
 
     try {
-        const result = await sendDeviceCommand(organizationId, deviceId, commandName.value.trim(), args)
+        const result = await sendDeviceCommand(organizationId.value, deviceId, commandName.value.trim(), args)
 
         if (result.requestError) {
             commandResult.value = {
@@ -625,13 +633,19 @@ const simulateData = () => {
             addToHistory(newTemp)
         }
     }, 10000)
-
     return interval
 }
 
 let simInterval: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
+    if (!organizationId.value) {
+        console.error('No organization ID found for device:', deviceId)
+        alert('Ошибка: не удалось определить организацию для этого устройства. Пожалуйста, вернитесь на главную страницу и попробуйте снова.')
+        loading.value = false
+        return
+    }
+
     loadSettings()
     subscribe(deviceId)
 

@@ -206,7 +206,34 @@ export const getDeviceInfo = async (
   return checkResponse<Device>(result);
 };
 
-// ============= Команды устройства =============
+// ============= Вспомогательная функция для поиска organizationId по deviceId =============
+export const findOrganizationIdByDeviceId = async (deviceId: string): Promise<string | null> => {
+  try {
+    const orgs = await getUsersOrganizations();
+    console.log('Available organizations:', orgs.map(o => ({ id: o.id, name: o.name })));
+
+    for (const org of orgs) {
+      try {
+        const devices = await getOrganizationDevices(org.id);
+        console.log(`Devices in org ${org.id}:`, devices.map(d => ({ id: d.id, name: d.name })));
+
+        const found = devices.some(d => d.id === deviceId || d.nodeId === deviceId);
+        if (found) {
+          console.log(`✅ Found device ${deviceId} in organization ${org.id}`);
+          return org.id;
+        }
+      } catch (err) {
+        console.error(`Error checking org ${org.id}:`, err);
+      }
+    }
+
+    console.error(`❌ Device ${deviceId} not found in any organization`);
+    return null;
+  } catch (error) {
+    console.error('Failed to get device organization:', error);
+    return null;
+  }
+};
 // ============= Команды устройства =============
 export const sendDeviceCommand = async (
   organizationId: string,
