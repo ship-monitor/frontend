@@ -1,4 +1,3 @@
-// src/composables/useWebSocket.ts
 import { ref, onUnmounted, type Ref } from "vue";
 
 export interface WsCommand {
@@ -15,6 +14,8 @@ export interface WsMessage {
         value?: number;
         minThreshold?: number;
         maxThreshold?: number;
+        isDefrostMode?: boolean;
+        isAlert?: boolean;
     };
     message?: string;
 }
@@ -45,7 +46,7 @@ export function useWebSocket(options: UseWebSocketOptions) {
     const isConnected: Ref<boolean> = ref(false);
     const deviceStatuses: Ref<Map<string, "online" | "offline">> = ref(new Map());
     const sensorData: Ref<
-        Map<string, { value: number; minThreshold?: number; maxThreshold?: number }>
+        Map<string, { value: number; minThreshold?: number; maxThreshold?: number; isDefrostMode?: boolean; isAlert?: boolean }>
     > = ref(new Map());
 
     let ws: WebSocket | null = null;
@@ -92,6 +93,8 @@ export function useWebSocket(options: UseWebSocketOptions) {
                         value: message.data.value ?? 0,
                         minThreshold: message.data.minThreshold,
                         maxThreshold: message.data.maxThreshold,
+                        isDefrostMode: message.data.isDefrostMode,
+                        isAlert: message.data.isAlert,
                     });
                 }
 
@@ -126,6 +129,23 @@ export function useWebSocket(options: UseWebSocketOptions) {
             console.error("[WebSocket] Error:", error);
             onError?.(error);
         };
+    }
+
+    // ============ Подписка на устройство ============
+    function subscribe(deviceId: string) {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            console.error("[WebSocket] Cannot subscribe — not connected");
+            return false;
+        }
+
+        ws.send(
+            JSON.stringify({
+                type: "subscribe",
+                deviceId: deviceId,
+            })
+        );
+
+        return true;
     }
 
     // ============ Отправка команды ============
@@ -184,5 +204,6 @@ export function useWebSocket(options: UseWebSocketOptions) {
         connect,
         disconnect,
         sendCommand,
+        subscribe,
     };
 }

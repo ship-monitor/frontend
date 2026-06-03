@@ -9,7 +9,7 @@ import { checkAuthStatus } from "@/api";
 import Dashboard from "@/pages/DashboardPage.vue";
 import Profile from "@/pages/ProfilePage.vue";
 import Settings from "@/pages/SettingsPage.vue";
-
+import SensorDetailsPage from '@/pages/sensors/SensorDetailsPage.vue';
 export type CustomRouteMeta = {
   requireAuth: boolean;
   onlyAnonymous: boolean;
@@ -39,6 +39,12 @@ const routes: Array<RouteRecordRaw> = [
     name: "Organizations",
     component: () => import("../pages/organizations/ListPage.vue"),
     meta: { requireAuth: true } as CustomRouteMeta,
+  },
+  {
+    path: '/sensors/:id',
+    name: 'sensor-details',
+    component: SensorDetailsPage,
+    meta: { requiresAuth: true }
   },
   {
     path: "/organizations/:id",

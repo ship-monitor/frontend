@@ -31,6 +31,24 @@
                 </div>
             </div>
 
+            <!-- Номер телефона для SMS -->
+            <div class="border-t pt-6">
+                <h3 class="text-lg font-semibold mb-4">📱 Номер телефона для SMS</h3>
+                <div class="flex gap-2">
+                    <input v-model="phoneNumber" placeholder="+7XXXXXXXXXX" class="border rounded px-3 py-2 flex-1" />
+                    <button @click="updatePhoneNumber"
+                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+                        :disabled="updatingPhone">
+                        {{ updatingPhone ? '...' : 'Сохранить' }}
+                    </button>
+                </div>
+                <p class="text-sm text-gray-500 mt-2">
+                    На этот номер будут приходить SMS-уведомления от датчиков при нарушениях температурного режима
+                </p>
+                <p v-if="phoneError" class="text-red-500 text-sm mt-2">{{ phoneError }}</p>
+                <p v-if="phoneSuccess" class="text-green-500 text-sm mt-2">{{ phoneSuccess }}</p>
+            </div>
+
             <!-- Изменение email -->
             <div class="border-t pt-6">
                 <h3 class="text-lg font-semibold mb-4">Изменить email</h3>
@@ -80,6 +98,12 @@ interface User {
 
 const user = ref<User | null>(null);
 
+// Phone
+const phoneNumber = ref("");
+const updatingPhone = ref(false);
+const phoneError = ref("");
+const phoneSuccess = ref("");
+
 // Email
 const newEmail = ref("");
 const updatingEmail = ref(false);
@@ -94,6 +118,7 @@ const passwordSuccess = ref("");
 
 onMounted(() => {
     loadUser();
+    loadPhoneNumber();
 });
 
 const loadUser = () => {
@@ -107,6 +132,34 @@ const loadUser = () => {
     }
 };
 
+const loadPhoneNumber = async () => {
+    if (!user.value) return;
+    try {
+        const response = await api.get(`/api/users/${user.value.id}/phone`);
+        phoneNumber.value = response.data.phone || '';
+    } catch (error) {
+        console.error('Ошибка загрузки номера телефона:', error);
+    }
+};
+
+const updatePhoneNumber = async () => {
+    if (!user.value) return;
+
+    updatingPhone.value = true;
+    phoneError.value = "";
+    phoneSuccess.value = "";
+
+    try {
+        await api.post(`/api/users/${user.value.id}/phone`, { phone: phoneNumber.value });
+        phoneSuccess.value = "Номер телефона сохранен!";
+    } catch (error: any) {
+        console.error("Ошибка обновления номера телефона:", error);
+        phoneError.value = error.response?.data?.message || "Ошибка при сохранении номера телефона";
+    } finally {
+        updatingPhone.value = false;
+    }
+};
+
 const handleUpdateEmail = async () => {
     if (!newEmail.value.trim() || !user.value) return;
 
@@ -115,7 +168,6 @@ const handleUpdateEmail = async () => {
         emailError.value = "";
         emailSuccess.value = "";
 
-        // ✅ Правильный эндпоинт: /api/users/:id/set-email
         await api.post(`/api/users/${user.value.id}/set-email`, {
             email: newEmail.value,
         });
@@ -140,9 +192,8 @@ const handleUpdatePassword = async () => {
         passwordError.value = "";
         passwordSuccess.value = "";
 
-        // ✅ Правильный эндпоинт: /api/users/:id/set-password
         await api.post(`/api/users/${user.value.id}/set-password`, {
-            email: newPassword.value,
+            password: newPassword.value,
         });
 
         passwordSuccess.value = "Пароль обновлен!";

@@ -1,4 +1,3 @@
-<!-- src/pages/DashboardPage.vue -->
 <template>
   <div class="p-4 sm:p-6">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
@@ -33,7 +32,8 @@
       <!-- Адаптивная сетка: 1 колонка на телефоне, 2 на планшете, 3 на десктопе -->
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <div v-for="sensor in sensors" :key="sensor.id"
-          class="bg-white rounded-lg border p-4 sm:p-6 hover:shadow-md transition-shadow">
+          class="bg-white rounded-lg border p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer"
+          @click="router.push(`/sensors/${sensor.id}`)">
           <!-- Заголовок карточки -->
           <div class="flex justify-between items-start mb-3 sm:mb-4">
             <h3 class="font-semibold text-gray-800 text-sm sm:text-base truncate mr-2">
@@ -66,7 +66,7 @@
           </div>
 
           <!-- Кнопки команд (только для online устройств) -->
-          <div v-if="sensor.status === 'online'" class="flex gap-2 justify-center">
+          <div v-if="sensor.status === 'online'" class="flex gap-2 justify-center" @click.stop>
             <button @click="sendCommand(sensor.id, 'reboot')"
               class="px-3 py-1.5 text-xs sm:text-sm bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors active:scale-95">
               Перезагрузить
@@ -96,8 +96,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from "vue";
+import { useRouter } from "vue-router";
 import { getUsersOrganizations, getOrganizationDevices, type Device } from "@/data";
 import { useWebSocket } from "@/composables/useWebSocket";
+
+const router = useRouter();
 
 // ============ Типы ============
 interface SensorDisplay {
