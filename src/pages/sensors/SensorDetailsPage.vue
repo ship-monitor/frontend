@@ -292,7 +292,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useWebSocket } from '@/composables/useWebSocket'
-import { sendDeviceCommand } from '@/api/commands'
+import { sendDeviceCommand } from '@/data'  // <--- ИСПРАВЛЕНО
 
 const route = useRoute()
 const deviceId = route.params.id as string
