@@ -298,6 +298,9 @@ const route = useRoute()
 const deviceId = route.params.id as string
 const organizationId = localStorage.getItem('currentOrganizationId') || ''
 
+console.log('Device ID:', deviceId)
+console.log('Organization ID:', organizationId)
+
 // Состояние
 const loading = ref(true)
 const loadingHistory = ref(false)

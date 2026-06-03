@@ -207,6 +207,7 @@ export const getDeviceInfo = async (
 };
 
 // ============= Команды устройства =============
+// ============= Команды устройства =============
 export const sendDeviceCommand = async (
   organizationId: string,
   deviceId: string,
