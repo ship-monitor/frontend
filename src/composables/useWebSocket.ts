@@ -7,7 +7,7 @@ export interface WsCommand {
 }
 
 export interface WsMessage {
-    type: "device_status" | "sensor_data" | "command_result" | "error";
+    type: "device_status" | "sensor_data" | "command_result" | "error" | "pong";
     deviceId?: string;
     data?: {
         connected?: boolean;
@@ -39,8 +39,8 @@ export function useWebSocket(options: UseWebSocketOptions) {
         onOpen,
         onClose,
         onError,
-        reconnectInterval = 5000,
-        maxReconnectAttempts = 10,
+        reconnectInterval = 3000,
+        maxReconnectAttempts = 20,
     } = options;
 
     const isConnected: Ref<boolean> = ref(false);
@@ -53,6 +53,7 @@ export function useWebSocket(options: UseWebSocketOptions) {
     let reconnectAttempts = 0;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let pingInterval: ReturnType<typeof setInterval> | null = null;
+    let lastPongTime: number = Date.now();
 
     // ============ Подключение ============
     function connect() {
@@ -60,19 +61,30 @@ export function useWebSocket(options: UseWebSocketOptions) {
             return;
         }
 
-        ws = new WebSocket(`${url}?token=${token}`);
+        const wsUrl = `${url}?token=${token}`;
+        console.log("[WebSocket] Connecting to:", wsUrl);
+        ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
             console.log("[WebSocket] Connected");
             isConnected.value = true;
             reconnectAttempts = 0;
+            lastPongTime = Date.now();
 
-            // Пинг для поддержания соединения
+            // Пинг каждые 25 секунд для поддержания соединения
+            if (pingInterval) clearInterval(pingInterval);
             pingInterval = setInterval(() => {
                 if (ws?.readyState === WebSocket.OPEN) {
                     ws.send(JSON.stringify({ type: "ping" }));
+
+                    // Проверяем, был ли ответ на пинг за последние 30 секунд
+                    if (Date.now() - lastPongTime > 35000) {
+                        console.log("[WebSocket] No pong received, reconnecting...");
+                        disconnect();
+                        connect();
+                    }
                 }
-            }, 30000);
+            }, 25000);
 
             onOpen?.();
         };
@@ -80,6 +92,12 @@ export function useWebSocket(options: UseWebSocketOptions) {
         ws.onmessage = (event: MessageEvent) => {
             try {
                 const message: WsMessage = JSON.parse(event.data);
+
+                // Ответ на пинг
+                if (message.type === "pong") {
+                    lastPongTime = Date.now();
+                    return;
+                }
 
                 // Обновляем статусы устройств
                 if (message.type === "device_status" && message.deviceId) {
@@ -119,9 +137,12 @@ export function useWebSocket(options: UseWebSocketOptions) {
             if (reconnectAttempts < maxReconnectAttempts) {
                 reconnectAttempts++;
                 console.log(
-                    `[WebSocket] Reconnecting attempt ${reconnectAttempts}/${maxReconnectAttempts}...`
+                    `[WebSocket] Reconnecting attempt ${reconnectAttempts}/${maxReconnectAttempts} in ${reconnectInterval}ms...`
                 );
+                if (reconnectTimer) clearTimeout(reconnectTimer);
                 reconnectTimer = setTimeout(connect, reconnectInterval);
+            } else {
+                console.log("[WebSocket] Max reconnection attempts reached");
             }
         };
 
@@ -138,12 +159,10 @@ export function useWebSocket(options: UseWebSocketOptions) {
             return false;
         }
 
-        ws.send(
-            JSON.stringify({
-                type: "subscribe",
-                deviceId: deviceId,
-            })
-        );
+        ws.send(JSON.stringify({
+            type: "subscribe",
+            deviceId: deviceId,
+        }));
 
         return true;
     }
@@ -155,15 +174,13 @@ export function useWebSocket(options: UseWebSocketOptions) {
             return false;
         }
 
-        ws.send(
-            JSON.stringify({
-                type: "command",
-                deviceId: command.deviceId,
-                action: command.action,
-                payload: command.payload || {},
-                timestamp: Date.now(),
-            })
-        );
+        ws.send(JSON.stringify({
+            type: "command",
+            deviceId: command.deviceId,
+            action: command.action,
+            payload: command.payload || {},
+            timestamp: Date.now(),
+        }));
 
         return true;
     }
@@ -185,7 +202,9 @@ export function useWebSocket(options: UseWebSocketOptions) {
             ws.onmessage = null;
             ws.onclose = null;
             ws.onerror = null;
-            ws.close();
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
             ws = null;
         }
 

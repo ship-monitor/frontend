@@ -251,6 +251,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getInvitations, acceptInvitation, rejectInvitation, type Invitation } from '@/data';
+import api from '@/api';
 
 const route = useRoute();
 const router = useRouter();
@@ -265,6 +266,35 @@ const isAuthPage = computed(() => route.path.startsWith('/auth'));
 const isMobile = ref(window.innerWidth < 1024);
 
 const unreadNotifications = computed(() => notifications.value.length);
+
+// ===== Обновление токена =====
+let refreshInterval: ReturnType<typeof setInterval> | null = null;
+
+const refreshAuthToken = async () => {
+  const refreshToken = localStorage.getItem('refreshToken')?.replace(/^"|$/g, '');
+  if (!refreshToken) return;
+
+  try {
+    const response = await api.post('/api/auth/refresh', { refreshToken });
+    const newToken = response.data.token;
+    if (newToken) {
+      const cleanToken = String(newToken).replace(/["'\s]/g, '');
+      localStorage.setItem('token', cleanToken);
+      console.log('[Auth] Token refreshed successfully');
+    }
+  } catch (error) {
+    console.error('[Auth] Failed to refresh token:', error);
+    // Если не удалось обновить - выходим через 5 секунд
+    setTimeout(() => {
+      if (localStorage.getItem('token')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        router.push('/auth/login');
+      }
+    }, 5000);
+  }
+};
 
 // ===== Методы =====
 const loadNotifications = async () => {
@@ -337,12 +367,21 @@ onMounted(() => {
   window.addEventListener('resize', handleResize);
   loadNotifications();
 
-  const interval = setInterval(loadNotifications, 30000);
-  onUnmounted(() => clearInterval(interval));
+  // Обновляем уведомления каждые 30 секунд
+  const notificationsInterval = setInterval(loadNotifications, 30000);
+
+  // Обновляем токен каждые 4 минуты (240 секунд)
+  refreshInterval = setInterval(refreshAuthToken, 4 * 60 * 1000);
+
+  onUnmounted(() => {
+    clearInterval(notificationsInterval);
+    if (refreshInterval) clearInterval(refreshInterval);
+  });
 });
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
   window.removeEventListener('resize', handleResize);
+  if (refreshInterval) clearInterval(refreshInterval);
 });
 </script>
