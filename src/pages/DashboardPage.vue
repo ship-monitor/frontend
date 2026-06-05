@@ -2,302 +2,163 @@
   <div class="p-4 sm:p-6">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
       <h1 class="text-xl sm:text-2xl font-bold">Мониторинг</h1>
-      <!-- Статус WebSocket соединения -->
-      <div class="flex items-center gap-2">
-        <span :class="[
-          'w-2.5 h-2.5 rounded-full',
-          wsConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500',
-        ]"></span>
-        <span class="text-xs sm:text-sm text-gray-500">
-          {{ wsConnected ? 'Подключено' : 'Отключено' }}
-        </span>
-      </div>
+      <button @click="refreshAll" :disabled="refreshing"
+        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 text-sm touch-target">
+        {{ refreshing ? 'Обновление...' : 'Обновить' }}
+      </button>
     </div>
 
-    <!-- Группы камер -->
     <div>
-      <h2 class="text-base sm:text-lg font-semibold mb-4">Все группы</h2>
+      <h2 class="text-base sm:text-lg font-semibold mb-4">Все устройства</h2>
 
-      <div v-if="loading" class="text-gray-500">Загрузка...</div>
+      <div v-if="loading" class="text-center py-12 text-gray-500">Загрузка...</div>
 
       <div v-else-if="sensors.length === 0" class="bg-white rounded-lg border p-6 sm:p-8 text-center text-gray-500">
-        <p class="text-base sm:text-lg mb-2">Нет подключенных датчиков</p>
+        <p class="text-base sm:text-lg mb-2">Нет подключенных устройств</p>
         <p class="text-xs sm:text-sm">Добавьте устройства через раздел "Организации"</p>
         <router-link to="/organizations"
           class="mt-4 inline-block text-blue-500 hover:text-blue-700 text-sm sm:text-base">
-          Перейти к организациям →
+          Перейти к организациям
         </router-link>
       </div>
 
-      <!-- Адаптивная сетка -->
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <div v-for="sensor in sensors" :key="sensor.id"
-          class="bg-white rounded-lg border p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer"
+          class="bg-white rounded-lg border p-4 sm:p-6 hover:shadow-md transition-all cursor-pointer active:scale-[0.98]"
           @click="goToSensor(sensor)">
 
-          <!-- Заголовок карточки -->
           <div class="flex justify-between items-start mb-3 sm:mb-4">
-            <h3 class="font-semibold text-gray-800 text-sm sm:text-base truncate mr-2">
-              {{ sensor.name }}
-            </h3>
+            <div class="min-w-0 flex-1 mr-2">
+              <h3 class="font-semibold text-gray-800 text-sm sm:text-base truncate">
+                {{ sensor.displayName }}
+              </h3>
+              <p class="text-xs text-gray-400 font-mono truncate">{{ sensor.id }}</p>
+            </div>
             <span :class="[
-              'px-2 py-1 text-xs rounded-full whitespace-nowrap flex-shrink-0 font-medium',
-              sensor.status === 'Подключено'
+              'px-2.5 py-1 text-xs rounded-full whitespace-nowrap flex-shrink-0 font-medium',
+              sensor.isConnected
                 ? 'bg-green-100 text-green-800'
                 : 'bg-gray-100 text-gray-600',
             ]">
-              {{ sensor.status }}
+              {{ sensor.isConnected ? 'Подключено' : 'Отключено' }}
             </span>
           </div>
 
-          <!-- Показания температуры -->
-          <div class="text-center py-3 sm:py-4">
-            <div class="text-3xl sm:text-4xl font-bold mb-2 transition-colors"
-              :class="getTemperatureClass(sensor.temperature)">
-              {{ sensor.temperature !== undefined ? sensor.temperature.toFixed(1) + '°C' : '--' }}
+          <div class="text-center py-4">
+            <div class="text-3xl sm:text-4xl font-bold mb-2"
+              :class="sensor.temperature !== null ? 'text-gray-800' : 'text-gray-400'">
+              {{ sensor.temperature !== null ? sensor.temperature.toFixed(1) + '°C' : '--' }}
             </div>
-            <div class="text-xs sm:text-sm text-gray-500">
-              {{ sensor.minThreshold ?? '--' }}°C ... {{ sensor.maxThreshold ?? '--' }}°C
-            </div>
-          </div>
-
-          <!-- Название организации -->
-          <div class="text-center mb-4">
-            <span class="text-xs text-gray-400">{{ sensor.organizationName }}</span>
-          </div>
-
-          <!-- Кнопки команд (только для подключенных устройств) -->
-          <div v-if="sensor.status === 'Подключено'" class="flex gap-2 justify-center flex-wrap" @click.stop>
-            <button @click="sendCommand(sensor.id, 'reboot')"
-              class="px-3 py-1.5 text-xs sm:text-sm bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors active:scale-95 touch-target">
-              Перезагрузить
-            </button>
-            <button @click="sendCommand(sensor.id, 'restart_service')"
-              class="px-3 py-1.5 text-xs sm:text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors active:scale-95 touch-target">
-              Рестарт сервиса
-            </button>
-            <button @click="sendCommand(sensor.id, 'get-temperature')"
-              class="px-3 py-1.5 text-xs sm:text-sm bg-cyan-100 text-cyan-700 rounded-lg hover:bg-cyan-200 transition-colors active:scale-95 touch-target">
-              🌡️ Температура
-            </button>
+            <div class="text-xs text-gray-400">{{ sensor.organizationName }}</div>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Toast уведомление -->
-    <div v-if="toast.show" :class="[
-      'fixed bottom-20 sm:bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg text-white text-sm transition-all z-50',
-      toast.type === 'success' ? 'bg-green-600' : 'bg-red-600',
-    ]">
-      {{ toast.message }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from "vue";
+import { ref, onMounted, onActivated } from "vue";
 import { useRouter } from "vue-router";
-import { getUsersOrganizations, getOrganizationDevices, sendDeviceCommand, type Device } from "@/data";
-import { useWebSocket } from "@/composables/useWebSocket";
+import { getUsersOrganizations, getOrganizationDevices, getDeviceInfo } from "@/data";
 
 const router = useRouter();
 
-// ============ Типы ============
 interface SensorDisplay {
   id: string;
   name: string;
-  temperature?: number;
-  minThreshold?: number;
-  maxThreshold?: number;
-  status: "Подключено" | "Отключено";
+  displayName: string;
+  isConnected: boolean;
+  temperature: number | null;
   organizationName: string;
   organizationId: string;
 }
 
-// ============ Состояние ============
 const sensors = ref<SensorDisplay[]>([]);
 const loading = ref(true);
-const toast = ref<{
-  show: boolean;
-  message: string;
-  type: "success" | "error";
-}>({ show: false, message: "", type: "success" });
+const refreshing = ref(false);
 
-let toastTimer: ReturnType<typeof setTimeout> | null = null;
-
-// ============ WebSocket ============
-const token = localStorage.getItem("token")?.replace(/^"|$/g, "") || "";
-const wsUrl = import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws";
-
-const {
-  isConnected: wsConnected,
-  deviceStatuses,
-  sensorData,
-  connect: wsConnect,
-  disconnect: wsDisconnect,
-  sendCommand: wsSendCommand,
-  subscribe: wsSubscribe,
-  requestTemperature: wsRequestTemperature,
-} = useWebSocket({
-  url: wsUrl,
-  token,
-  onMessage: (message) => {
-    // Данные с датчика
-    if ((message.type === "sensor_data" || message.type === "temperature") && message.deviceId && message.data) {
-      const sensor = sensors.value.find((s) => s.id === message.deviceId);
-      if (sensor) {
-        sensor.temperature = message.data.temperature ?? message.data.value;
-        sensor.minThreshold = message.data.minThreshold;
-        sensor.maxThreshold = message.data.maxThreshold;
+function getDisplayName(deviceId: string, apiName: string): string {
+  // Сначала проверяем сохранённое имя в настройках
+  const savedSettings = localStorage.getItem(`device_settings_${deviceId}`);
+  if (savedSettings) {
+    try {
+      const settings = JSON.parse(savedSettings);
+      if (settings.name && settings.name.trim() !== '') {
+        return settings.name;
       }
-    }
-
-    // Статус устройства
-    if (message.type === "device_status" && message.deviceId) {
-      const sensor = sensors.value.find((s) => s.id === message.deviceId);
-      if (sensor) {
-        const isDeviceConnected = message.data?.isConnected ?? message.data?.connected ?? false;
-        sensor.status = isDeviceConnected ? "Подключено" : "Отключено";
-      }
-    }
-  },
-});
-
-// Синхронизация статусов из WebSocket
-watch(deviceStatuses, (statuses) => {
-  statuses.forEach((status, deviceId) => {
-    const sensor = sensors.value.find((s) => s.id === deviceId);
-    if (sensor) {
-      sensor.status = status;
-    }
-  });
-}, { deep: true });
-
-// Синхронизация данных датчиков
-watch(sensorData, (data) => {
-  data.forEach((sensorInfo, deviceId) => {
-    const sensor = sensors.value.find((s) => s.id === deviceId);
-    if (sensor) {
-      sensor.temperature = sensorInfo.value;
-      sensor.minThreshold = sensorInfo.minThreshold;
-      sensor.maxThreshold = sensorInfo.maxThreshold;
-    }
-  });
-}, { deep: true });
-
-// ============ Методы ============
-const getTemperatureClass = (value?: number) => {
-  if (value === undefined) return "text-gray-400";
-  if (value < -20) return "text-blue-600";
-  if (value < -10) return "text-blue-500";
-  if (value < 0) return "text-cyan-500";
-  if (value < 10) return "text-green-500";
-  if (value < 25) return "text-lime-500";
-  return "text-orange-500";
-};
-
-const showToast = (message: string, type: "success" | "error" = "success") => {
-  if (toastTimer) clearTimeout(toastTimer);
-  toast.value = { show: true, message, type };
-  toastTimer = setTimeout(() => {
-    toast.value.show = false;
-  }, 3000);
-};
-
-const sendCommand = async (deviceId: string, action: string) => {
-  const sensor = sensors.value.find(s => s.id === deviceId);
-  if (!sensor) {
-    showToast("Устройство не найдено", "error");
-    return;
+    } catch { /* игнор */ }
   }
 
-  // Для get-temperature используем специальный метод
-  if (action === "get-temperature") {
-    const success = wsRequestTemperature(deviceId);
-    if (success) {
-      showToast("Запрос температуры отправлен", "success");
-    } else {
-      showToast("Не удалось отправить запрос — нет соединения", "error");
-    }
-    return;
+  // Потом имя из API
+  if (apiName && apiName !== 'Unknown Device' && apiName !== '') {
+    return apiName;
   }
 
-  const success = wsSendCommand({
-    deviceId,
-    action,
-    payload: {},
-  });
+  // Иначе первые 8 символов ID
+  return deviceId.substring(0, 8);
+}
 
-  try {
-    await sendDeviceCommand(sensor.organizationId, deviceId, action, {});
-  } catch (error) {
-    console.error('HTTP command error:', error);
-  }
-
-  if (success) {
-    showToast(`Команда "${action}" отправлена на устройство`, "success");
-  } else {
-    showToast("Не удалось отправить команду — нет соединения", "error");
-  }
-};
-
-const goToSensor = (sensor: SensorDisplay) => {
-  if (!sensor.organizationId) {
-    showToast('Ошибка: не удалось определить организацию для датчика', 'error');
-    return;
-  }
-
+function goToSensor(sensor: SensorDisplay) {
+  if (!sensor.organizationId) return;
   localStorage.setItem(`device_org_${sensor.id}`, sensor.organizationId);
   router.push(`/sensors/${sensor.id}?orgId=${sensor.organizationId}`);
-};
+}
 
-const loadSensors = async () => {
-  try {
-    const orgs = await getUsersOrganizations();
-    const allSensors: SensorDisplay[] = [];
+async function loadSensors() {
+  const orgs = await getUsersOrganizations();
+  const allSensors: SensorDisplay[] = [];
 
-    for (const org of orgs) {
+  for (const org of orgs) {
+    const devices = await getOrganizationDevices(org.id);
+    for (const device of devices) {
+      // Для каждого устройства запрашиваем актуальный статус через одиночный endpoint
+      let isConnected = false;
       try {
-        const devices = await getOrganizationDevices(org.id);
-
-        devices.forEach((device: Device) => {
-          const wsStatus = deviceStatuses.value.get(device.id);
-          const sensor: SensorDisplay = {
-            id: device.id,
-            name: device.name, // Всегда есть имя
-            status: wsStatus ?? (device.isConnected ? "Подключено" : "Отключено"),
-            organizationName: org.name,
-            organizationId: org.id,
-            temperature: sensorData.value.get(device.id)?.value ?? device.temperature,
-            minThreshold: sensorData.value.get(device.id)?.minThreshold,
-            maxThreshold: sensorData.value.get(device.id)?.maxThreshold,
-          };
-          allSensors.push(sensor);
-
-          // Подписываемся на WebSocket обновления для этого устройства
-          wsSubscribe(device.id);
-        });
-      } catch (err) {
-        console.error(`Failed to load devices for org ${org.id}:`, err);
+        const info = await getDeviceInfo(org.id, device.id);
+        isConnected = info.isConnected ?? false;
+      } catch {
+        // Если не удалось — используем статус из списка
+        isConnected = device.isConnected ?? false;
       }
+
+      // Загружаем сохранённую температуру
+      let temperature: number | null = null;
+      const stored = localStorage.getItem(`device_data_${device.id}`);
+      if (stored) {
+        try {
+          const data = JSON.parse(stored);
+          temperature = data.currentTemp ?? null;
+        } catch { /* игнор */ }
+      }
+
+      allSensors.push({
+        id: device.id,
+        name: device.name,
+        displayName: getDisplayName(device.id, device.name),
+        isConnected,
+        temperature,
+        organizationName: org.name,
+        organizationId: org.id,
+      });
     }
-
-    sensors.value = allSensors;
-  } catch (error) {
-    console.error("Failed to load sensors:", error);
-  } finally {
-    loading.value = false;
   }
-};
 
-// ============ Жизненный цикл ============
+  sensors.value = allSensors;
+}
+
+async function refreshAll() {
+  refreshing.value = true;
+  await loadSensors();
+  refreshing.value = false;
+}
+
 onMounted(async () => {
   await loadSensors();
-  wsConnect();
+  loading.value = false;
 });
 
-onUnmounted(() => {
-  if (toastTimer) clearTimeout(toastTimer);
+onActivated(async () => {
+  await loadSensors();
 });
 </script>

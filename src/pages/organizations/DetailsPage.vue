@@ -10,35 +10,26 @@
     </div>
 
     <div v-else>
-      <!-- Шапка -->
       <div class="mb-6">
         <button @click="$router.back()"
           class="text-sm text-gray-500 hover:text-gray-700 mb-2 flex items-center gap-1 touch-target">
-          ← Назад
+          &larr; Назад
         </button>
         <h1 class="text-xl sm:text-2xl font-bold">{{ organization.name }}</h1>
         <p class="text-xs text-gray-400 font-mono">ID: {{ organization.id }}</p>
       </div>
 
-      <!-- Вкладки -->
       <div class="border-b mb-6 overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
         <nav class="flex gap-2 sm:gap-4 min-w-max">
-          <button @click="activeTab = 'devices'" :class="[
-            'px-4 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap touch-target',
-            activeTab === 'devices' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
-          ]">
-            📡 Устройства ({{ devices.length }})
+          <button @click="activeTab = 'devices'" :class="tabClass('devices')">
+            Устройства ({{ devices.length }})
           </button>
-          <button @click="activeTab = 'members'" :class="[
-            'px-4 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap touch-target',
-            activeTab === 'members' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
-          ]">
-            👥 Участники ({{ members.length }})
+          <button @click="activeTab = 'members'" :class="tabClass('members')">
+            Участники ({{ members.length }})
           </button>
         </nav>
       </div>
 
-      <!-- Устройства -->
       <div v-if="activeTab === 'devices'" class="space-y-4">
         <button @click="showConnectDeviceModal = true"
           class="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium touch-target">
@@ -49,25 +40,23 @@
           <p class="text-gray-500">Нет подключенных устройств</p>
         </div>
 
-        <!-- Карточки устройств -->
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <div v-for="device in devices" :key="device.id" class="bg-white border rounded-xl p-4">
             <div class="flex justify-between items-start mb-3">
               <div class="min-w-0 flex-1 mr-2">
-                <!-- Имя устройства — теперь всегда есть -->
-                <h3 class="font-semibold truncate">{{ device.name }}</h3>
+                <h3 class="font-semibold truncate">
+                  {{ getDeviceName(device) }}
+                </h3>
                 <p class="text-xs text-gray-400 font-mono truncate">{{ device.id }}</p>
               </div>
-              <!-- Статус: Подключено / Отключено -->
               <span :class="[
                 'px-2.5 py-1 text-xs rounded-full font-medium whitespace-nowrap flex-shrink-0',
-                device.isConnected ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                (device.isConnected ?? false) ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
               ]">
-                {{ device.isConnected ? 'Подключено' : 'Отключено' }}
+                {{ (device.isConnected ?? false) ? 'Подключено' : 'Отключено' }}
               </span>
             </div>
 
-            <!-- Температура, если есть -->
             <div v-if="device.temperature !== undefined && device.temperature !== null"
               class="text-center py-3 mb-3 bg-gray-50 rounded-lg">
               <span class="text-2xl font-bold text-gray-700">
@@ -87,7 +76,6 @@
         </div>
       </div>
 
-      <!-- Участники -->
       <div v-if="activeTab === 'members'" class="space-y-4">
         <button @click="showAddMemberModal = true"
           class="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium touch-target">
@@ -99,7 +87,6 @@
         </div>
 
         <template v-else>
-          <!-- Десктоп: таблица -->
           <div class="hidden sm:block bg-white rounded-xl border overflow-hidden">
             <table class="w-full">
               <thead class="bg-gray-50">
@@ -130,7 +117,6 @@
             </table>
           </div>
 
-          <!-- Мобильные: карточки -->
           <div class="space-y-3 sm:hidden">
             <div v-for="member in members" :key="member.userId" class="bg-white border rounded-xl p-4">
               <div class="flex justify-between items-start mb-2">
@@ -159,29 +145,21 @@
         @click.self="showConnectDeviceModal = false">
         <div class="bg-white rounded-t-xl sm:rounded-xl p-5 sm:p-6 w-full sm:max-w-md">
           <h3 class="text-lg font-semibold mb-4">Подключить устройство</h3>
-
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                ID устройства (Node ID)
-              </label>
-              <input v-model="deviceIdToConnect" type="text" placeholder="Например: node-123"
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">ID устройства (Node ID)</label>
+              <input v-model="deviceIdToConnect" type="text" placeholder="UUID устройства"
                 class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                Название (опционально)
-              </label>
-              <input v-model="deviceNameToConnect" type="text" placeholder="Холодильник №1"
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">Название</label>
+              <input v-model="deviceNameToConnect" type="text" placeholder="Холодильник N1"
                 class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
           </div>
-
           <div class="mt-6 flex gap-3">
             <button @click="showConnectDeviceModal = false"
-              class="flex-1 px-4 py-3 text-gray-600 border rounded-lg hover:bg-gray-50 touch-target">
-              Отмена
-            </button>
+              class="flex-1 px-4 py-3 text-gray-600 border rounded-lg hover:bg-gray-50 touch-target">Отмена</button>
             <button @click="connectDeviceHandler" :disabled="!deviceIdToConnect.trim()"
               class="flex-1 px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 touch-target font-medium">
               Подключить
@@ -198,22 +176,16 @@
         @click.self="showAddMemberModal = false">
         <div class="bg-white rounded-t-xl sm:rounded-xl p-5 sm:p-6 w-full sm:max-w-md">
           <h3 class="text-lg font-semibold mb-4">Пригласить участников</h3>
-
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                Email участников (через запятую)
-              </label>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">Email участников (через запятую)</label>
               <input v-model="inviteEmails" type="text" inputmode="email" placeholder="user1@mail.com, user2@mail.com"
                 class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
           </div>
-
           <div class="mt-6 flex gap-3">
             <button @click="showAddMemberModal = false"
-              class="flex-1 px-4 py-3 text-gray-600 border rounded-lg hover:bg-gray-50 touch-target">
-              Отмена
-            </button>
+              class="flex-1 px-4 py-3 text-gray-600 border rounded-lg hover:bg-gray-50 touch-target">Отмена</button>
             <button @click="inviteMembersHandler" :disabled="!inviteEmails.trim() || sendingInvite"
               class="flex-1 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 touch-target font-medium">
               {{ sendingInvite ? 'Отправка...' : 'Пригласить' }}
@@ -231,6 +203,7 @@ import { useRoute } from 'vue-router';
 import {
   getOrganizationById,
   getOrganizationDevices,
+  getDeviceInfo,
   connectDevice,
   disconnectDevice,
   getOrganizationMembers,
@@ -256,7 +229,13 @@ const deviceNameToConnect = ref('');
 const inviteEmails = ref('');
 const sendingInvite = ref(false);
 
-// ===== Вспомогательные методы =====
+function tabClass(tab: string) {
+  return [
+    'px-4 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap touch-target',
+    activeTab.value === tab ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+  ];
+}
+
 const getRoleBadgeClass = (role?: string) => {
   const base = 'px-2.5 py-1 text-xs rounded-full font-medium';
   if (role === 'owner') return `${base} bg-purple-100 text-purple-800`;
@@ -272,15 +251,27 @@ const getRoleLabel = (role?: string) => {
 
 const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
   });
 };
 
-// ===== Загрузка данных =====
+const getDeviceName = (device: any): string => {
+  // Проверяем сохранённое имя
+  const savedSettings = localStorage.getItem(`device_settings_${device.id}`);
+  if (savedSettings) {
+    try {
+      const settings = JSON.parse(savedSettings);
+      if (settings.name && settings.name.trim() !== '') return settings.name;
+    } catch { /* игнор */ }
+  }
+
+  // Имя из API
+  if (device.name && device.name !== 'Unknown Device') return device.name;
+
+  // ID
+  return device.id?.substring(0, 8) || 'Без названия';
+};
+
 const loadData = async () => {
   try {
     const orgId = route.params.id as string;
@@ -290,8 +281,35 @@ const loadData = async () => {
       getOrganizationMembers(orgId),
     ]);
     organization.value = org;
-    devices.value = devicesData;
     members.value = membersData;
+
+    // Запрашиваем актуальный статус для каждого устройства
+    const devicesWithStatus = await Promise.all(
+      devicesData.map(async (device) => {
+        try {
+          const info = await getDeviceInfo(orgId, device.id);
+          return { ...device, isConnected: info.isConnected ?? false };
+        } catch {
+          return device;
+        }
+      })
+    );
+    devices.value = devicesWithStatus;
+
+    // Сохраняем температуры
+    for (const device of devices.value) {
+      const stored = localStorage.getItem(`device_data_${device.id}`);
+      if (stored) {
+        try {
+          const data = JSON.parse(stored);
+          if (data.currentTemp !== undefined) {
+            (device as any).temperature = data.currentTemp;
+          }
+        } catch { /* игнор */ }
+      }
+    }
+
+    console.log('Devices loaded:', devicesWithStatus);
   } catch (error) {
     console.error('Failed to load data:', error);
   } finally {
@@ -299,7 +317,6 @@ const loadData = async () => {
   }
 };
 
-// ===== Действия с устройствами =====
 const connectDeviceHandler = async () => {
   if (!deviceIdToConnect.value.trim() || !organization.value) return;
   try {
@@ -318,8 +335,8 @@ const connectDeviceHandler = async () => {
 };
 
 const confirmDisconnect = async (device: Device) => {
-  // Используем device.name — теперь оно всегда есть
-  if (!confirm(`Отключить устройство "${device.name}"?`)) return;
+  const deviceName = getDeviceName(device);
+  if (!confirm(`Отключить устройство "${deviceName}"?`)) return;
   try {
     await disconnectDevice(organization.value!.id, device.id);
     await loadData();
@@ -328,7 +345,6 @@ const confirmDisconnect = async (device: Device) => {
   }
 };
 
-// ===== Действия с участниками =====
 const inviteMembersHandler = async () => {
   if (!inviteEmails.value.trim() || !organization.value) return;
   sendingInvite.value = true;

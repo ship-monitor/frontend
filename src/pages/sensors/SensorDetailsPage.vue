@@ -1,283 +1,215 @@
 <template>
     <div class="max-w-7xl mx-auto p-4 sm:p-6">
-        <div v-if="loading" class="text-center py-12">
-            <div class="animate-spin text-4xl mb-2">⚡</div>
-            <p class="text-gray-500">Загрузка...</p>
-        </div>
+        <div v-if="loading" class="text-center py-12 text-gray-500">Загрузка...</div>
 
         <div v-else>
             <!-- Шапка -->
             <div class="mb-6">
                 <button @click="$router.back()"
-                    class="text-sm text-gray-500 hover:text-gray-700 mb-2 flex items-center gap-1">
-                    ← Назад
+                    class="text-sm text-gray-500 hover:text-gray-700 mb-2 flex items-center gap-1 touch-target">
+                    &larr; Назад
                 </button>
                 <div class="flex flex-wrap justify-between items-start gap-3">
                     <div>
-                        <h1 class="text-2xl font-bold">{{ sensorName }}</h1>
+                        <h1 class="text-2xl font-bold text-gray-800">{{ sensorName }}</h1>
                         <p class="text-xs text-gray-400 font-mono">ID: {{ deviceId }}</p>
-                        <p class="text-xs text-green-600 font-mono mt-1">Организация: {{ organizationId }}</p>
                     </div>
-                    <div class="flex gap-2">
-                        <span :class="[
-                            'px-3 py-1 rounded-full text-sm font-medium',
-                            wsConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        ]">
-                            {{ wsConnected ? '🟢 Online' : '🔴 Offline' }}
-                        </span>
-                    </div>
+                    <span :class="[
+                        'px-3 py-1 rounded-full text-sm font-medium',
+                        deviceIsConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    ]">
+                        {{ deviceIsConnected ? 'Подключено' : 'Отключено' }}
+                    </span>
                 </div>
             </div>
 
             <!-- Вкладки -->
             <div class="border-b mb-6 overflow-x-auto">
                 <div class="flex gap-2 sm:gap-4 min-w-max">
-                    <button @click="activeTab = 'current'" :class="[
-                        'px-4 py-2 font-medium text-sm transition-colors border-b-2',
-                        activeTab === 'current' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'
-                    ]">
-                        📊 Текущие данные
+                    <button @click="activeTab = 'temperature'" :class="tabClass('temperature')">
+                        Температура
                     </button>
-                    <button @click="activeTab = 'chart'" :class="[
-                        'px-4 py-2 font-medium text-sm transition-colors border-b-2',
-                        activeTab === 'chart' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'
-                    ]">
-                        📈 График температуры
+                    <button @click="activeTab = 'commands'" :class="tabClass('commands')">
+                        Команды
                     </button>
-                    <button @click="activeTab = 'commands'" :class="[
-                        'px-4 py-2 font-medium text-sm transition-colors border-b-2',
-                        activeTab === 'commands' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'
-                    ]">
-                        🎮 Команды
-                    </button>
-                    <button @click="activeTab = 'settings'" :class="[
-                        'px-4 py-2 font-medium text-sm transition-colors border-b-2',
-                        activeTab === 'settings' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'
-                    ]">
-                        ⚙️ Настройки
+                    <button @click="activeTab = 'info'" :class="tabClass('info')">
+                        Информация
                     </button>
                 </div>
             </div>
 
-            <!-- Текущие данные -->
-            <div v-if="activeTab === 'current'">
-                <div class="bg-white rounded-xl border p-6">
-                    <div class="text-center py-8">
-                        <div class="text-6xl font-bold mb-3" :class="temperatureClass">
-                            {{ currentTemperature !== null ? currentTemperature.toFixed(1) + '°C' : '--' }}
-                        </div>
-                        <div class="text-sm text-gray-500">
-                            Норма: {{ settings.minTemp }}°C ... {{ settings.maxTemp }}°C
-                        </div>
-                        <div class="text-xs text-gray-400 mt-2">
-                            {{ currentTime }}
-                        </div>
+            <!-- ===================== ТЕМПЕРАТУРА ===================== -->
+            <div v-if="activeTab === 'temperature'" class="space-y-6">
+                <div class="bg-white rounded-xl border p-6 text-center">
+                    <p class="text-sm text-gray-500 mb-2">Текущая температура</p>
+                    <div class="text-6xl font-bold mb-2" :class="tempColor">
+                        {{ currentTemp !== null ? currentTemp.toFixed(1) + '°C' : '--' }}
                     </div>
-
-                    <div class="mt-4 p-4 rounded-lg" :class="statusBgClass">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xl">{{ statusIcon }}</span>
-                            <p class="font-medium">{{ statusMessage }}</p>
-                        </div>
-                    </div>
+                    <p class="text-xs text-gray-400 mb-4">{{ lastTempTime || 'Нет данных' }}</p>
+                    <button @click="refreshTemperature" :disabled="tempLoading"
+                        class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 text-sm touch-target">
+                        {{ tempLoading ? 'Запрос...' : 'Запросить температуру' }}
+                    </button>
                 </div>
-            </div>
 
-            <!-- График температуры -->
-            <div v-if="activeTab === 'chart'">
+                <!-- Периоды -->
+                <div class="flex flex-wrap gap-2">
+                    <button v-for="period in periods" :key="period.value" @click="selectedPeriod = period.value" :class="[
+                        'px-4 py-2 text-sm rounded-lg transition-colors touch-target',
+                        selectedPeriod === period.value
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ]">
+                        {{ period.label }}
+                    </button>
+                </div>
+
+                <!-- График -->
                 <div class="bg-white rounded-xl border p-6">
-                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
-                        <h2 class="text-lg font-semibold">История температуры</h2>
-                        <div class="flex flex-wrap gap-2">
-                            <button v-for="period in periods" :key="period.value" @click="selectPeriod(period.value)"
-                                :class="[
-                                    'px-3 py-1.5 text-sm rounded-lg transition-colors',
-                                    selectedPeriod === period.value
-                                        ? 'bg-blue-500 text-white'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                ]">
-                                {{ period.label }}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div v-if="loadingHistory" class="text-center py-12">
-                        <div class="animate-spin text-3xl mb-2">⚡</div>
-                        <p class="text-gray-500">Загрузка данных...</p>
-                    </div>
-
-                    <div v-else-if="historyData.length === 0" class="text-center py-12 text-gray-500">
+                    <h2 class="text-lg font-semibold mb-4">График температуры</h2>
+                    <div v-if="filteredHistory.length === 0" class="text-center py-12 text-gray-500">
                         Нет данных за выбранный период
                     </div>
-
                     <div v-else>
                         <canvas ref="chartCanvas" class="w-full h-64 sm:h-96"></canvas>
-
-                        <div class="overflow-x-auto mt-4">
-                            <table class="w-full text-sm">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-3 py-2 text-left">Время</th>
-                                        <th class="px-3 py-2 text-left">Температура</th>
-                                        <th class="px-3 py-2 text-left">Статус</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="item in historyData.slice(-10).reverse()" :key="item.time"
-                                        class="border-t">
-                                        <td class="px-3 py-2 text-xs">{{ formatTime(item.time) }}</td>
-                                        <td class="px-3 py-2" :class="getTempColor(item.value)">
-                                            {{ item.value.toFixed(1) }}°C
-                                        </td>
-                                        <td class="px-3 py-2">
-                                            <span
-                                                :class="item.value >= settings.minTemp && item.value <= settings.maxTemp ? 'text-green-600' : 'text-red-600'">
-                                                {{ item.value >= settings.minTemp && item.value <= settings.maxTemp
-                                                    ? '✓ Норма' : '⚠️ Нарушение' }} </span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Команды -->
-            <div v-if="activeTab === 'commands'">
+            <!-- ===================== КОМАНДЫ ===================== -->
+            <div v-if="activeTab === 'commands'" class="space-y-6">
                 <div class="bg-white rounded-xl border p-6">
-                    <h2 class="text-lg font-semibold mb-4">Управление устройством</h2>
+                    <h2 class="text-lg font-semibold mb-4">Отправка команд</h2>
 
-                    <div v-if="!wsConnected" class="mb-4 p-3 bg-yellow-50 rounded-lg text-yellow-800 text-sm">
-                        ⚠️ Устройство не в сети. Команды будут отправлены при восстановлении соединения.
+                    <div v-if="!deviceIsConnected"
+                        class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
+                        Устройство не в сети. Команды будут доставлены при подключении.
                     </div>
 
                     <div class="space-y-4">
+                        <!-- Выпадающий список -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Название команды
-                            </label>
-                            <input v-model="commandName" type="text" placeholder="например: reboot, restart, get_status"
-                                class="w-full px-4 py-2 border rounded-lg" />
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Команда</label>
+                            <div class="relative">
+                                <select v-model="selectedCommand" @change="onCommandSelect"
+                                    class="w-full px-4 py-3 border rounded-lg text-base appearance-none bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <option value="">-- Выберите команду --</option>
+                                    <option v-for="cmd in commandList" :key="cmd.value" :value="cmd.value">
+                                        {{ cmd.label }}
+                                    </option>
+                                    <option value="__custom__">Своя команда...</option>
+                                </select>
+                                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Своя команда -->
+                        <div v-if="selectedCommand === '__custom__'">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Название команды</label>
+                            <input v-model="commandName" type="text" placeholder="Например: reboot, get_logs"
+                                class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Аргументы (JSON)
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Аргументы (JSON, опционально)
                             </label>
                             <textarea v-model="commandArgs" rows="3" placeholder='{"key": "value"}'
-                                class="w-full px-4 py-2 border rounded-lg font-mono text-sm"></textarea>
-                            <p class="text-xs text-gray-500 mt-1">
-                                Аргументы в формате JSON (опционально)
-                            </p>
+                                class="w-full px-4 py-3 border rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
                         </div>
 
-                        <button @click="executeCommand" :disabled="!commandName.trim() || sendingCommand"
-                            class="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-medium">
+                        <!-- Предпросмотр запроса -->
+                        <div v-if="previewRequest" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <p class="text-xs text-gray-500 mb-1.5">Так будет выглядеть запрос:</p>
+                            <pre class="text-xs font-mono text-gray-800 overflow-x-auto">{{ previewRequest }}</pre>
+                        </div>
+
+                        <button @click="executeCommand" :disabled="!canSendCommand || sendingCommand"
+                            class="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-medium transition-colors touch-target">
                             {{ sendingCommand ? 'Отправка...' : 'Отправить команду' }}
                         </button>
                     </div>
 
-                    <div v-if="commandResult" class="mt-4 p-3 rounded-lg"
-                        :class="commandResult.success ? 'bg-green-50' : 'bg-red-50'">
-                        <p class="text-sm font-medium"
+                    <!-- Результат -->
+                    <div v-if="commandResult" class="mt-4 p-4 rounded-lg"
+                        :class="commandResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
+                        <p class="text-sm font-medium mb-2"
                             :class="commandResult.success ? 'text-green-800' : 'text-red-800'">
-                            {{ commandResult.success ? '✅ Успешно' : '❌ Ошибка' }}
+                            {{ commandResult.success ? 'Успешно' : 'Ошибка' }}
                         </p>
-                        <p class="text-sm mt-1" :class="commandResult.success ? 'text-green-700' : 'text-red-700'">
+                        <p class="text-sm mb-2" :class="commandResult.success ? 'text-green-700' : 'text-red-700'">
                             {{ commandResult.message }}
                         </p>
                         <pre v-if="commandResult.data"
-                            class="mt-2 text-xs bg-gray-100 p-2 rounded overflow-x-auto">{{ JSON.stringify(commandResult.data, null, 2) }}</pre>
+                            class="text-xs bg-gray-900 text-green-400 p-3 rounded overflow-x-auto max-h-60">{{ JSON.stringify(commandResult.data, null, 2) }}</pre>
                     </div>
                 </div>
             </div>
 
-            <!-- Настройки -->
-            <div v-if="activeTab === 'settings'">
+            <!-- ===================== ИНФОРМАЦИЯ ===================== -->
+            <div v-if="activeTab === 'info'" class="space-y-6">
                 <div class="bg-white rounded-xl border p-6">
-                    <h2 class="text-lg font-semibold mb-6">Настройки датчика</h2>
+                    <h2 class="text-lg font-semibold mb-6">Настройки устройства</h2>
 
                     <div class="space-y-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Название датчика
-                            </label>
-                            <input v-model="settings.name" type="text" class="w-full px-4 py-2 border rounded-lg" />
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Название устройства</label>
+                            <input v-model="settings.name" type="text" placeholder="Холодильник N1"
+                                class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    Нижняя граница (°C)
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                    Нижняя граница температуры (C)
                                 </label>
-                                <input v-model.number="settings.minTemp" type="number" step="0.5"
-                                    class="w-full px-4 py-2 border rounded-lg" />
+                                <input v-model.number="settings.minThreshold" type="number" step="0.5"
+                                    class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    Верхняя граница (°C)
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                    Верхняя граница температуры (C)
                                 </label>
-                                <input v-model.number="settings.maxTemp" type="number" step="0.5"
-                                    class="w-full px-4 py-2 border rounded-lg" />
+                                <input v-model.number="settings.maxThreshold" type="number" step="0.5"
+                                    class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Номер телефона для SMS
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Номер телефона для SMS-уведомлений
                             </label>
                             <input v-model="settings.phone" type="tel" placeholder="+7XXXXXXXXXX"
-                                class="w-full px-4 py-2 border rounded-lg" />
-                            <p class="text-xs text-gray-500 mt-1">
-                                На этот номер будут приходить уведомления
-                            </p>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    Время оттайки (мин)
-                                </label>
-                                <input v-model.number="settings.defrostTime" type="number" min="1"
-                                    class="w-full px-4 py-2 border rounded-lg" />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    Температура оттайки (°C)
-                                </label>
-                                <input v-model.number="settings.defrostTemp" type="number" step="0.5"
-                                    class="w-full px-4 py-2 border rounded-lg" />
-                            </div>
+                                class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Теги
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Время оттайки (минут)
                             </label>
-                            <div class="flex flex-wrap gap-2 mb-2">
-                                <span v-for="tag in settings.tags" :key="tag"
-                                    class="px-2 py-1 bg-gray-100 rounded-full text-sm flex items-center gap-1">
-                                    {{ tag }}
-                                    <button @click="removeTag(tag)" class="text-red-500">×</button>
-                                </span>
-                            </div>
-                            <div class="flex gap-2">
-                                <input v-model="newTag" type="text" placeholder="Новый тег"
-                                    class="flex-1 px-4 py-2 border rounded-lg" @keyup.enter="addTag" />
-                                <button @click="addTag"
-                                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                                    Добавить
-                                </button>
-                            </div>
+                            <input v-model.number="settings.defrostTime" type="number" min="1"
+                                class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
                         </div>
 
-                        <div class="flex justify-end gap-3 pt-4">
-                            <button @click="loadSettings" class="px-6 py-2 border rounded-lg hover:bg-gray-50">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Время отправки SMS
+                            </label>
+                            <input v-model="settings.smsTime" type="time"
+                                class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
+                        </div>
+
+                        <div class="flex justify-end gap-3 pt-4 border-t">
+                            <button @click="loadSettingsFromStorage"
+                                class="px-6 py-2.5 border rounded-lg hover:bg-gray-50 text-sm touch-target">
                                 Отмена
                             </button>
                             <button @click="saveSettings" :disabled="saving"
-                                class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50">
+                                class="px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 text-sm touch-target font-medium">
                                 {{ saving ? 'Сохранение...' : 'Сохранить' }}
                             </button>
                         </div>
@@ -289,136 +221,279 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { useWebSocket } from '@/composables/useWebSocket'
-import { sendDeviceCommand, getUsersOrganizations, getOrganizationDevices } from '@/data'
+import { sendDeviceCommand, findOrganizationIdByDeviceId, getDeviceInfo } from '@/data'
+import type { Device } from '@/data'
 
 const route = useRoute()
 const deviceId = route.params.id as string
-// Получаем organizationId из query параметра или localStorage
-const organizationId = ref((route.query.orgId as string) || localStorage.getItem(`device_org_${deviceId}`) || '')
-
-console.log('📡 Device ID:', deviceId)
-console.log('🏢 Organization ID from query/localStorage:', organizationId.value)
+const organizationId = ref((route.query.orgId as string) || '')
 
 // Состояние
 const loading = ref(true)
-const loadingHistory = ref(false)
+const tempLoading = ref(false)
 const saving = ref(false)
 const sendingCommand = ref(false)
-const activeTab = ref('current')
-const sensorName = ref('Датчик')
-const currentTemperature = ref<number | null>(null)
-const currentTime = ref('')
-const commandResult = ref<{ success: boolean; message: string; data?: any } | null>(null)
+const activeTab = ref('temperature')
+const deviceIsConnected = ref(false)
+const deviceInfo = ref<Device | null>(null)
+const sensorName = ref('')
+
+// Температура
+const currentTemp = ref<number | null>(null)
+const lastTempTime = ref('')
+const tempHistory = ref<Array<{ time: string; value: number; timestamp: number }>>([])
+const selectedPeriod = ref('24h')
+
+const periods = [
+    { label: 'Час', value: '1h', ms: 60 * 60 * 1000 },
+    { label: '2 часа', value: '2h', ms: 2 * 60 * 60 * 1000 },
+    { label: '3 часа', value: '3h', ms: 3 * 60 * 60 * 1000 },
+    { label: '6 часов', value: '6h', ms: 6 * 60 * 60 * 1000 },
+    { label: '12 часов', value: '12h', ms: 12 * 60 * 60 * 1000 },
+    { label: '1 день', value: '1d', ms: 24 * 60 * 60 * 1000 },
+    { label: '2 дня', value: '2d', ms: 48 * 60 * 60 * 1000 },
+]
+
+// Команды
+const selectedCommand = ref('')
 const commandName = ref('')
 const commandArgs = ref('')
+const commandResult = ref<{ success: boolean; message: string; data?: any } | null>(null)
 
-// График
-const chartCanvas = ref<HTMLCanvasElement | null>(null)
-const selectedPeriod = ref('24h')
-const periods = [
-    { label: '1 час', value: '1h', hours: 1 },
-    { label: '6 часов', value: '6h', hours: 6 },
-    { label: '12 часов', value: '12h', hours: 12 },
-    { label: '24 часа', value: '24h', hours: 24 },
-    { label: '2 дня', value: '2d', hours: 48 },
-    { label: '3 дня', value: '3d', hours: 72 },
-    { label: 'Неделя', value: '7d', hours: 168 }
+const commandList = [
+    { value: 'get-temperature', label: 'Запросить температуру' },
+    { value: 'reboot', label: 'Перезагрузка' },
+    { value: 'restart_service', label: 'Рестарт сервиса' },
+    { value: 'get_status', label: 'Статус устройства' },
+    { value: 'start_defrost', label: 'Запустить оттайку' },
+    { value: 'stop_defrost', label: 'Остановить оттайку' },
+    { value: 'get_config', label: 'Получить конфигурацию' },
+    { value: 'get_logs', label: 'Получить логи' },
 ]
-const historyData = ref<Array<{ time: string; value: number }>>([])
 
 // Настройки
 const settings = ref({
     name: '',
-    minTemp: -17,
-    maxTemp: -15,
+    minThreshold: -17,
+    maxThreshold: -15,
     phone: '',
     defrostTime: 30,
-    defrostTemp: -9,
-    tags: [] as string[]
-})
-const newTag = ref('')
-
-// WebSocket
-const token = localStorage.getItem("token")?.replace(/^"|$/g, "") || ""
-const wsUrl = import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws"
-
-const { isConnected: wsConnected, subscribe, sendCommand: wsSendCommand } = useWebSocket({
-    url: wsUrl,
-    token,
-    onMessage: (message) => {
-        if (message.type === "sensor_data" && message.deviceId === deviceId && message.data) {
-            const newValue = message.data.value ?? null
-            if (newValue !== null) {
-                currentTemperature.value = newValue
-                currentTime.value = new Date().toLocaleString('ru-RU')
-                addToHistory(newValue)
-            }
-        }
-    },
+    smsTime: '09:00',
 })
 
-// Вычисляемые свойства
-const isWithinRange = computed(() => {
-    if (currentTemperature.value === null) return true
-    return currentTemperature.value >= settings.value.minTemp && currentTemperature.value <= settings.value.maxTemp
+// График
+const chartCanvas = ref<HTMLCanvasElement | null>(null)
+
+// Вычисляемые
+const canSendCommand = computed(() => {
+    if (selectedCommand.value === '__custom__') return !!commandName.value.trim()
+    return !!selectedCommand.value
 })
 
-const temperatureClass = computed(() => {
-    if (currentTemperature.value === null) return 'text-gray-400'
-    if (currentTemperature.value < -20) return 'text-blue-600'
-    if (currentTemperature.value < -10) return 'text-blue-500'
-    if (currentTemperature.value < 0) return 'text-cyan-500'
-    if (currentTemperature.value < 10) return 'text-green-500'
+const currentCommand = computed(() => {
+    if (selectedCommand.value === '__custom__') return commandName.value.trim()
+    return selectedCommand.value
+})
+
+const currentArgs = computed(() => {
+    if (!commandArgs.value.trim()) return {}
+    try {
+        return JSON.parse(commandArgs.value)
+    } catch {
+        return {}
+    }
+})
+
+const previewRequest = computed(() => {
+    if (!currentCommand.value) return null
+    const body = {
+        command: currentCommand.value,
+        args: currentArgs.value,
+    }
+    return JSON.stringify(body, null, 2)
+})
+
+const tempColor = computed(() => {
+    if (currentTemp.value === null) return 'text-gray-400'
+    if (currentTemp.value < -20) return 'text-blue-600'
+    if (currentTemp.value < -10) return 'text-blue-500'
+    if (currentTemp.value < 0) return 'text-cyan-500'
+    if (currentTemp.value < 10) return 'text-green-500'
+    if (currentTemp.value < 25) return 'text-lime-500'
     return 'text-orange-500'
 })
 
-const statusIcon = computed(() => {
-    if (currentTemperature.value === null) return '⚪'
-    return isWithinRange.value ? '🟢' : '🔴'
+const filteredHistory = computed(() => {
+    const period = periods.find(p => p.value === selectedPeriod.value)
+    if (!period) return tempHistory.value
+    const cutoff = Date.now() - period.ms
+    return tempHistory.value.filter(item => item.timestamp >= cutoff)
 })
 
-const statusMessage = computed(() => {
-    if (currentTemperature.value === null) return 'Нет данных'
-    return isWithinRange.value ? '✅ Температура в норме' : '⚠️ Температура вышла за пределы нормы!'
-})
-
-const statusBgClass = computed(() => {
-    if (currentTemperature.value === null) return 'bg-gray-50'
-    return isWithinRange.value ? 'bg-green-50' : 'bg-orange-50'
-})
-
-// Методы
-const addToHistory = (value: number) => {
-    const now = new Date()
-    historyData.value.push({
-        time: now.toISOString(),
-        value: value
-    })
-
-    const periodHours = periods.find(p => p.value === selectedPeriod.value)?.hours || 24
-    const cutoffTime = new Date()
-    cutoffTime.setHours(cutoffTime.getHours() - periodHours)
-
-    historyData.value = historyData.value.filter(item => new Date(item.time) > cutoffTime)
-    drawChart()
+// Классы вкладок
+function tabClass(tab: string) {
+    return [
+        'px-4 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap touch-target',
+        activeTab.value === tab ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+    ]
 }
 
-const selectPeriod = (period: string) => {
-    selectedPeriod.value = period
-    const periodHours = periods.find(p => p.value === period)?.hours || 24
-    const cutoffTime = new Date()
-    cutoffTime.setHours(cutoffTime.getHours() - periodHours)
-
-    historyData.value = historyData.value.filter(item => new Date(item.time) > cutoffTime)
-    drawChart()
+function getDisplayName(): string {
+    if (settings.value.name && settings.value.name.trim() !== '') {
+        return settings.value.name
+    }
+    if (deviceInfo.value?.name && deviceInfo.value.name !== 'Unknown Device' && deviceInfo.value.name !== '') {
+        return deviceInfo.value.name
+    }
+    return deviceId.substring(0, 8)
 }
 
-const drawChart = () => {
-    if (!chartCanvas.value || historyData.value.length === 0) return
+// ===== Хранилище =====
+const STORAGE_KEY = `device_data_${deviceId}`
+const SETTINGS_KEY = `device_settings_${deviceId}`
 
+function loadStoredData() {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) {
+        try {
+            const data = JSON.parse(stored)
+            if (data.tempHistory) tempHistory.value = data.tempHistory
+            if (data.currentTemp !== undefined) currentTemp.value = data.currentTemp
+            if (data.lastTempTime) lastTempTime.value = data.lastTempTime
+        } catch { /* игнор */ }
+    }
+}
+
+function saveStoredData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        tempHistory: tempHistory.value.slice(-200),
+        currentTemp: currentTemp.value,
+        lastTempTime: lastTempTime.value,
+    }))
+}
+
+function loadSettingsFromStorage() {
+    const saved = localStorage.getItem(SETTINGS_KEY)
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved)
+            settings.value = { ...settings.value, ...parsed }
+        } catch { /* игнор */ }
+    }
+    sensorName.value = getDisplayName()
+}
+
+function saveSettings() {
+    saving.value = true
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings.value))
+    sensorName.value = getDisplayName()
+    setTimeout(() => { saving.value = false }, 300)
+}
+
+// ===== Температура =====
+async function refreshTemperature() {
+    if (!organizationId.value) return
+    tempLoading.value = true
+    try {
+        const result = await sendDeviceCommand(organizationId.value, deviceId, 'get-temperature', {})
+        if (result.data) {
+            const temp = result.data.temperature ?? result.data.value ?? result.data.temp
+            if (temp !== undefined && temp !== null) {
+                const numTemp = typeof temp === 'number' ? temp : parseFloat(temp)
+                if (!isNaN(numTemp)) {
+                    const now = Date.now()
+                    currentTemp.value = numTemp
+                    lastTempTime.value = new Date().toLocaleString('ru-RU')
+                    tempHistory.value.push({
+                        time: new Date().toLocaleString('ru-RU'),
+                        value: numTemp,
+                        timestamp: now,
+                    })
+                    saveStoredData()
+                    await nextTick()
+                    drawChart()
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Failed to get temperature:', error)
+    } finally {
+        tempLoading.value = false
+    }
+}
+
+// ===== Команды =====
+function onCommandSelect() {
+    if (selectedCommand.value !== '__custom__' && selectedCommand.value) {
+        commandName.value = selectedCommand.value
+    } else if (selectedCommand.value === '__custom__') {
+        commandName.value = ''
+    } else {
+        commandName.value = ''
+    }
+}
+
+async function executeCommand() {
+    if (!organizationId.value) {
+        commandResult.value = { success: false, message: 'Устройство не привязано к организации' }
+        return
+    }
+
+    const cmd = currentCommand.value
+    if (!cmd) return
+
+    sendingCommand.value = true
+    commandResult.value = null
+
+    const args = currentArgs.value
+
+    try {
+        const result = await sendDeviceCommand(organizationId.value, deviceId, cmd, args)
+
+        if (result.requestError) {
+            commandResult.value = { success: false, message: result.requestError }
+        } else if (result.commandError) {
+            commandResult.value = { success: false, message: `Ошибка устройства: ${result.commandError}` }
+        } else {
+            commandResult.value = {
+                success: true,
+                message: `Команда "${cmd}" выполнена`,
+                data: result.data
+            }
+
+            if (cmd === 'get-temperature' && result.data) {
+                const temp = result.data.temperature ?? result.data.value ?? result.data.temp
+                if (temp !== undefined && temp !== null) {
+                    const numTemp = typeof temp === 'number' ? temp : parseFloat(temp)
+                    if (!isNaN(numTemp)) {
+                        const now = Date.now()
+                        currentTemp.value = numTemp
+                        lastTempTime.value = new Date().toLocaleString('ru-RU')
+                        tempHistory.value.push({
+                            time: new Date().toLocaleString('ru-RU'),
+                            value: numTemp,
+                            timestamp: now,
+                        })
+                        saveStoredData()
+                    }
+                }
+            }
+        }
+    } catch (error: any) {
+        commandResult.value = { success: false, message: error.message || 'Ошибка сети' }
+    } finally {
+        sendingCommand.value = false
+        selectedCommand.value = ''
+        commandName.value = ''
+        commandArgs.value = ''
+    }
+}
+
+// ===== График =====
+function drawChart() {
+    if (!chartCanvas.value || filteredHistory.value.length === 0) return
     const canvas = chartCanvas.value
     const ctx = canvas.getContext('2d')
     if (!ctx) return
@@ -429,268 +504,97 @@ const drawChart = () => {
         canvas.height = 300
     }
 
-    const width = canvas.width
-    const height = canvas.height
+    const { width, height } = canvas
     const padding = 40
-
     ctx.clearRect(0, 0, width, height)
 
-    if (historyData.value.length < 2) {
+    if (filteredHistory.value.length < 2) {
         ctx.fillStyle = '#999'
         ctx.font = '14px sans-serif'
         ctx.textAlign = 'center'
-        ctx.fillText('Недостаточно данных', width / 2, height / 2)
+        ctx.fillText('Недостаточно данных для графика', width / 2, height / 2)
         return
     }
 
-    const values = historyData.value.map(d => d.value)
-    const minVal = Math.min(...values, settings.value.minTemp)
-    const maxVal = Math.max(...values, settings.value.maxTemp)
+    const values = filteredHistory.value.map(d => d.value)
+    const minVal = Math.min(...values) - 2
+    const maxVal = Math.max(...values) + 2
     const range = maxVal - minVal || 1
+    const stepX = (width - padding * 2) / (filteredHistory.value.length - 1)
 
-    const stepX = (width - padding * 2) / (historyData.value.length - 1)
-
-    ctx.strokeStyle = '#eee'
-    ctx.fillStyle = '#999'
-    ctx.font = '10px sans-serif'
-
+    // Горизонтальные линии
+    ctx.strokeStyle = '#e5e7eb'
+    ctx.fillStyle = '#9ca3af'
+    ctx.font = '11px sans-serif'
     for (let i = 0; i <= 4; i++) {
         const y = padding + (height - padding * 2) * (i / 4)
         ctx.beginPath()
         ctx.moveTo(padding, y)
         ctx.lineTo(width - padding, y)
         ctx.stroke()
-
-        const temp = maxVal - (range * i / 4)
-        ctx.fillText(temp.toFixed(1) + '°C', 5, y + 3)
+        const label = (maxVal - range * i / 4).toFixed(1) + 'C'
+        ctx.fillText(label, 5, y + 3)
     }
 
-    const normYMin = padding + (height - padding * 2) * ((maxVal - settings.value.maxTemp) / range)
-    const normYMax = padding + (height - padding * 2) * ((maxVal - settings.value.minTemp) / range)
-
-    ctx.fillStyle = 'rgba(0, 200, 0, 0.1)'
-    ctx.fillRect(padding, normYMin, width - padding * 2, normYMax - normYMin)
-
+    // Линия графика
     ctx.beginPath()
-    ctx.strokeStyle = '#ff4444'
+    ctx.strokeStyle = '#3b82f6'
     ctx.lineWidth = 2
-
-    historyData.value.forEach((item, i) => {
+    ctx.lineJoin = 'round'
+    filteredHistory.value.forEach((item, i) => {
         const x = padding + i * stepX
         const y = padding + (height - padding * 2) * ((maxVal - item.value) / range)
-
-        if (i === 0) {
-            ctx.moveTo(x, y)
-        } else {
-            ctx.lineTo(x, y)
-        }
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
     })
     ctx.stroke()
 
-    historyData.value.forEach((item, i) => {
+    // Точки
+    filteredHistory.value.forEach((item, i) => {
         const x = padding + i * stepX
         const y = padding + (height - padding * 2) * ((maxVal - item.value) / range)
-
-        ctx.fillStyle = item.value >= settings.value.minTemp && item.value <= settings.value.maxTemp ? '#00cc00' : '#ff4444'
+        ctx.fillStyle = '#3b82f6'
         ctx.beginPath()
-        ctx.arc(x, y, 4, 0, Math.PI * 2)
+        ctx.arc(x, y, 3, 0, Math.PI * 2)
         ctx.fill()
     })
 }
 
-const formatTime = (isoTime: string) => {
-    const date = new Date(isoTime)
-    return date.toLocaleString('ru-RU', {
-        day: '2-digit',
-        month: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-    })
-}
+watch(selectedPeriod, async () => { await nextTick(); drawChart() })
+watch(activeTab, async (tab) => { if (tab === 'temperature') { await nextTick(); drawChart() } })
 
-const getTempColor = (value: number) => {
-    if (value < settings.value.minTemp || value > settings.value.maxTemp) return 'text-red-600 font-medium'
-    return 'text-green-600'
-}
-
-// Автоматическое получение organizationId если его нет
-const loadOrganizationIdIfNeeded = async () => {
-    if (organizationId.value) return true
-
-    console.log('🔍 Organization ID not found, trying to find it...')
-    try {
-        const orgs = await getUsersOrganizations()
-        for (const org of orgs) {
-            const devices = await getOrganizationDevices(org.id)
-            const found = devices.some(d => d.id === deviceId)
-            if (found) {
-                organizationId.value = org.id
-                localStorage.setItem(`device_org_${deviceId}`, org.id)
-                console.log(`✅ Found organization ${org.id} for device ${deviceId}`)
-                return true
-            }
+// ===== Загрузка =====
+async function loadDeviceData() {
+    if (!organizationId.value) {
+        const found = await findOrganizationIdByDeviceId(deviceId)
+        if (found) {
+            organizationId.value = found
+            localStorage.setItem(`device_org_${deviceId}`, found)
         }
-        console.error('❌ Device not found in any organization')
-        return false
-    } catch (error) {
-        console.error('Failed to find organization:', error)
-        return false
     }
-}
-
-const executeCommand = async () => {
-    if (!commandName.value.trim()) return
 
     if (!organizationId.value) {
-        commandResult.value = {
-            success: false,
-            message: 'Ошибка: ID организации не найден. Пожалуйста, вернитесь на главную и зайдите заново.'
-        }
-        return
-    }
-
-    sendingCommand.value = true
-    commandResult.value = null
-
-    let args = {}
-    if (commandArgs.value.trim()) {
-        try {
-            args = JSON.parse(commandArgs.value)
-        } catch (e) {
-            commandResult.value = {
-                success: false,
-                message: 'Ошибка: неверный формат JSON в аргументах'
-            }
-            sendingCommand.value = false
-            return
-        }
-    }
-
-    try {
-        const result = await sendDeviceCommand(organizationId.value, deviceId, commandName.value.trim(), args)
-
-        if (result.requestError) {
-            commandResult.value = {
-                success: false,
-                message: `Ошибка: ${result.requestError}`
-            }
-        } else if (result.commandError) {
-            commandResult.value = {
-                success: false,
-                message: `Ошибка команды: ${result.commandError}`
-            }
-        } else {
-            commandResult.value = {
-                success: true,
-                message: `Команда "${commandName.value}" успешно отправлена`,
-                data: result.data
-            }
-
-            if (wsConnected.value) {
-                wsSendCommand({ deviceId, action: commandName.value, payload: args })
-            }
-        }
-    } catch (error: any) {
-        commandResult.value = {
-            success: false,
-            message: `Ошибка: ${error.message}`
-        }
-    } finally {
-        sendingCommand.value = false
-    }
-}
-
-// Настройки
-const addTag = () => {
-    if (newTag.value.trim()) {
-        settings.value.tags.push(newTag.value.trim())
-        newTag.value = ''
-    }
-}
-
-const removeTag = (tag: string) => {
-    settings.value.tags = settings.value.tags.filter(t => t !== tag)
-}
-
-const loadSettings = () => {
-    const saved = localStorage.getItem(`sensor_${deviceId}`)
-    if (saved) {
-        try {
-            settings.value = JSON.parse(saved)
-            sensorName.value = settings.value.name || 'Датчик'
-        } catch (e) {
-            console.error('Error loading settings', e)
-        }
-    }
-}
-
-const saveSettings = async () => {
-    saving.value = true
-    try {
-        localStorage.setItem(`sensor_${deviceId}`, JSON.stringify(settings.value))
-        sensorName.value = settings.value.name || 'Датчик'
-        alert('Настройки сохранены')
-    } catch (error) {
-        console.error('Failed to save:', error)
-        alert('Ошибка сохранения')
-    } finally {
-        saving.value = false
-    }
-}
-
-// Следим за изменением данных для перерисовки графика
-watch(historyData, () => {
-    drawChart()
-}, { deep: true })
-
-watch(() => settings.value.minTemp, () => drawChart())
-watch(() => settings.value.maxTemp, () => drawChart())
-
-// Эмуляция данных (для демо, удалить при реальной работе)
-const simulateData = () => {
-    const interval = setInterval(() => {
-        if (currentTemperature.value !== null) {
-            const variation = (Math.random() - 0.5) * 1.5
-            let newTemp = currentTemperature.value + variation
-            newTemp = Math.max(-25, Math.min(-5, newTemp))
-            currentTemperature.value = newTemp
-            currentTime.value = new Date().toLocaleString('ru-RU')
-            addToHistory(newTemp)
-        }
-    }, 10000)
-    return interval
-}
-
-let simInterval: ReturnType<typeof setInterval> | null = null
-
-onMounted(async () => {
-    // Сначала пытаемся найти organizationId если его нет
-    const hasOrgId = await loadOrganizationIdIfNeeded()
-
-    if (!hasOrgId) {
-        alert('Ошибка: не удалось определить организацию для этого устройства. Пожалуйста, убедитесь, что устройство подключено к организации.')
         loading.value = false
         return
     }
 
-    loadSettings()
-    subscribe(deviceId)
+    loadStoredData()
+    loadSettingsFromStorage()
 
-    currentTemperature.value = -15.5
-    currentTime.value = new Date().toLocaleString('ru-RU')
-
-    for (let i = 24; i >= 0; i--) {
-        const time = new Date()
-        time.setHours(time.getHours() - i)
-        const value = -16 + (Math.random() * 4 - 2)
-        historyData.value.push({ time: time.toISOString(), value })
+    try {
+        const info = await getDeviceInfo(organizationId.value, deviceId)
+        deviceInfo.value = info
+        deviceIsConnected.value = info.isConnected ?? false
+        sensorName.value = getDisplayName()
+    } catch (error) {
+        console.error('Failed to load device info:', error)
+        sensorName.value = getDisplayName()
     }
+}
 
-    simInterval = simulateData()
+onMounted(async () => {
+    await loadDeviceData()
     loading.value = false
-})
-
-onUnmounted(() => {
-    if (simInterval) clearInterval(simInterval)
+    await nextTick()
+    drawChart()
 })
 </script>
