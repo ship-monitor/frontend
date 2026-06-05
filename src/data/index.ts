@@ -29,10 +29,10 @@ export type Device = {
   id: string;
   name: string;
   nodeId?: string;
+  isConnected: boolean;
+  temperature?: number;
   lastConnection?: string;
   firstConnection?: string;
-  connected?: boolean;
-  status?: "online" | "offline" | "error";
   createdAt?: string;
 };
 

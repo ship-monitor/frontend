@@ -29,31 +29,32 @@
         </router-link>
       </div>
 
-      <!-- Адаптивная сетка: 1 колонка на телефоне, 2 на планшете, 3 на десктопе -->
+      <!-- Адаптивная сетка -->
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <div v-for="sensor in sensors" :key="sensor.id"
           class="bg-white rounded-lg border p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer"
           @click="goToSensor(sensor)">
+
           <!-- Заголовок карточки -->
           <div class="flex justify-between items-start mb-3 sm:mb-4">
             <h3 class="font-semibold text-gray-800 text-sm sm:text-base truncate mr-2">
               {{ sensor.name }}
             </h3>
             <span :class="[
-              'px-2 py-1 text-xs rounded-full whitespace-nowrap flex-shrink-0',
-              sensor.status === 'online'
+              'px-2 py-1 text-xs rounded-full whitespace-nowrap flex-shrink-0 font-medium',
+              sensor.status === 'Подключено'
                 ? 'bg-green-100 text-green-800'
                 : 'bg-gray-100 text-gray-600',
             ]">
-              {{ sensor.status === 'online' ? 'online' : 'offline' }}
+              {{ sensor.status }}
             </span>
           </div>
 
           <!-- Показания температуры -->
           <div class="text-center py-3 sm:py-4">
             <div class="text-3xl sm:text-4xl font-bold mb-2 transition-colors"
-              :class="getTemperatureClass(sensor.value)">
-              {{ sensor.value !== undefined ? sensor.value.toFixed(1) + '°C' : '--' }}
+              :class="getTemperatureClass(sensor.temperature)">
+              {{ sensor.temperature !== undefined ? sensor.temperature.toFixed(1) + '°C' : '--' }}
             </div>
             <div class="text-xs sm:text-sm text-gray-500">
               {{ sensor.minThreshold ?? '--' }}°C ... {{ sensor.maxThreshold ?? '--' }}°C
@@ -65,19 +66,19 @@
             <span class="text-xs text-gray-400">{{ sensor.organizationName }}</span>
           </div>
 
-          <!-- Кнопки команд (только для online устройств) -->
-          <div v-if="sensor.status === 'online'" class="flex gap-2 justify-center" @click.stop>
+          <!-- Кнопки команд (только для подключенных устройств) -->
+          <div v-if="sensor.status === 'Подключено'" class="flex gap-2 justify-center flex-wrap" @click.stop>
             <button @click="sendCommand(sensor.id, 'reboot')"
-              class="px-3 py-1.5 text-xs sm:text-sm bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors active:scale-95">
+              class="px-3 py-1.5 text-xs sm:text-sm bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors active:scale-95 touch-target">
               Перезагрузить
             </button>
             <button @click="sendCommand(sensor.id, 'restart_service')"
-              class="px-3 py-1.5 text-xs sm:text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors active:scale-95">
+              class="px-3 py-1.5 text-xs sm:text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors active:scale-95 touch-target">
               Рестарт сервиса
             </button>
-            <button @click="sendCommand(sensor.id, 'update_config')"
-              class="px-3 py-1.5 text-xs sm:text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors active:scale-95">
-              Обновить
+            <button @click="sendCommand(sensor.id, 'get-temperature')"
+              class="px-3 py-1.5 text-xs sm:text-sm bg-cyan-100 text-cyan-700 rounded-lg hover:bg-cyan-200 transition-colors active:scale-95 touch-target">
+              🌡️ Температура
             </button>
           </div>
         </div>
@@ -86,7 +87,7 @@
 
     <!-- Toast уведомление -->
     <div v-if="toast.show" :class="[
-      'fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg text-white text-sm transition-all z-50',
+      'fixed bottom-20 sm:bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg text-white text-sm transition-all z-50',
       toast.type === 'success' ? 'bg-green-600' : 'bg-red-600',
     ]">
       {{ toast.message }}
@@ -106,10 +107,10 @@ const router = useRouter();
 interface SensorDisplay {
   id: string;
   name: string;
-  value?: number;
+  temperature?: number;
   minThreshold?: number;
   maxThreshold?: number;
-  status: "online" | "offline";
+  status: "Подключено" | "Отключено";
   organizationName: string;
   organizationId: string;
 }
@@ -136,57 +137,54 @@ const {
   connect: wsConnect,
   disconnect: wsDisconnect,
   sendCommand: wsSendCommand,
+  subscribe: wsSubscribe,
+  requestTemperature: wsRequestTemperature,
 } = useWebSocket({
   url: wsUrl,
   token,
   onMessage: (message) => {
-    if (message.type === "sensor_data" && message.deviceId && message.data) {
+    // Данные с датчика
+    if ((message.type === "sensor_data" || message.type === "temperature") && message.deviceId && message.data) {
       const sensor = sensors.value.find((s) => s.id === message.deviceId);
       if (sensor) {
-        sensor.value = message.data.value;
+        sensor.temperature = message.data.temperature ?? message.data.value;
         sensor.minThreshold = message.data.minThreshold;
         sensor.maxThreshold = message.data.maxThreshold;
       }
     }
 
+    // Статус устройства
     if (message.type === "device_status" && message.deviceId) {
       const sensor = sensors.value.find((s) => s.id === message.deviceId);
       if (sensor) {
-        sensor.status = message.data?.connected ? "online" : "offline";
+        const isDeviceConnected = message.data?.isConnected ?? message.data?.connected ?? false;
+        sensor.status = isDeviceConnected ? "Подключено" : "Отключено";
       }
     }
   },
 });
 
-// Синхронизация статусов из WebSocket с локальным состоянием
-watch(
-  deviceStatuses,
-  (statuses) => {
-    statuses.forEach((status, deviceId) => {
-      const sensor = sensors.value.find((s) => s.id === deviceId);
-      if (sensor) {
-        sensor.status = status;
-      }
-    });
-  },
-  { deep: true }
-);
+// Синхронизация статусов из WebSocket
+watch(deviceStatuses, (statuses) => {
+  statuses.forEach((status, deviceId) => {
+    const sensor = sensors.value.find((s) => s.id === deviceId);
+    if (sensor) {
+      sensor.status = status;
+    }
+  });
+}, { deep: true });
 
 // Синхронизация данных датчиков
-watch(
-  sensorData,
-  (data) => {
-    data.forEach((sensorInfo, deviceId) => {
-      const sensor = sensors.value.find((s) => s.id === deviceId);
-      if (sensor) {
-        sensor.value = sensorInfo.value;
-        sensor.minThreshold = sensorInfo.minThreshold;
-        sensor.maxThreshold = sensorInfo.maxThreshold;
-      }
-    });
-  },
-  { deep: true }
-);
+watch(sensorData, (data) => {
+  data.forEach((sensorInfo, deviceId) => {
+    const sensor = sensors.value.find((s) => s.id === deviceId);
+    if (sensor) {
+      sensor.temperature = sensorInfo.value;
+      sensor.minThreshold = sensorInfo.minThreshold;
+      sensor.maxThreshold = sensorInfo.maxThreshold;
+    }
+  });
+}, { deep: true });
 
 // ============ Методы ============
 const getTemperatureClass = (value?: number) => {
@@ -195,6 +193,7 @@ const getTemperatureClass = (value?: number) => {
   if (value < -10) return "text-blue-500";
   if (value < 0) return "text-cyan-500";
   if (value < 10) return "text-green-500";
+  if (value < 25) return "text-lime-500";
   return "text-orange-500";
 };
 
@@ -210,6 +209,17 @@ const sendCommand = async (deviceId: string, action: string) => {
   const sensor = sensors.value.find(s => s.id === deviceId);
   if (!sensor) {
     showToast("Устройство не найдено", "error");
+    return;
+  }
+
+  // Для get-temperature используем специальный метод
+  if (action === "get-temperature") {
+    const success = wsRequestTemperature(deviceId);
+    if (success) {
+      showToast("Запрос температуры отправлен", "success");
+    } else {
+      showToast("Не удалось отправить запрос — нет соединения", "error");
+    }
     return;
   }
 
@@ -233,55 +243,46 @@ const sendCommand = async (deviceId: string, action: string) => {
 };
 
 const goToSensor = (sensor: SensorDisplay) => {
-  console.log('🖱️ Going to sensor:', sensor.id);
-  console.log('🏢 Organization ID from sensor:', sensor.organizationId);
-
   if (!sensor.organizationId) {
-    console.error('❌ No organizationId for sensor:', sensor);
     showToast('Ошибка: не удалось определить организацию для датчика', 'error');
     return;
   }
 
   localStorage.setItem(`device_org_${sensor.id}`, sensor.organizationId);
-  const url = `/sensors/${sensor.id}?orgId=${sensor.organizationId}`;
-  console.log('🔗 Navigating to:', url);
-  router.push(url);
+  router.push(`/sensors/${sensor.id}?orgId=${sensor.organizationId}`);
 };
 
 const loadSensors = async () => {
   try {
     const orgs = await getUsersOrganizations();
-    console.log('📋 Organizations loaded:', orgs.length);
     const allSensors: SensorDisplay[] = [];
 
     for (const org of orgs) {
-      console.log(`📡 Loading devices for org: ${org.id} - ${org.name}`);
       try {
         const devices = await getOrganizationDevices(org.id);
-        console.log(`✅ Found ${devices.length} devices in org ${org.id}`);
 
         devices.forEach((device: Device) => {
-          allSensors.push({
+          const wsStatus = deviceStatuses.value.get(device.id);
+          const sensor: SensorDisplay = {
             id: device.id,
-            name: device.name || "Без названия",
-            status: deviceStatuses.value.get(device.id) ??
-              (device.connected ? "online" : "offline"),
+            name: device.name, // Всегда есть имя
+            status: wsStatus ?? (device.isConnected ? "Подключено" : "Отключено"),
             organizationName: org.name,
             organizationId: org.id,
-            value: sensorData.value.get(device.id)?.value,
+            temperature: sensorData.value.get(device.id)?.value ?? device.temperature,
             minThreshold: sensorData.value.get(device.id)?.minThreshold,
             maxThreshold: sensorData.value.get(device.id)?.maxThreshold,
-          });
+          };
+          allSensors.push(sensor);
+
+          // Подписываемся на WebSocket обновления для этого устройства
+          wsSubscribe(device.id);
         });
       } catch (err) {
         console.error(`Failed to load devices for org ${org.id}:`, err);
       }
     }
 
-    console.log(`🎯 Total sensors loaded: ${allSensors.length}`);
-    if (allSensors[0]) {
-      console.log('📊 First sensor example:', { id: allSensors[0].id, name: allSensors[0].name, orgId: allSensors[0].organizationId });
-    }
     sensors.value = allSensors;
   } catch (error) {
     console.error("Failed to load sensors:", error);

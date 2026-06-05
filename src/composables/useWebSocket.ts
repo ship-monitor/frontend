@@ -7,11 +7,13 @@ export interface WsCommand {
 }
 
 export interface WsMessage {
-    type: "device_status" | "sensor_data" | "command_result" | "error" | "pong";
+    type: "device_status" | "sensor_data" | "temperature" | "command_result" | "error" | "pong";
     deviceId?: string;
     data?: {
-        connected?: boolean;
-        value?: number;
+        connected?: boolean;       // устаревшее, оставлено для обратной совместимости
+        isConnected?: boolean;     // новое поле статуса
+        value?: number;            // температура
+        temperature?: number;      // температура (альтернативное имя)
         minThreshold?: number;
         maxThreshold?: number;
         isDefrostMode?: boolean;
@@ -44,9 +46,19 @@ export function useWebSocket(options: UseWebSocketOptions) {
     } = options;
 
     const isConnected: Ref<boolean> = ref(false);
-    const deviceStatuses: Ref<Map<string, "online" | "offline">> = ref(new Map());
+
+    // Статусы устройств: "Подключено" | "Отключено"
+    const deviceStatuses: Ref<Map<string, "Подключено" | "Отключено">> = ref(new Map());
+
+    // Данные датчиков (температура и доп. параметры)
     const sensorData: Ref<
-        Map<string, { value: number; minThreshold?: number; maxThreshold?: number; isDefrostMode?: boolean; isAlert?: boolean }>
+        Map<string, {
+            value: number;
+            minThreshold?: number;
+            maxThreshold?: number;
+            isDefrostMode?: boolean;
+            isAlert?: boolean;
+        }>
     > = ref(new Map());
 
     let ws: WebSocket | null = null;
@@ -54,6 +66,11 @@ export function useWebSocket(options: UseWebSocketOptions) {
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let pingInterval: ReturnType<typeof setInterval> | null = null;
     let lastPongTime: number = Date.now();
+
+    // Таймер для периодического запроса температуры
+    let temperatureInterval: ReturnType<typeof setInterval> | null = null;
+    // Список устройств, для которых запрашиваем температуру
+    const subscribedDevices: Set<string> = new Set();
 
     // ============ Подключение ============
     function connect() {
@@ -77,7 +94,6 @@ export function useWebSocket(options: UseWebSocketOptions) {
                 if (ws?.readyState === WebSocket.OPEN) {
                     ws.send(JSON.stringify({ type: "ping" }));
 
-                    // Проверяем, был ли ответ на пинг за последние 30 секунд
                     if (Date.now() - lastPongTime > 35000) {
                         console.log("[WebSocket] No pong received, reconnecting...");
                         disconnect();
@@ -85,6 +101,14 @@ export function useWebSocket(options: UseWebSocketOptions) {
                     }
                 }
             }, 25000);
+
+            // Периодический запрос температуры для подписанных устройств
+            if (temperatureInterval) clearInterval(temperatureInterval);
+            temperatureInterval = setInterval(() => {
+                subscribedDevices.forEach((deviceId) => {
+                    requestTemperature(deviceId);
+                });
+            }, 10000); // Каждые 10 секунд
 
             onOpen?.();
         };
@@ -101,7 +125,9 @@ export function useWebSocket(options: UseWebSocketOptions) {
 
                 // Обновляем статусы устройств
                 if (message.type === "device_status" && message.deviceId) {
-                    const status = message.data?.connected ? "online" : "offline";
+                    // Поддерживаем оба поля: isConnected (новое) и connected (старое)
+                    const isDeviceConnected = message.data?.isConnected ?? message.data?.connected ?? false;
+                    const status = isDeviceConnected ? "Подключено" : "Отключено";
                     deviceStatuses.value.set(message.deviceId, status);
                 }
 
@@ -113,6 +139,19 @@ export function useWebSocket(options: UseWebSocketOptions) {
                         maxThreshold: message.data.maxThreshold,
                         isDefrostMode: message.data.isDefrostMode,
                         isAlert: message.data.isAlert,
+                    });
+                }
+
+                // Обработка ответа на команду get-temperature
+                if (message.type === "temperature" && message.deviceId && message.data) {
+                    const tempValue = message.data.temperature ?? message.data.value ?? 0;
+                    const existingData = sensorData.value.get(message.deviceId);
+                    sensorData.value.set(message.deviceId, {
+                        value: tempValue,
+                        minThreshold: message.data.minThreshold ?? existingData?.minThreshold,
+                        maxThreshold: message.data.maxThreshold ?? existingData?.maxThreshold,
+                        isDefrostMode: message.data.isDefrostMode ?? existingData?.isDefrostMode,
+                        isAlert: message.data.isAlert ?? existingData?.isAlert,
                     });
                 }
 
@@ -131,9 +170,13 @@ export function useWebSocket(options: UseWebSocketOptions) {
                 pingInterval = null;
             }
 
+            if (temperatureInterval) {
+                clearInterval(temperatureInterval);
+                temperatureInterval = null;
+            }
+
             onClose?.();
 
-            // Автопереподключение
             if (reconnectAttempts < maxReconnectAttempts) {
                 reconnectAttempts++;
                 console.log(
@@ -154,6 +197,8 @@ export function useWebSocket(options: UseWebSocketOptions) {
 
     // ============ Подписка на устройство ============
     function subscribe(deviceId: string) {
+        subscribedDevices.add(deviceId);
+
         if (!ws || ws.readyState !== WebSocket.OPEN) {
             console.error("[WebSocket] Cannot subscribe — not connected");
             return false;
@@ -162,6 +207,38 @@ export function useWebSocket(options: UseWebSocketOptions) {
         ws.send(JSON.stringify({
             type: "subscribe",
             deviceId: deviceId,
+        }));
+
+        // Сразу запрашиваем температуру после подписки
+        requestTemperature(deviceId);
+
+        return true;
+    }
+
+    // ============ Отписка от устройства ============
+    function unsubscribe(deviceId: string) {
+        subscribedDevices.delete(deviceId);
+
+        if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+
+        ws.send(JSON.stringify({
+            type: "unsubscribe",
+            deviceId: deviceId,
+        }));
+
+        return true;
+    }
+
+    // ============ Запрос температуры ============
+    function requestTemperature(deviceId: string): boolean {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+
+        ws.send(JSON.stringify({
+            type: "command",
+            deviceId: deviceId,
+            action: "get-temperature",
+            payload: {},
+            timestamp: Date.now(),
         }));
 
         return true;
@@ -197,6 +274,13 @@ export function useWebSocket(options: UseWebSocketOptions) {
             pingInterval = null;
         }
 
+        if (temperatureInterval) {
+            clearInterval(temperatureInterval);
+            temperatureInterval = null;
+        }
+
+        subscribedDevices.clear();
+
         if (ws) {
             ws.onopen = null;
             ws.onmessage = null;
@@ -224,5 +308,7 @@ export function useWebSocket(options: UseWebSocketOptions) {
         disconnect,
         sendCommand,
         subscribe,
+        unsubscribe,
+        requestTemperature,
     };
 }

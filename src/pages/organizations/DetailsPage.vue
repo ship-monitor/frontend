@@ -54,14 +54,24 @@
           <div v-for="device in devices" :key="device.id" class="bg-white border rounded-xl p-4">
             <div class="flex justify-between items-start mb-3">
               <div class="min-w-0 flex-1 mr-2">
-                <h3 class="font-semibold truncate">{{ device.name || 'Без названия' }}</h3>
+                <!-- Имя устройства — теперь всегда есть -->
+                <h3 class="font-semibold truncate">{{ device.name }}</h3>
                 <p class="text-xs text-gray-400 font-mono truncate">{{ device.id }}</p>
               </div>
+              <!-- Статус: Подключено / Отключено -->
               <span :class="[
                 'px-2.5 py-1 text-xs rounded-full font-medium whitespace-nowrap flex-shrink-0',
-                device.connected ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                device.isConnected ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
               ]">
-                {{ device.connected ? 'Онлайн' : 'Офлайн' }}
+                {{ device.isConnected ? 'Подключено' : 'Отключено' }}
+              </span>
+            </div>
+
+            <!-- Температура, если есть -->
+            <div v-if="device.temperature !== undefined && device.temperature !== null"
+              class="text-center py-3 mb-3 bg-gray-50 rounded-lg">
+              <span class="text-2xl font-bold text-gray-700">
+                {{ device.temperature.toFixed(1) }}°C
               </span>
             </div>
 
@@ -308,7 +318,8 @@ const connectDeviceHandler = async () => {
 };
 
 const confirmDisconnect = async (device: Device) => {
-  if (!confirm(`Отключить устройство "${device.name || device.id}"?`)) return;
+  // Используем device.name — теперь оно всегда есть
+  if (!confirm(`Отключить устройство "${device.name}"?`)) return;
   try {
     await disconnectDevice(organization.value!.id, device.id);
     await loadData();
