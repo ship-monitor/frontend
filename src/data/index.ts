@@ -162,5 +162,10 @@ export const sendDeviceCommand = async (
     `/api/organizations/${organizationId}/devices/${deviceId}/command`,
     { command, args: args || {} }
   );
-  return { data: result.data };
+  // Бэк возвращает { commandError, data } или { requestError } при ошибке
+  return {
+    data: result.data?.data,
+    commandError: result.data?.commandError,
+    requestError: result.data?.requestError,
+  };
 };

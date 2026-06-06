@@ -79,23 +79,14 @@ const loading = ref(true);
 const refreshing = ref(false);
 
 function getDisplayName(deviceId: string, apiName: string): string {
-  // Сначала проверяем сохранённое имя в настройках
   const savedSettings = localStorage.getItem(`device_settings_${deviceId}`);
   if (savedSettings) {
     try {
       const settings = JSON.parse(savedSettings);
-      if (settings.name && settings.name.trim() !== '') {
-        return settings.name;
-      }
-    } catch { /* игнор */ }
+      if (settings.name && settings.name.trim() !== '') return settings.name;
+    } catch { /* */ }
   }
-
-  // Потом имя из API
-  if (apiName && apiName !== 'Unknown Device' && apiName !== '') {
-    return apiName;
-  }
-
-  // Иначе первые 8 символов ID
+  if (apiName && apiName !== 'Unknown Device' && apiName !== '') return apiName;
   return deviceId.substring(0, 8);
 }
 
@@ -111,32 +102,33 @@ async function loadSensors() {
 
   for (const org of orgs) {
     const devices = await getOrganizationDevices(org.id);
-    for (const device of devices) {
-      // Для каждого устройства запрашиваем актуальный статус через одиночный endpoint
-      let isConnected = false;
-      try {
-        const info = await getDeviceInfo(org.id, device.id);
-        isConnected = info.isConnected ?? false;
-      } catch {
-        // Если не удалось — используем статус из списка
-        isConnected = device.isConnected ?? false;
-      }
+    // Для каждого устройства запрашиваем актуальный статус
+    const devicesWithStatus = await Promise.all(
+      devices.map(async (device) => {
+        try {
+          const info = await getDeviceInfo(org.id, device.id);
+          return { ...device, isConnected: info.isConnected ?? false };
+        } catch {
+          return device;
+        }
+      })
+    );
 
-      // Загружаем сохранённую температуру
+    for (const device of devicesWithStatus) {
       let temperature: number | null = null;
       const stored = localStorage.getItem(`device_data_${device.id}`);
       if (stored) {
         try {
           const data = JSON.parse(stored);
           temperature = data.currentTemp ?? null;
-        } catch { /* игнор */ }
+        } catch { /* */ }
       }
 
       allSensors.push({
         id: device.id,
         name: device.name,
         displayName: getDisplayName(device.id, device.name),
-        isConnected,
+        isConnected: device.isConnected,
         temperature,
         organizationName: org.name,
         organizationId: org.id,

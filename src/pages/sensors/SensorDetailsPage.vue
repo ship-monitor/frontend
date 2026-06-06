@@ -14,31 +14,31 @@
                         <h1 class="text-2xl font-bold text-gray-800">{{ sensorName }}</h1>
                         <p class="text-xs text-gray-400 font-mono">ID: {{ deviceId }}</p>
                     </div>
-                    <span :class="[
-                        'px-3 py-1 rounded-full text-sm font-medium',
-                        deviceIsConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    ]">
-                        {{ deviceIsConnected ? 'Подключено' : 'Отключено' }}
-                    </span>
+                    <div class="flex items-center gap-2">
+                        <button @click="refreshStatus" :disabled="statusLoading"
+                            class="px-3 py-1.5 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 touch-target">
+                            {{ statusLoading ? '...' : 'Обновить статус' }}
+                        </button>
+                        <span :class="[
+                            'px-3 py-1 rounded-full text-sm font-medium',
+                            deviceIsConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        ]">
+                            {{ deviceIsConnected ? 'Подключено' : 'Отключено' }}
+                        </span>
+                    </div>
                 </div>
             </div>
 
             <!-- Вкладки -->
             <div class="border-b mb-6 overflow-x-auto">
                 <div class="flex gap-2 sm:gap-4 min-w-max">
-                    <button @click="activeTab = 'temperature'" :class="tabClass('temperature')">
-                        Температура
-                    </button>
-                    <button @click="activeTab = 'commands'" :class="tabClass('commands')">
-                        Команды
-                    </button>
-                    <button @click="activeTab = 'info'" :class="tabClass('info')">
-                        Информация
-                    </button>
+                    <button @click="activeTab = 'temperature'" :class="tabClass('temperature')">Температура</button>
+                    <button @click="activeTab = 'commands'" :class="tabClass('commands')">Команды</button>
+                    <button @click="activeTab = 'info'" :class="tabClass('info')">Информация</button>
                 </div>
             </div>
 
-            <!-- ===================== ТЕМПЕРАТУРА ===================== -->
+            <!-- ===== ТЕМПЕРАТУРА ===== -->
             <div v-if="activeTab === 'temperature'" class="space-y-6">
                 <div class="bg-white rounded-xl border p-6 text-center">
                     <p class="text-sm text-gray-500 mb-2">Текущая температура</p>
@@ -50,6 +50,7 @@
                         class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 text-sm touch-target">
                         {{ tempLoading ? 'Запрос...' : 'Запросить температуру' }}
                     </button>
+                    <p v-if="tempError" class="text-xs text-red-500 mt-2">{{ tempError }}</p>
                 </div>
 
                 <!-- Периоды -->
@@ -76,14 +77,14 @@
                 </div>
             </div>
 
-            <!-- ===================== КОМАНДЫ ===================== -->
+            <!-- ===== КОМАНДЫ ===== -->
             <div v-if="activeTab === 'commands'" class="space-y-6">
                 <div class="bg-white rounded-xl border p-6">
                     <h2 class="text-lg font-semibold mb-4">Отправка команд</h2>
 
                     <div v-if="!deviceIsConnected"
                         class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
-                        Устройство не в сети. Команды будут доставлены при подключении.
+                        Устройство не в сети. Команда не будет доставлена.
                     </div>
 
                     <div class="space-y-4">
@@ -124,7 +125,7 @@
 
                         <!-- Предпросмотр запроса -->
                         <div v-if="previewRequest" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                            <p class="text-xs text-gray-500 mb-1.5">Так будет выглядеть запрос:</p>
+                            <p class="text-xs text-gray-500 mb-1.5">Тело запроса:</p>
                             <pre class="text-xs font-mono text-gray-800 overflow-x-auto">{{ previewRequest }}</pre>
                         </div>
 
@@ -139,18 +140,18 @@
                         :class="commandResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
                         <p class="text-sm font-medium mb-2"
                             :class="commandResult.success ? 'text-green-800' : 'text-red-800'">
-                            {{ commandResult.success ? 'Успешно' : 'Ошибка' }}
+                            {{ commandResult.success ? 'Команда выполнена' : 'Ошибка' }}
                         </p>
                         <p class="text-sm mb-2" :class="commandResult.success ? 'text-green-700' : 'text-red-700'">
                             {{ commandResult.message }}
                         </p>
                         <pre v-if="commandResult.data"
-                            class="text-xs bg-gray-900 text-green-400 p-3 rounded overflow-x-auto max-h-60">{{ JSON.stringify(commandResult.data, null, 2) }}</pre>
+                            class="text-xs bg-gray-900 text-green-400 p-3 rounded overflow-x-auto max-h-60">{{ commandResult.rawResponse }}</pre>
                     </div>
                 </div>
             </div>
 
-            <!-- ===================== ИНФОРМАЦИЯ ===================== -->
+            <!-- ===== ИНФОРМАЦИЯ ===== -->
             <div v-if="activeTab === 'info'" class="space-y-6">
                 <div class="bg-white rounded-xl border p-6">
                     <h2 class="text-lg font-semibold mb-6">Настройки устройства</h2>
@@ -233,6 +234,7 @@ const organizationId = ref((route.query.orgId as string) || '')
 // Состояние
 const loading = ref(true)
 const tempLoading = ref(false)
+const statusLoading = ref(false)
 const saving = ref(false)
 const sendingCommand = ref(false)
 const activeTab = ref('temperature')
@@ -243,6 +245,7 @@ const sensorName = ref('')
 // Температура
 const currentTemp = ref<number | null>(null)
 const lastTempTime = ref('')
+const tempError = ref('')
 const tempHistory = ref<Array<{ time: string; value: number; timestamp: number }>>([])
 const selectedPeriod = ref('24h')
 
@@ -260,7 +263,7 @@ const periods = [
 const selectedCommand = ref('')
 const commandName = ref('')
 const commandArgs = ref('')
-const commandResult = ref<{ success: boolean; message: string; data?: any } | null>(null)
+const commandResult = ref<{ success: boolean; message: string; data?: any; rawResponse?: string } | null>(null)
 
 const commandList = [
     { value: 'get-temperature', label: 'Запросить температуру' },
@@ -299,20 +302,13 @@ const currentCommand = computed(() => {
 
 const currentArgs = computed(() => {
     if (!commandArgs.value.trim()) return {}
-    try {
-        return JSON.parse(commandArgs.value)
-    } catch {
-        return {}
-    }
+    try { return JSON.parse(commandArgs.value) }
+    catch { return {} }
 })
 
 const previewRequest = computed(() => {
     if (!currentCommand.value) return null
-    const body = {
-        command: currentCommand.value,
-        args: currentArgs.value,
-    }
-    return JSON.stringify(body, null, 2)
+    return JSON.stringify({ command: currentCommand.value, args: currentArgs.value }, null, 2)
 })
 
 const tempColor = computed(() => {
@@ -332,7 +328,7 @@ const filteredHistory = computed(() => {
     return tempHistory.value.filter(item => item.timestamp >= cutoff)
 })
 
-// Классы вкладок
+// Классы
 function tabClass(tab: string) {
     return [
         'px-4 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap touch-target',
@@ -341,9 +337,7 @@ function tabClass(tab: string) {
 }
 
 function getDisplayName(): string {
-    if (settings.value.name && settings.value.name.trim() !== '') {
-        return settings.value.name
-    }
+    if (settings.value.name && settings.value.name.trim() !== '') return settings.value.name
     if (deviceInfo.value?.name && deviceInfo.value.name !== 'Unknown Device' && deviceInfo.value.name !== '') {
         return deviceInfo.value.name
     }
@@ -362,7 +356,7 @@ function loadStoredData() {
             if (data.tempHistory) tempHistory.value = data.tempHistory
             if (data.currentTemp !== undefined) currentTemp.value = data.currentTemp
             if (data.lastTempTime) lastTempTime.value = data.lastTempTime
-        } catch { /* игнор */ }
+        } catch { /* */ }
     }
 }
 
@@ -380,7 +374,7 @@ function loadSettingsFromStorage() {
         try {
             const parsed = JSON.parse(saved)
             settings.value = { ...settings.value, ...parsed }
-        } catch { /* игнор */ }
+        } catch { /* */ }
     }
     sensorName.value = getDisplayName()
 }
@@ -392,36 +386,69 @@ function saveSettings() {
     setTimeout(() => { saving.value = false }, 300)
 }
 
+// ===== Обновление статуса =====
+async function refreshStatus() {
+    if (!organizationId.value) return
+    statusLoading.value = true
+    try {
+        const info = await getDeviceInfo(organizationId.value, deviceId)
+        deviceInfo.value = info
+        deviceIsConnected.value = info.isConnected ?? false
+    } catch (error) {
+        console.error('Failed to refresh status:', error)
+    } finally {
+        statusLoading.value = false
+    }
+}
+
 // ===== Температура =====
 async function refreshTemperature() {
     if (!organizationId.value) return
     tempLoading.value = true
-    try {
-        const result = await sendDeviceCommand(organizationId.value, deviceId, 'get-temperature', {})
-        if (result.data) {
-            const temp = result.data.temperature ?? result.data.value ?? result.data.temp
-            if (temp !== undefined && temp !== null) {
-                const numTemp = typeof temp === 'number' ? temp : parseFloat(temp)
-                if (!isNaN(numTemp)) {
-                    const now = Date.now()
-                    currentTemp.value = numTemp
-                    lastTempTime.value = new Date().toLocaleString('ru-RU')
-                    tempHistory.value.push({
-                        time: new Date().toLocaleString('ru-RU'),
-                        value: numTemp,
-                        timestamp: now,
-                    })
-                    saveStoredData()
-                    await nextTick()
-                    drawChart()
-                }
-            }
-        }
-    } catch (error) {
-        console.error('Failed to get temperature:', error)
-    } finally {
+    tempError.value = ''
+
+    const result = await sendDeviceCommand(organizationId.value, deviceId, 'get-temperature', {})
+
+    if (result.requestError) {
+        tempError.value = result.requestError
         tempLoading.value = false
+        return
     }
+
+    if (result.commandError) {
+        tempError.value = `Устройство вернуло ошибку: ${result.commandError}`
+        tempLoading.value = false
+        return
+    }
+
+    // Пытаемся извлечь температуру из ответа
+    const temp = result.data?.temperature ?? result.data?.value ?? result.data?.temp
+    if (temp !== undefined && temp !== null) {
+        const numTemp = typeof temp === 'number' ? temp : parseFloat(temp)
+        if (!isNaN(numTemp)) {
+            const now = Date.now()
+            currentTemp.value = numTemp
+            lastTempTime.value = new Date().toLocaleString('ru-RU')
+            tempError.value = ''
+            tempHistory.value.push({
+                time: new Date().toLocaleString('ru-RU'),
+                value: numTemp,
+                timestamp: now,
+            })
+            saveStoredData()
+            await nextTick()
+            drawChart()
+        } else {
+            tempError.value = 'Устройство вернуло некорректное значение температуры'
+        }
+    } else if (result.data && Object.keys(result.data).length > 0) {
+        // Устройство вернуло данные, но без температуры — показываем raw
+        tempError.value = `Ответ: ${JSON.stringify(result.data)}`
+    } else {
+        tempError.value = 'Устройство не вернуло данные о температуре'
+    }
+
+    tempLoading.value = false
 }
 
 // ===== Команды =====
@@ -449,46 +476,56 @@ async function executeCommand() {
 
     const args = currentArgs.value
 
-    try {
-        const result = await sendDeviceCommand(organizationId.value, deviceId, cmd, args)
+    const result = await sendDeviceCommand(organizationId.value, deviceId, cmd, args)
 
-        if (result.requestError) {
-            commandResult.value = { success: false, message: result.requestError }
-        } else if (result.commandError) {
-            commandResult.value = { success: false, message: `Ошибка устройства: ${result.commandError}` }
-        } else {
-            commandResult.value = {
-                success: true,
-                message: `Команда "${cmd}" выполнена`,
-                data: result.data
-            }
+    if (result.requestError) {
+        commandResult.value = {
+            success: false,
+            message: `Ошибка отправки: ${result.requestError}`,
+            rawResponse: JSON.stringify({ requestError: result.requestError }, null, 2)
+        }
+    } else if (result.commandError) {
+        commandResult.value = {
+            success: false,
+            message: `Устройство вернуло ошибку: ${result.commandError}`,
+            rawResponse: JSON.stringify({ commandError: result.commandError, data: result.data }, null, 2)
+        }
+    } else if (result.data && Object.keys(result.data).length > 0) {
+        commandResult.value = {
+            success: true,
+            message: `Команда "${cmd}" выполнена, получен ответ`,
+            data: result.data,
+            rawResponse: JSON.stringify(result.data, null, 2)
+        }
 
-            if (cmd === 'get-temperature' && result.data) {
-                const temp = result.data.temperature ?? result.data.value ?? result.data.temp
-                if (temp !== undefined && temp !== null) {
-                    const numTemp = typeof temp === 'number' ? temp : parseFloat(temp)
-                    if (!isNaN(numTemp)) {
-                        const now = Date.now()
-                        currentTemp.value = numTemp
-                        lastTempTime.value = new Date().toLocaleString('ru-RU')
-                        tempHistory.value.push({
-                            time: new Date().toLocaleString('ru-RU'),
-                            value: numTemp,
-                            timestamp: now,
-                        })
-                        saveStoredData()
-                    }
+        // Автообновление температуры
+        if (cmd === 'get-temperature') {
+            const temp = result.data.temperature ?? result.data.value ?? result.data.temp
+            if (temp !== undefined && temp !== null) {
+                const numTemp = typeof temp === 'number' ? temp : parseFloat(temp)
+                if (!isNaN(numTemp)) {
+                    const now = Date.now()
+                    currentTemp.value = numTemp
+                    lastTempTime.value = new Date().toLocaleString('ru-RU')
+                    tempError.value = ''
+                    tempHistory.value.push({
+                        time: new Date().toLocaleString('ru-RU'),
+                        value: numTemp,
+                        timestamp: now,
+                    })
+                    saveStoredData()
                 }
             }
         }
-    } catch (error: any) {
-        commandResult.value = { success: false, message: error.message || 'Ошибка сети' }
-    } finally {
-        sendingCommand.value = false
-        selectedCommand.value = ''
-        commandName.value = ''
-        commandArgs.value = ''
+    } else {
+        commandResult.value = {
+            success: true,
+            message: `Команда "${cmd}" отправлена. Устройство не вернуло данных.`,
+            rawResponse: '{}'
+        }
     }
+
+    sendingCommand.value = false
 }
 
 // ===== График =====
@@ -522,7 +559,6 @@ function drawChart() {
     const range = maxVal - minVal || 1
     const stepX = (width - padding * 2) / (filteredHistory.value.length - 1)
 
-    // Горизонтальные линии
     ctx.strokeStyle = '#e5e7eb'
     ctx.fillStyle = '#9ca3af'
     ctx.font = '11px sans-serif'
@@ -532,11 +568,9 @@ function drawChart() {
         ctx.moveTo(padding, y)
         ctx.lineTo(width - padding, y)
         ctx.stroke()
-        const label = (maxVal - range * i / 4).toFixed(1) + 'C'
-        ctx.fillText(label, 5, y + 3)
+        ctx.fillText((maxVal - range * i / 4).toFixed(1) + 'C', 5, y + 3)
     }
 
-    // Линия графика
     ctx.beginPath()
     ctx.strokeStyle = '#3b82f6'
     ctx.lineWidth = 2
@@ -548,7 +582,6 @@ function drawChart() {
     })
     ctx.stroke()
 
-    // Точки
     filteredHistory.value.forEach((item, i) => {
         const x = padding + i * stepX
         const y = padding + (height - padding * 2) * ((maxVal - item.value) / range)
@@ -580,20 +613,12 @@ async function loadDeviceData() {
     loadStoredData()
     loadSettingsFromStorage()
 
-    try {
-        const info = await getDeviceInfo(organizationId.value, deviceId)
-        deviceInfo.value = info
-        deviceIsConnected.value = info.isConnected ?? false
-        sensorName.value = getDisplayName()
-    } catch (error) {
-        console.error('Failed to load device info:', error)
-        sensorName.value = getDisplayName()
-    }
+    await refreshStatus()
+    loading.value = false
 }
 
 onMounted(async () => {
     await loadDeviceData()
-    loading.value = false
     await nextTick()
     drawChart()
 })
