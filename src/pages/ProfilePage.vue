@@ -1,85 +1,96 @@
 <template>
-    <div class="p-8 max-w-2xl mx-auto">
-        <h1 class="text-3xl font-bold text-gray-800 mb-8">Мой профиль</h1>
+    <div class="max-w-lg mx-auto p-4 sm:p-6">
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-6">Профиль</h1>
 
-        <div class="bg-white rounded-lg shadow p-6 space-y-6">
-            <!-- Информация о пользователе -->
-            <div>
-                <h2 class="text-xl font-semibold mb-4">Информация</h2>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-sm text-gray-600">Имя</label>
-                        <p class="text-lg">{{ user?.name || 'Не указано' }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-600">Email</label>
-                        <p class="text-lg">{{ user?.email }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-600">ID</label>
-                        <p class="text-sm text-gray-500 font-mono">{{ user?.id }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-600">Email подтвержден</label>
-                        <p>
-                            <span :class="user?.emailVerified ? 'text-green-600' : 'text-red-600'"
-                                class="font-semibold">
-                                {{ user?.emailVerified ? 'Да' : 'Нет' }}
-                            </span>
-                        </p>
-                    </div>
+        <!-- Информация о пользователе -->
+        <div class="bg-white rounded-xl border p-5 sm:p-6 mb-6">
+            <h2 class="text-base font-semibold text-gray-800 mb-4">Информация</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-0.5">Имя</label>
+                    <p class="text-sm font-medium text-gray-800">{{ user?.name || 'Не указано' }}</p>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-0.5">Email</label>
+                    <p class="text-sm font-medium text-gray-800">{{ user?.email }}</p>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-0.5">Email подтверждён</label>
+                    <span :class="user?.emailVerified ? 'text-green-600' : 'text-red-600'"
+                        class="text-sm font-semibold">
+                        {{ user?.emailVerified ? 'Да' : 'Нет' }}
+                    </span>
                 </div>
             </div>
+        </div>
 
-            <!-- Номер телефона для SMS -->
-            <div class="border-t pt-6">
-                <h3 class="text-lg font-semibold mb-4">📱 Номер телефона для SMS</h3>
-                <div class="flex gap-2">
-                    <input v-model="phoneNumber" placeholder="+7XXXXXXXXXX" class="border rounded px-3 py-2 flex-1" />
-                    <button @click="updatePhoneNumber"
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
-                        :disabled="updatingPhone">
-                        {{ updatingPhone ? '...' : 'Сохранить' }}
-                    </button>
-                </div>
-                <p class="text-sm text-gray-500 mt-2">
-                    На этот номер будут приходить SMS-уведомления от датчиков при нарушениях температурного режима
-                </p>
-                <p v-if="phoneError" class="text-red-500 text-sm mt-2">{{ phoneError }}</p>
-                <p v-if="phoneSuccess" class="text-green-500 text-sm mt-2">{{ phoneSuccess }}</p>
-            </div>
+        <!-- Настройки email-уведомлений -->
+        <div class="bg-white rounded-xl border p-5 sm:p-6 mb-6">
+            <h2 class="text-base font-semibold text-gray-800 mb-4">Email-уведомления</h2>
+            <div class="space-y-4">
+                <label class="flex items-center justify-between p-3 bg-gray-50 rounded-lg touch-target cursor-pointer">
+                    <div>
+                        <p class="text-sm font-medium text-gray-800">Приглашения в организации</p>
+                        <p class="text-xs text-gray-500">Когда вас приглашают в новую организацию</p>
+                    </div>
+                    <input v-model="notifications.invitations" type="checkbox"
+                        class="w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-blue-500 flex-shrink-0"
+                        @change="saveNotifications" />
+                </label>
 
-            <!-- Изменение email -->
-            <div class="border-t pt-6">
-                <h3 class="text-lg font-semibold mb-4">Изменить email</h3>
-                <div class="flex gap-2">
-                    <input v-model="newEmail" placeholder="Новый email" class="border rounded px-3 py-2 flex-1"
-                        @keyup.enter="handleUpdateEmail" />
-                    <button @click="handleUpdateEmail"
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
-                        :disabled="!newEmail.trim() || updatingEmail">
-                        {{ updatingEmail ? '...' : 'Обновить' }}
-                    </button>
-                </div>
-                <p v-if="emailError" class="text-red-500 text-sm mt-2">{{ emailError }}</p>
-                <p v-if="emailSuccess" class="text-green-500 text-sm mt-2">{{ emailSuccess }}</p>
-            </div>
+                <label class="flex items-center justify-between p-3 bg-gray-50 rounded-lg touch-target cursor-pointer">
+                    <div>
+                        <p class="text-sm font-medium text-gray-800">Изменение роли</p>
+                        <p class="text-xs text-gray-500">Когда изменяют вашу роль в организации</p>
+                    </div>
+                    <input v-model="notifications.roleChanges" type="checkbox"
+                        class="w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-blue-500 flex-shrink-0"
+                        @change="saveNotifications" />
+                </label>
 
-            <!-- Изменение пароля -->
-            <div class="border-t pt-6">
-                <h3 class="text-lg font-semibold mb-4">Изменить пароль</h3>
-                <div class="space-y-3">
-                    <input v-model="newPassword" type="password" placeholder="Новый пароль"
-                        class="border rounded px-3 py-2 w-full" />
-                    <button @click="handleUpdatePassword"
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
-                        :disabled="!newPassword.trim() || updatingPassword">
-                        {{ updatingPassword ? '...' : 'Обновить пароль' }}
-                    </button>
-                </div>
-                <p v-if="passwordError" class="text-red-500 text-sm mt-2">{{ passwordError }}</p>
-                <p v-if="passwordSuccess" class="text-green-500 text-sm mt-2">{{ passwordSuccess }}</p>
+                <label class="flex items-center justify-between p-3 bg-gray-50 rounded-lg touch-target cursor-pointer">
+                    <div>
+                        <p class="text-sm font-medium text-gray-800">Системные уведомления</p>
+                        <p class="text-xs text-gray-500">Важные обновления и новости сервиса</p>
+                    </div>
+                    <input v-model="notifications.system" type="checkbox"
+                        class="w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-blue-500 flex-shrink-0"
+                        @change="saveNotifications" />
+                </label>
             </div>
+        </div>
+
+        <!-- Изменение email -->
+        <div class="bg-white rounded-xl border p-5 sm:p-6 mb-6">
+            <h2 class="text-base font-semibold text-gray-800 mb-4">Изменить email</h2>
+            <div class="space-y-3">
+                <input v-model="newEmail" type="email" placeholder="Новый email"
+                    class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none"
+                    inputmode="email" @keyup.enter="handleUpdateEmail" />
+                <button @click="handleUpdateEmail"
+                    class="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-medium text-sm touch-target"
+                    :disabled="!newEmail.trim() || updatingEmail">
+                    {{ updatingEmail ? 'Сохранение...' : 'Обновить email' }}
+                </button>
+            </div>
+            <p v-if="emailError" class="text-red-500 text-xs mt-2">{{ emailError }}</p>
+            <p v-if="emailSuccess" class="text-green-500 text-xs mt-2">{{ emailSuccess }}</p>
+        </div>
+
+        <!-- Изменение пароля -->
+        <div class="bg-white rounded-xl border p-5 sm:p-6">
+            <h2 class="text-base font-semibold text-gray-800 mb-4">Изменить пароль</h2>
+            <div class="space-y-3">
+                <input v-model="newPassword" type="password" placeholder="Новый пароль"
+                    class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
+                <button @click="handleUpdatePassword"
+                    class="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-medium text-sm touch-target"
+                    :disabled="!newPassword.trim() || updatingPassword">
+                    {{ updatingPassword ? 'Сохранение...' : 'Обновить пароль' }}
+                </button>
+            </div>
+            <p v-if="passwordError" class="text-red-500 text-xs mt-2">{{ passwordError }}</p>
+            <p v-if="passwordSuccess" class="text-green-500 text-xs mt-2">{{ passwordSuccess }}</p>
         </div>
     </div>
 </template>
@@ -98,11 +109,12 @@ interface User {
 
 const user = ref<User | null>(null);
 
-// Phone
-const phoneNumber = ref("");
-const updatingPhone = ref(false);
-const phoneError = ref("");
-const phoneSuccess = ref("");
+// Уведомления
+const notifications = ref({
+    invitations: true,
+    roleChanges: true,
+    system: false,
+});
 
 // Email
 const newEmail = ref("");
@@ -118,10 +130,10 @@ const passwordSuccess = ref("");
 
 onMounted(() => {
     loadUser();
-    loadPhoneNumber();
+    loadNotifications();
 });
 
-const loadUser = () => {
+function loadUser() {
     const userStr = localStorage.getItem("user");
     if (userStr) {
         try {
@@ -130,79 +142,54 @@ const loadUser = () => {
             console.error("Ошибка парсинга user из localStorage");
         }
     }
-};
+}
 
-const loadPhoneNumber = async () => {
-    if (!user.value) return;
-    try {
-        const response = await api.get(`/api/users/${user.value.id}/phone`);
-        phoneNumber.value = response.data.phone || '';
-    } catch (error) {
-        console.error('Ошибка загрузки номера телефона:', error);
+function loadNotifications() {
+    const saved = localStorage.getItem("profile_notifications");
+    if (saved) {
+        try {
+            notifications.value = JSON.parse(saved);
+        } catch { /* */ }
     }
-};
+}
 
-const updatePhoneNumber = async () => {
-    if (!user.value) return;
+function saveNotifications() {
+    localStorage.setItem("profile_notifications", JSON.stringify(notifications.value));
+}
 
-    updatingPhone.value = true;
-    phoneError.value = "";
-    phoneSuccess.value = "";
-
-    try {
-        await api.post(`/api/users/${user.value.id}/phone`, { phone: phoneNumber.value });
-        phoneSuccess.value = "Номер телефона сохранен!";
-    } catch (error: any) {
-        console.error("Ошибка обновления номера телефона:", error);
-        phoneError.value = error.response?.data?.message || "Ошибка при сохранении номера телефона";
-    } finally {
-        updatingPhone.value = false;
-    }
-};
-
-const handleUpdateEmail = async () => {
+async function handleUpdateEmail() {
     if (!newEmail.value.trim() || !user.value) return;
+    updatingEmail.value = true;
+    emailError.value = "";
+    emailSuccess.value = "";
 
     try {
-        updatingEmail.value = true;
-        emailError.value = "";
-        emailSuccess.value = "";
-
-        await api.post(`/api/users/${user.value.id}/set-email`, {
-            email: newEmail.value,
-        });
-
-        emailSuccess.value = "Email обновлен!";
+        await api.post(`/api/users/${user.value.id}/set-email`, { email: newEmail.value });
+        emailSuccess.value = "Email обновлён";
         user.value.email = newEmail.value;
         localStorage.setItem("user", JSON.stringify(user.value));
         newEmail.value = "";
     } catch (error: any) {
-        console.error("Ошибка обновления email:", error);
         emailError.value = error.response?.data?.message || "Ошибка при обновлении email";
     } finally {
         updatingEmail.value = false;
     }
-};
+}
 
-const handleUpdatePassword = async () => {
+async function handleUpdatePassword() {
     if (!newPassword.value.trim() || !user.value) return;
+    updatingPassword.value = true;
+    passwordError.value = "";
+    passwordSuccess.value = "";
 
     try {
-        updatingPassword.value = true;
-        passwordError.value = "";
-        passwordSuccess.value = "";
-
-        await api.post(`/api/users/${user.value.id}/set-password`, {
-            password: newPassword.value,
-        });
-
-        passwordSuccess.value = "Пароль обновлен!";
+        await api.post(`/api/users/${user.value.id}/set-password`, { password: newPassword.value });
+        passwordSuccess.value = "Пароль обновлён";
         newPassword.value = "";
     } catch (error: any) {
-        console.error("Ошибка обновления пароля:", error);
         passwordError.value = error.response?.data?.message || "Ошибка при обновлении пароля";
     } finally {
         updatingPassword.value = false;
     }
-};
+}
 </script>

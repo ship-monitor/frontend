@@ -13,17 +13,23 @@
                     <div>
                         <h1 class="text-2xl font-bold text-gray-800">{{ sensorName }}</h1>
                         <p class="text-xs text-gray-400 font-mono">ID: {{ deviceId }}</p>
+                        <div v-if="settings.tags && settings.tags.length > 0" class="flex flex-wrap gap-1 mt-2">
+                            <span v-for="tag in settings.tags" :key="tag"
+                                class="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-xs font-medium">
+                                {{ tag }}
+                            </span>
+                        </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button @click="refreshStatus" :disabled="statusLoading"
+                        <button @click="pingAndUpdateStatus" :disabled="statusLoading"
                             class="px-3 py-1.5 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 touch-target">
-                            {{ statusLoading ? '...' : 'Обновить статус' }}
+                            {{ statusLoading ? 'Проверка...' : 'Проверить связь' }}
                         </button>
                         <span :class="[
                             'px-3 py-1 rounded-full text-sm font-medium',
                             deviceIsConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                         ]">
-                            {{ deviceIsConnected ? 'Подключено' : 'Отключено' }}
+                            {{ deviceIsConnected ? 'В сети' : 'Не в сети' }}
                         </span>
                     </div>
                 </div>
@@ -50,10 +56,12 @@
                         class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 text-sm touch-target">
                         {{ tempLoading ? 'Запрос...' : 'Запросить температуру' }}
                     </button>
-                    <p v-if="tempError" class="text-xs text-red-500 mt-2">{{ tempError }}</p>
+                    <p v-if="tempError" class="text-xs mt-2"
+                        :class="tempError.includes('Ошибка') || tempError.includes('не вернуло') ? 'text-red-500' : 'text-gray-500'">
+                        {{ tempError }}
+                    </p>
                 </div>
 
-                <!-- Периоды -->
                 <div class="flex flex-wrap gap-2">
                     <button v-for="period in periods" :key="period.value" @click="selectedPeriod = period.value" :class="[
                         'px-4 py-2 text-sm rounded-lg transition-colors touch-target',
@@ -65,7 +73,6 @@
                     </button>
                 </div>
 
-                <!-- График -->
                 <div class="bg-white rounded-xl border p-6">
                     <h2 class="text-lg font-semibold mb-4">График температуры</h2>
                     <div v-if="filteredHistory.length === 0" class="text-center py-12 text-gray-500">
@@ -84,11 +91,10 @@
 
                     <div v-if="!deviceIsConnected"
                         class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
-                        Устройство не в сети. Команда не будет доставлена.
+                        Устройство не в сети. Команда может не дойти.
                     </div>
 
                     <div class="space-y-4">
-                        <!-- Выпадающий список -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">Команда</label>
                             <div class="relative">
@@ -108,7 +114,6 @@
                             </div>
                         </div>
 
-                        <!-- Своя команда -->
                         <div v-if="selectedCommand === '__custom__'">
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">Название команды</label>
                             <input v-model="commandName" type="text" placeholder="Например: reboot, get_logs"
@@ -123,7 +128,6 @@
                                 class="w-full px-4 py-3 border rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
                         </div>
 
-                        <!-- Предпросмотр запроса -->
                         <div v-if="previewRequest" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
                             <p class="text-xs text-gray-500 mb-1.5">Тело запроса:</p>
                             <pre class="text-xs font-mono text-gray-800 overflow-x-auto">{{ previewRequest }}</pre>
@@ -135,7 +139,6 @@
                         </button>
                     </div>
 
-                    <!-- Результат -->
                     <div v-if="commandResult" class="mt-4 p-4 rounded-lg"
                         :class="commandResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
                         <p class="text-sm font-medium mb-2"
@@ -145,7 +148,7 @@
                         <p class="text-sm mb-2" :class="commandResult.success ? 'text-green-700' : 'text-red-700'">
                             {{ commandResult.message }}
                         </p>
-                        <pre v-if="commandResult.data"
+                        <pre v-if="commandResult.rawResponse"
                             class="text-xs bg-gray-900 text-green-400 p-3 rounded overflow-x-auto max-h-60">{{ commandResult.rawResponse }}</pre>
                     </div>
                 </div>
@@ -157,29 +160,66 @@
                     <h2 class="text-lg font-semibold mb-6">Настройки устройства</h2>
 
                     <div class="space-y-6">
+                        <!-- Название -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">Название устройства</label>
                             <input v-model="settings.name" type="text" placeholder="Холодильник N1"
                                 class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
                         </div>
 
+                        <!-- Температурные границы -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                                    Нижняя граница температуры (C)
+                                    Нижняя граница (C)
                                 </label>
                                 <input v-model.number="settings.minThreshold" type="number" step="0.5"
                                     class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                                    Верхняя граница температуры (C)
+                                    Верхняя граница (C)
                                 </label>
                                 <input v-model.number="settings.maxThreshold" type="number" step="0.5"
                                     class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
                             </div>
                         </div>
 
+                        <!-- Теги -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Теги</label>
+                            <p class="text-xs text-gray-500 mb-2">
+                                Используются для поиска и фильтрации устройств на дашборде
+                            </p>
+
+                            <!-- Существующие теги -->
+                            <div v-if="settings.tags && settings.tags.length > 0" class="flex flex-wrap gap-2 mb-3">
+                                <span v-for="tag in settings.tags" :key="tag"
+                                    class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm flex items-center gap-1.5">
+                                    {{ tag }}
+                                    <button @click="removeTag(tag)"
+                                        class="text-blue-400 hover:text-red-500 transition-colors ml-0.5">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </span>
+                            </div>
+
+                            <!-- Добавление тега -->
+                            <div class="flex gap-2">
+                                <input v-model="newTag" type="text" placeholder="Новый тег"
+                                    class="flex-1 px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none"
+                                    @keyup.enter="addTag" />
+                                <button @click="addTag" :disabled="!newTag.trim()"
+                                    class="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 text-sm font-medium touch-target">
+                                    Добавить
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Телефон -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">
                                 Номер телефона для SMS-уведомлений
@@ -188,6 +228,31 @@
                                 class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
                         </div>
 
+                        <!-- Частота SMS -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Частота SMS-уведомлений
+                            </label>
+                            <div class="relative">
+                                <select v-model="settings.smsFrequency"
+                                    class="w-full px-4 py-3 border rounded-lg text-base appearance-none bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <option value="never">Не отправлять</option>
+                                    <option value="signal_loss">Только при потере связи</option>
+                                    <option value="threshold">При выходе за границы температуры</option>
+                                    <option value="both">При потере связи и выходе за границы</option>
+                                </select>
+                                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">
+                                {{ smsFrequencyHint }}
+                            </p>
+                        </div>
+
+                        <!-- Время оттайки -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">
                                 Время оттайки (минут)
@@ -196,14 +261,7 @@
                                 class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                                Время отправки SMS
-                            </label>
-                            <input v-model="settings.smsTime" type="time"
-                                class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
-                        </div>
-
+                        <!-- Кнопки -->
                         <div class="flex justify-end gap-3 pt-4 border-t">
                             <button @click="loadSettingsFromStorage"
                                 class="px-6 py-2.5 border rounded-lg hover:bg-gray-50 text-sm touch-target">
@@ -224,14 +282,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { sendDeviceCommand, findOrganizationIdByDeviceId, getDeviceInfo } from '@/data'
-import type { Device } from '@/data'
+import { sendDeviceCommand, findOrganizationIdByDeviceId } from '@/data'
 
 const route = useRoute()
 const deviceId = route.params.id as string
 const organizationId = ref((route.query.orgId as string) || '')
 
-// Состояние
 const loading = ref(true)
 const tempLoading = ref(false)
 const statusLoading = ref(false)
@@ -239,10 +295,8 @@ const saving = ref(false)
 const sendingCommand = ref(false)
 const activeTab = ref('temperature')
 const deviceIsConnected = ref(false)
-const deviceInfo = ref<Device | null>(null)
 const sensorName = ref('')
 
-// Температура
 const currentTemp = ref<number | null>(null)
 const lastTempTime = ref('')
 const tempError = ref('')
@@ -259,13 +313,13 @@ const periods = [
     { label: '2 дня', value: '2d', ms: 48 * 60 * 60 * 1000 },
 ]
 
-// Команды
 const selectedCommand = ref('')
 const commandName = ref('')
 const commandArgs = ref('')
 const commandResult = ref<{ success: boolean; message: string; data?: any; rawResponse?: string } | null>(null)
 
 const commandList = [
+    { value: 'ping', label: 'Пинг (проверка связи)' },
     { value: 'get-temperature', label: 'Запросить температуру' },
     { value: 'reboot', label: 'Перезагрузка' },
     { value: 'restart_service', label: 'Рестарт сервиса' },
@@ -276,20 +330,28 @@ const commandList = [
     { value: 'get_logs', label: 'Получить логи' },
 ]
 
-// Настройки
-const settings = ref({
+const settings = ref<{
+    name: string
+    minThreshold: number
+    maxThreshold: number
+    phone: string
+    smsFrequency: string
+    defrostTime: number
+    tags: string[]
+}>({
     name: '',
     minThreshold: -17,
     maxThreshold: -15,
     phone: '',
+    smsFrequency: 'both',
     defrostTime: 30,
-    smsTime: '09:00',
+    tags: [],
 })
 
-// График
+const newTag = ref('')
+
 const chartCanvas = ref<HTMLCanvasElement | null>(null)
 
-// Вычисляемые
 const canSendCommand = computed(() => {
     if (selectedCommand.value === '__custom__') return !!commandName.value.trim()
     return !!selectedCommand.value
@@ -312,12 +374,15 @@ const previewRequest = computed(() => {
 })
 
 const tempColor = computed(() => {
+    if (!deviceIsConnected.value) return 'text-gray-400'
     if (currentTemp.value === null) return 'text-gray-400'
-    if (currentTemp.value < -20) return 'text-blue-600'
-    if (currentTemp.value < -10) return 'text-blue-500'
-    if (currentTemp.value < 0) return 'text-cyan-500'
-    if (currentTemp.value < 10) return 'text-green-500'
-    if (currentTemp.value < 25) return 'text-lime-500'
+    const t = currentTemp.value
+    if (t < settings.value.minThreshold || t > settings.value.maxThreshold) return 'text-red-600'
+    if (t < -20) return 'text-blue-600'
+    if (t < -10) return 'text-blue-500'
+    if (t < 0) return 'text-cyan-500'
+    if (t < 10) return 'text-green-500'
+    if (t < 25) return 'text-lime-500'
     return 'text-orange-500'
 })
 
@@ -328,7 +393,16 @@ const filteredHistory = computed(() => {
     return tempHistory.value.filter(item => item.timestamp >= cutoff)
 })
 
-// Классы
+const smsFrequencyHint = computed(() => {
+    switch (settings.value.smsFrequency) {
+        case 'never': return 'SMS-уведомления отключены'
+        case 'signal_loss': return 'SMS будет отправлено только если устройство перестанет выходить на связь'
+        case 'threshold': return 'SMS будет отправлено при выходе температуры за заданные границы'
+        case 'both': return 'SMS будет отправлено при потере связи и при выходе температуры за границы'
+        default: return ''
+    }
+})
+
 function tabClass(tab: string) {
     return [
         'px-4 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap touch-target',
@@ -338,13 +412,9 @@ function tabClass(tab: string) {
 
 function getDisplayName(): string {
     if (settings.value.name && settings.value.name.trim() !== '') return settings.value.name
-    if (deviceInfo.value?.name && deviceInfo.value.name !== 'Unknown Device' && deviceInfo.value.name !== '') {
-        return deviceInfo.value.name
-    }
     return deviceId.substring(0, 8)
 }
 
-// ===== Хранилище =====
 const STORAGE_KEY = `device_data_${deviceId}`
 const SETTINGS_KEY = `device_settings_${deviceId}`
 
@@ -373,7 +443,15 @@ function loadSettingsFromStorage() {
     if (saved) {
         try {
             const parsed = JSON.parse(saved)
-            settings.value = { ...settings.value, ...parsed }
+            settings.value = {
+                name: parsed.name || '',
+                minThreshold: parsed.minThreshold ?? -17,
+                maxThreshold: parsed.maxThreshold ?? -15,
+                phone: parsed.phone || '',
+                smsFrequency: parsed.smsFrequency || 'both',
+                defrostTime: parsed.defrostTime ?? 30,
+                tags: parsed.tags || [],
+            }
         } catch { /* */ }
     }
     sensorName.value = getDisplayName()
@@ -386,16 +464,33 @@ function saveSettings() {
     setTimeout(() => { saving.value = false }, 300)
 }
 
-// ===== Обновление статуса =====
-async function refreshStatus() {
+// ===== Теги =====
+function addTag() {
+    const tag = newTag.value.trim()
+    if (!tag) return
+    if (settings.value.tags.includes(tag)) {
+        newTag.value = ''
+        return
+    }
+    settings.value.tags.push(tag)
+    newTag.value = ''
+    saveSettings()
+}
+
+function removeTag(tag: string) {
+    settings.value.tags = settings.value.tags.filter(t => t !== tag)
+    saveSettings()
+}
+
+// ===== Пинг =====
+async function pingAndUpdateStatus() {
     if (!organizationId.value) return
     statusLoading.value = true
     try {
-        const info = await getDeviceInfo(organizationId.value, deviceId)
-        deviceInfo.value = info
-        deviceIsConnected.value = info.isConnected ?? false
-    } catch (error) {
-        console.error('Failed to refresh status:', error)
+        const result = await sendDeviceCommand(organizationId.value, deviceId, 'ping', {})
+        deviceIsConnected.value = !result.requestError && !result.commandError
+    } catch {
+        deviceIsConnected.value = false
     } finally {
         statusLoading.value = false
     }
@@ -410,7 +505,8 @@ async function refreshTemperature() {
     const result = await sendDeviceCommand(organizationId.value, deviceId, 'get-temperature', {})
 
     if (result.requestError) {
-        tempError.value = result.requestError
+        tempError.value = `Ошибка связи: ${result.requestError}`
+        deviceIsConnected.value = false
         tempLoading.value = false
         return
     }
@@ -421,7 +517,8 @@ async function refreshTemperature() {
         return
     }
 
-    // Пытаемся извлечь температуру из ответа
+    deviceIsConnected.value = true
+
     const temp = result.data?.temperature ?? result.data?.value ?? result.data?.temp
     if (temp !== undefined && temp !== null) {
         const numTemp = typeof temp === 'number' ? temp : parseFloat(temp)
@@ -430,20 +527,15 @@ async function refreshTemperature() {
             currentTemp.value = numTemp
             lastTempTime.value = new Date().toLocaleString('ru-RU')
             tempError.value = ''
-            tempHistory.value.push({
-                time: new Date().toLocaleString('ru-RU'),
-                value: numTemp,
-                timestamp: now,
-            })
+            tempHistory.value.push({ time: new Date().toLocaleString('ru-RU'), value: numTemp, timestamp: now })
             saveStoredData()
             await nextTick()
             drawChart()
         } else {
-            tempError.value = 'Устройство вернуло некорректное значение температуры'
+            tempError.value = 'Некорректное значение температуры'
         }
     } else if (result.data && Object.keys(result.data).length > 0) {
-        // Устройство вернуло данные, но без температуры — показываем raw
-        tempError.value = `Ответ: ${JSON.stringify(result.data)}`
+        tempError.value = `Ответ без температуры: ${JSON.stringify(result.data)}`
     } else {
         tempError.value = 'Устройство не вернуло данные о температуре'
     }
@@ -475,7 +567,6 @@ async function executeCommand() {
     commandResult.value = null
 
     const args = currentArgs.value
-
     const result = await sendDeviceCommand(organizationId.value, deviceId, cmd, args)
 
     if (result.requestError) {
@@ -484,12 +575,14 @@ async function executeCommand() {
             message: `Ошибка отправки: ${result.requestError}`,
             rawResponse: JSON.stringify({ requestError: result.requestError }, null, 2)
         }
+        deviceIsConnected.value = false
     } else if (result.commandError) {
         commandResult.value = {
             success: false,
             message: `Устройство вернуло ошибку: ${result.commandError}`,
             rawResponse: JSON.stringify({ commandError: result.commandError, data: result.data }, null, 2)
         }
+        deviceIsConnected.value = true
     } else if (result.data && Object.keys(result.data).length > 0) {
         commandResult.value = {
             success: true,
@@ -497,25 +590,24 @@ async function executeCommand() {
             data: result.data,
             rawResponse: JSON.stringify(result.data, null, 2)
         }
+        deviceIsConnected.value = true
 
-        // Автообновление температуры
         if (cmd === 'get-temperature') {
             const temp = result.data.temperature ?? result.data.value ?? result.data.temp
             if (temp !== undefined && temp !== null) {
                 const numTemp = typeof temp === 'number' ? temp : parseFloat(temp)
                 if (!isNaN(numTemp)) {
-                    const now = Date.now()
                     currentTemp.value = numTemp
                     lastTempTime.value = new Date().toLocaleString('ru-RU')
                     tempError.value = ''
-                    tempHistory.value.push({
-                        time: new Date().toLocaleString('ru-RU'),
-                        value: numTemp,
-                        timestamp: now,
-                    })
+                    tempHistory.value.push({ time: new Date().toLocaleString('ru-RU'), value: numTemp, timestamp: Date.now() })
                     saveStoredData()
                 }
             }
+        }
+
+        if (cmd === 'ping') {
+            commandResult.value.message = 'Устройство в сети, пинг успешен'
         }
     } else {
         commandResult.value = {
@@ -523,6 +615,7 @@ async function executeCommand() {
             message: `Команда "${cmd}" отправлена. Устройство не вернуло данных.`,
             rawResponse: '{}'
         }
+        deviceIsConnected.value = true
     }
 
     sendingCommand.value = false
@@ -549,7 +642,7 @@ function drawChart() {
         ctx.fillStyle = '#999'
         ctx.font = '14px sans-serif'
         ctx.textAlign = 'center'
-        ctx.fillText('Недостаточно данных для графика', width / 2, height / 2)
+        ctx.fillText('Недостаточно данных', width / 2, height / 2)
         return
     }
 
@@ -595,7 +688,6 @@ function drawChart() {
 watch(selectedPeriod, async () => { await nextTick(); drawChart() })
 watch(activeTab, async (tab) => { if (tab === 'temperature') { await nextTick(); drawChart() } })
 
-// ===== Загрузка =====
 async function loadDeviceData() {
     if (!organizationId.value) {
         const found = await findOrganizationIdByDeviceId(deviceId)
@@ -613,7 +705,8 @@ async function loadDeviceData() {
     loadStoredData()
     loadSettingsFromStorage()
 
-    await refreshStatus()
+    await pingAndUpdateStatus()
+
     loading.value = false
 }
 

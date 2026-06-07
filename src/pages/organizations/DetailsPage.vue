@@ -15,8 +15,16 @@
           class="text-sm text-gray-500 hover:text-gray-700 mb-2 flex items-center gap-1 touch-target">
           &larr; Назад
         </button>
-        <h1 class="text-xl sm:text-2xl font-bold">{{ organization.name }}</h1>
-        <p class="text-xs text-gray-400 font-mono">ID: {{ organization.id }}</p>
+        <div class="flex flex-wrap justify-between items-center gap-3">
+          <div>
+            <h1 class="text-xl sm:text-2xl font-bold">{{ organization.name }}</h1>
+            <p class="text-xs text-gray-400 font-mono">ID: {{ organization.id }}</p>
+          </div>
+          <button @click="refreshDevices" :disabled="statusLoading"
+            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 text-sm touch-target">
+            {{ statusLoading ? 'Проверка...' : 'Проверить связь' }}
+          </button>
+        </div>
       </div>
 
       <div class="border-b mb-6 overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
@@ -41,7 +49,8 @@
         </div>
 
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          <div v-for="device in devices" :key="device.id" class="bg-white border rounded-xl p-4">
+          <div v-for="device in devices" :key="device.id" class="bg-white border rounded-xl p-4"
+            :class="device.isConnected ? '' : 'opacity-75'">
             <div class="flex justify-between items-start mb-3">
               <div class="min-w-0 flex-1 mr-2">
                 <h3 class="font-semibold truncate">
@@ -51,21 +60,16 @@
               </div>
               <span :class="[
                 'px-2.5 py-1 text-xs rounded-full font-medium whitespace-nowrap flex-shrink-0',
-                (device.isConnected ?? false) ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                device.isConnected ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
               ]">
-                {{ (device.isConnected ?? false) ? 'Подключено' : 'Отключено' }}
+                {{ device.isConnected ? 'В сети' : 'Не в сети' }}
               </span>
             </div>
 
-            <div v-if="device.temperature !== undefined && device.temperature !== null"
-              class="text-center py-3 mb-3 bg-gray-50 rounded-lg">
+            <div v-if="getDeviceTemp(device) !== null" class="text-center py-3 mb-3 bg-gray-50 rounded-lg">
               <span class="text-2xl font-bold text-gray-700">
-                {{ device.temperature.toFixed(1) }}°C
+                {{ getDeviceTemp(device)!.toFixed(1) }}°C
               </span>
-            </div>
-
-            <div v-if="device.lastConnection" class="text-xs text-gray-400 mb-3">
-              Последнее подключение: {{ formatDate(device.lastConnection) }}
             </div>
 
             <button @click="confirmDisconnect(device)"
@@ -108,9 +112,7 @@
                   </td>
                   <td class="px-4 py-3">
                     <button v-if="member.role !== 'owner'" @click="removeMember(member.userId)"
-                      class="text-red-600 hover:text-red-800 text-sm">
-                      Удалить
-                    </button>
+                      class="text-red-600 hover:text-red-800 text-sm">Удалить</button>
                   </td>
                 </tr>
               </tbody>
@@ -203,12 +205,12 @@ import { useRoute } from 'vue-router';
 import {
   getOrganizationById,
   getOrganizationDevices,
-  getDeviceInfo,
   connectDevice,
   disconnectDevice,
   getOrganizationMembers,
   inviteMembers,
   removeMembers,
+  sendDeviceCommand,
   type Organization,
   type Device,
   type Member,
@@ -220,6 +222,7 @@ const organization = ref<Organization | null>(null);
 const devices = ref<Device[]>([]);
 const members = ref<Member[]>([]);
 const loading = ref(true);
+const statusLoading = ref(false);
 const activeTab = ref<'devices' | 'members'>('devices');
 
 const showConnectDeviceModal = ref(false);
@@ -249,28 +252,57 @@ const getRoleLabel = (role?: string) => {
   return 'Участник';
 };
 
-const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleString('ru-RU', {
-    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
-  });
-};
-
-const getDeviceName = (device: any): string => {
-  // Проверяем сохранённое имя
+const getDeviceName = (device: Device): string => {
   const savedSettings = localStorage.getItem(`device_settings_${device.id}`);
   if (savedSettings) {
     try {
       const settings = JSON.parse(savedSettings);
       if (settings.name && settings.name.trim() !== '') return settings.name;
-    } catch { /* игнор */ }
+    } catch { /* */ }
   }
-
-  // Имя из API
   if (device.name && device.name !== 'Unknown Device') return device.name;
-
-  // ID
   return device.id?.substring(0, 8) || 'Без названия';
 };
+
+const getDeviceTemp = (device: Device): number | null => {
+  if (device.temperature !== undefined && device.temperature !== null) return device.temperature;
+  const stored = localStorage.getItem(`device_data_${device.id}`);
+  if (stored) {
+    try {
+      const data = JSON.parse(stored);
+      if (data.currentTemp !== undefined && data.currentTemp !== null) return data.currentTemp;
+    } catch { /* */ }
+  }
+  return null;
+};
+
+/**
+ * Пинг устройства — реальная проверка связи через всю цепочку
+ */
+async function pingDevice(orgId: string, deviceId: string): Promise<boolean> {
+  try {
+    const result = await sendDeviceCommand(orgId, deviceId, 'ping', {});
+    // Если нет ошибок — устройство ответило, значит в сети
+    return !result.requestError && !result.commandError;
+  } catch {
+    return false;
+  }
+}
+
+async function refreshDevices() {
+  if (!organization.value) return;
+  statusLoading.value = true;
+
+  const orgId = organization.value.id;
+  const updated = await Promise.all(
+    devices.value.map(async (device) => {
+      const isConnected = await pingDevice(orgId, device.id);
+      return { ...device, isConnected };
+    })
+  );
+  devices.value = updated;
+  statusLoading.value = false;
+}
 
 const loadData = async () => {
   try {
@@ -283,33 +315,14 @@ const loadData = async () => {
     organization.value = org;
     members.value = membersData;
 
-    // Запрашиваем актуальный статус для каждого устройства
+    // Пингуем все устройства для реального статуса
     const devicesWithStatus = await Promise.all(
       devicesData.map(async (device) => {
-        try {
-          const info = await getDeviceInfo(orgId, device.id);
-          return { ...device, isConnected: info.isConnected ?? false };
-        } catch {
-          return device;
-        }
+        const isConnected = await pingDevice(orgId, device.id);
+        return { ...device, isConnected };
       })
     );
     devices.value = devicesWithStatus;
-
-    // Сохраняем температуры
-    for (const device of devices.value) {
-      const stored = localStorage.getItem(`device_data_${device.id}`);
-      if (stored) {
-        try {
-          const data = JSON.parse(stored);
-          if (data.currentTemp !== undefined) {
-            (device as any).temperature = data.currentTemp;
-          }
-        } catch { /* игнор */ }
-      }
-    }
-
-    console.log('Devices loaded:', devicesWithStatus);
   } catch (error) {
     console.error('Failed to load data:', error);
   } finally {
