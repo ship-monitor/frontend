@@ -139,17 +139,31 @@
                         </button>
                     </div>
 
-                    <div v-if="commandResult" class="mt-4 p-4 rounded-lg"
-                        :class="commandResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
-                        <p class="text-sm font-medium mb-2"
-                            :class="commandResult.success ? 'text-green-800' : 'text-red-800'">
-                            {{ commandResult.success ? 'Команда выполнена' : 'Ошибка' }}
-                        </p>
-                        <p class="text-sm mb-2" :class="commandResult.success ? 'text-green-700' : 'text-red-700'">
-                            {{ commandResult.message }}
-                        </p>
-                        <pre v-if="commandResult.rawResponse"
-                            class="text-xs bg-gray-900 text-green-400 p-3 rounded overflow-x-auto max-h-60">{{ commandResult.rawResponse }}</pre>
+                    <!-- Результат -->
+                    <div v-if="commandResult" class="mt-4">
+                        <div v-if="commandResult.requestError" class="p-4 rounded-lg bg-red-50 border border-red-200">
+                            <p class="text-sm font-medium text-red-800 mb-2">Ошибка отправки</p>
+                            <p class="text-sm text-red-700">{{ commandResult.requestError }}</p>
+                        </div>
+
+                        <div v-else-if="commandResult.commandError"
+                            class="p-4 rounded-lg bg-orange-50 border border-orange-200">
+                            <p class="text-sm font-medium text-orange-800 mb-2">Ошибка устройства</p>
+                            <p class="text-sm text-orange-700">{{ commandResult.commandError }}</p>
+                            <pre v-if="commandResult.rawResponse"
+                                class="mt-2 text-xs bg-gray-900 text-orange-400 p-3 rounded overflow-x-auto max-h-60">{{ commandResult.rawResponse }}</pre>
+                        </div>
+
+                        <div v-else-if="commandResult.rawResponse"
+                            class="p-4 rounded-lg bg-gray-50 border border-gray-200">
+                            <p class="text-xs text-gray-500 mb-2">Ответ устройства:</p>
+                            <pre
+                                class="text-xs bg-gray-900 text-green-400 p-3 rounded overflow-x-auto max-h-60">{{ commandResult.rawResponse }}</pre>
+                        </div>
+
+                        <div v-else class="p-4 rounded-lg bg-gray-50 border border-gray-200">
+                            <p class="text-sm text-gray-500">Устройство не вернуло данных</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -160,14 +174,12 @@
                     <h2 class="text-lg font-semibold mb-6">Настройки устройства</h2>
 
                     <div class="space-y-6">
-                        <!-- Название -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">Название устройства</label>
                             <input v-model="settings.name" type="text" placeholder="Холодильник N1"
                                 class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
                         </div>
 
-                        <!-- Температурные границы -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">
@@ -185,14 +197,12 @@
                             </div>
                         </div>
 
-                        <!-- Теги -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">Теги</label>
                             <p class="text-xs text-gray-500 mb-2">
                                 Используются для поиска и фильтрации устройств на дашборде
                             </p>
 
-                            <!-- Существующие теги -->
                             <div v-if="settings.tags && settings.tags.length > 0" class="flex flex-wrap gap-2 mb-3">
                                 <span v-for="tag in settings.tags" :key="tag"
                                     class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm flex items-center gap-1.5">
@@ -207,7 +217,6 @@
                                 </span>
                             </div>
 
-                            <!-- Добавление тега -->
                             <div class="flex gap-2">
                                 <input v-model="newTag" type="text" placeholder="Новый тег"
                                     class="flex-1 px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none"
@@ -219,7 +228,6 @@
                             </div>
                         </div>
 
-                        <!-- Телефон -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">
                                 Номер телефона для SMS-уведомлений
@@ -228,7 +236,6 @@
                                 class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
                         </div>
 
-                        <!-- Частота SMS -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">
                                 Частота SMS-уведомлений
@@ -252,7 +259,6 @@
                             </p>
                         </div>
 
-                        <!-- Время оттайки -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">
                                 Время оттайки (минут)
@@ -261,7 +267,6 @@
                                 class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none" />
                         </div>
 
-                        <!-- Кнопки -->
                         <div class="flex justify-end gap-3 pt-4 border-t">
                             <button @click="loadSettingsFromStorage"
                                 class="px-6 py-2.5 border rounded-lg hover:bg-gray-50 text-sm touch-target">
@@ -316,7 +321,11 @@ const periods = [
 const selectedCommand = ref('')
 const commandName = ref('')
 const commandArgs = ref('')
-const commandResult = ref<{ success: boolean; message: string; data?: any; rawResponse?: string } | null>(null)
+const commandResult = ref<{
+    requestError?: string
+    commandError?: string
+    rawResponse?: string
+} | null>(null)
 
 const commandList = [
     { value: 'ping', label: 'Пинг (проверка связи)' },
@@ -464,7 +473,6 @@ function saveSettings() {
     setTimeout(() => { saving.value = false }, 300)
 }
 
-// ===== Теги =====
 function addTag() {
     const tag = newTag.value.trim()
     if (!tag) return
@@ -482,7 +490,6 @@ function removeTag(tag: string) {
     saveSettings()
 }
 
-// ===== Пинг =====
 async function pingAndUpdateStatus() {
     if (!organizationId.value) return
     statusLoading.value = true
@@ -496,7 +503,6 @@ async function pingAndUpdateStatus() {
     }
 }
 
-// ===== Температура =====
 async function refreshTemperature() {
     if (!organizationId.value) return
     tempLoading.value = true
@@ -543,7 +549,6 @@ async function refreshTemperature() {
     tempLoading.value = false
 }
 
-// ===== Команды =====
 function onCommandSelect() {
     if (selectedCommand.value !== '__custom__' && selectedCommand.value) {
         commandName.value = selectedCommand.value
@@ -556,7 +561,7 @@ function onCommandSelect() {
 
 async function executeCommand() {
     if (!organizationId.value) {
-        commandResult.value = { success: false, message: 'Устройство не привязано к организации' }
+        commandResult.value = { requestError: 'Устройство не привязано к организации' }
         return
     }
 
@@ -570,24 +575,18 @@ async function executeCommand() {
     const result = await sendDeviceCommand(organizationId.value, deviceId, cmd, args)
 
     if (result.requestError) {
-        commandResult.value = {
-            success: false,
-            message: `Ошибка отправки: ${result.requestError}`,
-            rawResponse: JSON.stringify({ requestError: result.requestError }, null, 2)
-        }
+        commandResult.value = { requestError: result.requestError }
         deviceIsConnected.value = false
     } else if (result.commandError) {
         commandResult.value = {
-            success: false,
-            message: `Устройство вернуло ошибку: ${result.commandError}`,
-            rawResponse: JSON.stringify({ commandError: result.commandError, data: result.data }, null, 2)
+            commandError: result.commandError,
+            rawResponse: result.data && Object.keys(result.data).length > 0
+                ? JSON.stringify(result.data, null, 2)
+                : JSON.stringify({ commandError: result.commandError }, null, 2)
         }
         deviceIsConnected.value = true
     } else if (result.data && Object.keys(result.data).length > 0) {
         commandResult.value = {
-            success: true,
-            message: `Команда "${cmd}" выполнена, получен ответ`,
-            data: result.data,
             rawResponse: JSON.stringify(result.data, null, 2)
         }
         deviceIsConnected.value = true
@@ -600,28 +599,22 @@ async function executeCommand() {
                     currentTemp.value = numTemp
                     lastTempTime.value = new Date().toLocaleString('ru-RU')
                     tempError.value = ''
-                    tempHistory.value.push({ time: new Date().toLocaleString('ru-RU'), value: numTemp, timestamp: Date.now() })
+                    tempHistory.value.push({
+                        time: new Date().toLocaleString('ru-RU'),
+                        value: numTemp,
+                        timestamp: Date.now()
+                    })
                     saveStoredData()
                 }
             }
         }
-
-        if (cmd === 'ping') {
-            commandResult.value.message = 'Устройство в сети, пинг успешен'
-        }
     } else {
-        commandResult.value = {
-            success: true,
-            message: `Команда "${cmd}" отправлена. Устройство не вернуло данных.`,
-            rawResponse: '{}'
-        }
-        deviceIsConnected.value = true
+        commandResult.value = {}
     }
 
     sendingCommand.value = false
 }
 
-// ===== График =====
 function drawChart() {
     if (!chartCanvas.value || filteredHistory.value.length === 0) return
     const canvas = chartCanvas.value
