@@ -1,5 +1,5 @@
 import api from "@/api";
-import type { AxiosResponse } from "axios";
+import type { AxiosError, AxiosResponse } from "axios";
 
 export type Organization = {
   id: string;
@@ -35,8 +35,8 @@ export type Device = {
   lastConnection?: string;
 };
 
-export type CommandResult = {
-  data?: any;
+export type CommandResult<T> = {
+  data?: T;
   commandError?: string;
   requestError?: string;
 };
@@ -52,20 +52,29 @@ const checkResponse = <T>(response: AxiosResponse): T => {
 // ============= Организации =============
 export const getUsersOrganizations = async (): Promise<Organization[]> => {
   const result = await api.get("/api/organizations/my");
-  return checkResponse<{ organizations: Organization[] }>(result).organizations || [];
+  return (
+    checkResponse<{ organizations: Organization[] }>(result).organizations || []
+  );
 };
 
-export const getOrganizationById = async (id: string): Promise<Organization> => {
+export const getOrganizationById = async (
+  id: string
+): Promise<Organization> => {
   const result = await api.get(`/api/organizations/${id}`);
   return checkResponse<Organization>(result);
 };
 
-export const createOrganization = async (name: string): Promise<Organization> => {
+export const createOrganization = async (
+  name: string
+): Promise<Organization> => {
   const result = await api.post("/api/organizations/", { name });
   return checkResponse<Organization>(result);
 };
 
-export const updateOrganization = async (id: string, name: string): Promise<Organization> => {
+export const updateOrganization = async (
+  id: string,
+  name: string
+): Promise<Organization> => {
   const result = await api.patch(`/api/organizations/${id}`, { name });
   return checkResponse<Organization>(result);
 };
@@ -78,7 +87,7 @@ export const deleteOrganization = async (id: string): Promise<void> => {
 export const getOrganizationMembers = async (id: string): Promise<Member[]> => {
   const result = await api.get(`/api/organizations/${id}/members`);
   const data = checkResponse<{ members: Member[] }>(result);
-  return (data.members ?? []).map((m: any) => ({
+  return (data.members ?? []).map((m) => ({
     userId: m.userId,
     email: m.email,
     name: m.name,
@@ -87,15 +96,27 @@ export const getOrganizationMembers = async (id: string): Promise<Member[]> => {
   }));
 };
 
-export const inviteMembers = async (orgId: string, emails: string | string[]): Promise<void> => {
-  const emailsArray = typeof emails === "string"
-    ? emails.split(",").map(e => e.trim()).filter(Boolean)
-    : emails;
+export const inviteMembers = async (
+  orgId: string,
+  emails: string | string[]
+): Promise<void> => {
+  const emailsArray =
+    typeof emails === "string"
+      ? emails
+          .split(",")
+          .map((e) => e.trim())
+          .filter(Boolean)
+      : emails;
   if (emailsArray.length === 0) throw new Error("No valid emails provided");
-  await api.post(`/api/organizations/${orgId}/invitations`, { inviteeEmails: emailsArray });
+  await api.post(`/api/organizations/${orgId}/invitations`, {
+    inviteeEmails: emailsArray,
+  });
 };
 
-export const removeMembers = async (id: string, userIds: string[]): Promise<void> => {
+export const removeMembers = async (
+  id: string,
+  userIds: string[]
+): Promise<void> => {
   for (const userId of userIds) {
     await api.delete(`/api/organizations/${id}/members/${userId}`);
   }
@@ -117,44 +138,63 @@ export const rejectInvitation = async (invitationId: string): Promise<void> => {
 };
 
 // ============= Устройства =============
-export const getOrganizationDevices = async (orgId: string): Promise<Device[]> => {
+export const getOrganizationDevices = async (
+  orgId: string
+): Promise<Device[]> => {
   const result = await api.get(`/api/organizations/${orgId}/devices`);
   const data = checkResponse<{ devices: Device[] }>(result);
   return data.devices || [];
 };
 
-export const connectDevice = async (orgId: string, deviceId?: string, name?: string): Promise<Device> => {
-  const result = await api.post(`/api/organizations/${orgId}/devices`, { deviceId, name });
+export const connectDevice = async (
+  orgId: string,
+  deviceId?: string,
+  name?: string
+): Promise<Device> => {
+  const result = await api.post(`/api/organizations/${orgId}/devices`, {
+    deviceId,
+    name,
+  });
   return checkResponse<Device>(result);
 };
 
-export const disconnectDevice = async (orgId: string, deviceId: string): Promise<void> => {
+export const disconnectDevice = async (
+  orgId: string,
+  deviceId: string
+): Promise<void> => {
   await api.delete(`/api/organizations/${orgId}/devices/${deviceId}`);
 };
 
-export const getDeviceInfo = async (orgId: string, deviceId: string): Promise<Device> => {
-  const result = await api.get(`/api/organizations/${orgId}/devices/${deviceId}`);
+export const getDeviceInfo = async (
+  orgId: string,
+  deviceId: string
+): Promise<Device> => {
+  const result = await api.get(
+    `/api/organizations/${orgId}/devices/${deviceId}`
+  );
   return checkResponse<Device>(result);
 };
 
 // ============= Поиск организации по deviceId =============
-export const findOrganizationIdByDeviceId = async (deviceId: string): Promise<string | null> => {
+export const findOrganizationIdByDeviceId = async (
+  deviceId: string
+): Promise<string | null> => {
   const orgs = await getUsersOrganizations();
   for (const org of orgs) {
     const devices = await getOrganizationDevices(org.id);
-    if (devices.some(d => d.id === deviceId)) return org.id;
+    if (devices.some((d) => d.id === deviceId)) return org.id;
   }
   return null;
 };
 
 // ============= Команды =============
 // ============= Команды =============
-export const sendDeviceCommand = async (
+export const sendDeviceCommand = async <T>(
   organizationId: string,
   deviceId: string,
   command: string,
   args?: Record<string, any>
-): Promise<CommandResult> => {
+): Promise<CommandResult<T>> => {
   try {
     const result = await api.post(
       `/api/organizations/${organizationId}/devices/${deviceId}/command`,
@@ -164,18 +204,31 @@ export const sendDeviceCommand = async (
     // Логируем всё
     console.log(`[CMD:${command}] Status:`, result.status);
     console.log(`[CMD:${command}] Full body:`, JSON.stringify(result.data));
-    console.log(`[CMD:${command}] data field:`, JSON.stringify(result.data?.data));
+    console.log(
+      `[CMD:${command}] data field:`,
+      JSON.stringify(result.data?.data)
+    );
     console.log(`[CMD:${command}] commandError:`, result.data?.commandError);
 
     return {
       commandError: result.data?.commandError || undefined,
       data: result.data?.data !== undefined ? result.data.data : null,
     };
-  } catch (error: any) {
-    console.error(`[CMD:${command}] HTTP error:`, error.response?.status, error.response?.data);
-    if (error.response?.data?.requestError) {
-      return { requestError: error.response.data.requestError };
+  } catch (error) {
+    if (error as AxiosError) {
+      const aerror = error as AxiosError;
+      console.error(
+        `[CMD:${command}] HTTP error:`,
+        aerror.response?.status,
+        aerror.response?.data
+      );
+
+      const resp = aerror.response?.data as CommandResult<T>;
+      if (resp.requestError) {
+        return { requestError: resp.requestError };
+      }
+      return { requestError: aerror.message || "Ошибка сети" };
     }
-    return { requestError: error.message || 'Ошибка сети' };
+    return { requestError: "something went wrong: " + error };
   }
 };
