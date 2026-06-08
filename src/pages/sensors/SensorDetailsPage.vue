@@ -580,12 +580,12 @@ async function executeCommand() {
     } else if (result.commandError) {
         commandResult.value = {
             commandError: result.commandError,
-            rawResponse: result.data && Object.keys(result.data).length > 0
-                ? JSON.stringify(result.data, null, 2)
+            rawResponse: result.data
+                ? JSON.stringify({ commandError: result.commandError, data: result.data }, null, 2)
                 : JSON.stringify({ commandError: result.commandError }, null, 2)
         }
         deviceIsConnected.value = true
-    } else if (result.data && Object.keys(result.data).length > 0) {
+    } else if (result.data !== null && result.data !== undefined) {
         commandResult.value = {
             rawResponse: JSON.stringify(result.data, null, 2)
         }
@@ -609,7 +609,10 @@ async function executeCommand() {
             }
         }
     } else {
-        commandResult.value = {}
+        commandResult.value = {
+            rawResponse: JSON.stringify({ command: cmd, status: "ok", data: null }, null, 2)
+        }
+        deviceIsConnected.value = true
     }
 
     sendingCommand.value = false

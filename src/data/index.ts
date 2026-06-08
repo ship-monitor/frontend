@@ -158,14 +158,22 @@ export const sendDeviceCommand = async (
   command: string,
   args?: Record<string, any>
 ): Promise<CommandResult> => {
-  const result = await api.post(
-    `/api/organizations/${organizationId}/devices/${deviceId}/command`,
-    { command, args: args || {} }
-  );
-  // Бэк возвращает { commandError, data } или { requestError } при ошибке
-  return {
-    data: result.data?.data,
-    commandError: result.data?.commandError,
-    requestError: result.data?.requestError,
-  };
+  try {
+    const result = await api.post(
+      `/api/organizations/${organizationId}/devices/${deviceId}/command`,
+      { command, args: args || {} }
+    );
+    // Бэк возвращает { commandError: string, data: object }
+    return {
+      commandError: result.data?.commandError || undefined,
+      data: result.data?.data || null,
+    };
+  } catch (error: any) {
+    // 502 Bad Gateway — requestError в теле ответа
+    if (error.response?.data?.requestError) {
+      return { requestError: error.response.data.requestError };
+    }
+    // Другие ошибки
+    return { requestError: error.response?.data?.details || error.message || 'Ошибка сети' };
+  }
 };
