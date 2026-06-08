@@ -154,15 +154,10 @@
                                 class="mt-2 text-xs bg-gray-900 text-orange-400 p-3 rounded overflow-x-auto max-h-60">{{ commandResult.rawResponse }}</pre>
                         </div>
 
-                        <div v-else-if="commandResult.rawResponse"
-                            class="p-4 rounded-lg bg-gray-50 border border-gray-200">
+                        <div v-else class="p-4 rounded-lg bg-gray-50 border border-gray-200">
                             <p class="text-xs text-gray-500 mb-2">Ответ устройства:</p>
                             <pre
-                                class="text-xs bg-gray-900 text-green-400 p-3 rounded overflow-x-auto max-h-60">{{ commandResult.rawResponse }}</pre>
-                        </div>
-
-                        <div v-else class="p-4 rounded-lg bg-gray-50 border border-gray-200">
-                            <p class="text-sm text-gray-500">Устройство не вернуло данных</p>
+                                class="text-xs bg-gray-900 text-green-400 p-3 rounded overflow-x-auto max-h-60">{{ commandResult.rawResponse || 'null' }}</pre>
                         </div>
                     </div>
                 </div>
@@ -571,8 +566,7 @@ async function executeCommand() {
     sendingCommand.value = true
     commandResult.value = null
 
-    const args = currentArgs.value
-    const result = await sendDeviceCommand(organizationId.value, deviceId, cmd, args)
+    const result = await sendDeviceCommand(organizationId.value, deviceId, cmd, currentArgs.value)
 
     if (result.requestError) {
         commandResult.value = { requestError: result.requestError }
@@ -580,18 +574,16 @@ async function executeCommand() {
     } else if (result.commandError) {
         commandResult.value = {
             commandError: result.commandError,
-            rawResponse: result.data
-                ? JSON.stringify({ commandError: result.commandError, data: result.data }, null, 2)
-                : JSON.stringify({ commandError: result.commandError }, null, 2)
+            rawResponse: JSON.stringify(result.data, null, 2)
         }
         deviceIsConnected.value = true
-    } else if (result.data !== null && result.data !== undefined) {
+    } else {
         commandResult.value = {
             rawResponse: JSON.stringify(result.data, null, 2)
         }
         deviceIsConnected.value = true
 
-        if (cmd === 'get-temperature') {
+        if (cmd === 'get-temperature' && result.data) {
             const temp = result.data.temperature ?? result.data.value ?? result.data.temp
             if (temp !== undefined && temp !== null) {
                 const numTemp = typeof temp === 'number' ? temp : parseFloat(temp)
@@ -608,14 +600,12 @@ async function executeCommand() {
                 }
             }
         }
-    } else {
-        commandResult.value = {
-            rawResponse: JSON.stringify({ command: cmd, status: "ok", data: null }, null, 2)
-        }
-        deviceIsConnected.value = true
     }
 
     sendingCommand.value = false
+    selectedCommand.value = ''
+    commandName.value = ''
+    commandArgs.value = ''
 }
 
 function drawChart() {

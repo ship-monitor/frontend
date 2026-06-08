@@ -91,12 +91,8 @@ export const inviteMembers = async (orgId: string, emails: string | string[]): P
   const emailsArray = typeof emails === "string"
     ? emails.split(",").map(e => e.trim()).filter(Boolean)
     : emails;
-
   if (emailsArray.length === 0) throw new Error("No valid emails provided");
-
-  await api.post(`/api/organizations/${orgId}/invitations`, {
-    inviteeEmails: emailsArray,
-  });
+  await api.post(`/api/organizations/${orgId}/invitations`, { inviteeEmails: emailsArray });
 };
 
 export const removeMembers = async (id: string, userIds: string[]): Promise<void> => {
@@ -152,6 +148,7 @@ export const findOrganizationIdByDeviceId = async (deviceId: string): Promise<st
 };
 
 // ============= Команды =============
+// ============= Команды =============
 export const sendDeviceCommand = async (
   organizationId: string,
   deviceId: string,
@@ -163,17 +160,22 @@ export const sendDeviceCommand = async (
       `/api/organizations/${organizationId}/devices/${deviceId}/command`,
       { command, args: args || {} }
     );
-    // Бэк возвращает { commandError: string, data: object }
+
+    // Логируем всё
+    console.log(`[CMD:${command}] Status:`, result.status);
+    console.log(`[CMD:${command}] Full body:`, JSON.stringify(result.data));
+    console.log(`[CMD:${command}] data field:`, JSON.stringify(result.data?.data));
+    console.log(`[CMD:${command}] commandError:`, result.data?.commandError);
+
     return {
       commandError: result.data?.commandError || undefined,
-      data: result.data?.data || null,
+      data: result.data?.data !== undefined ? result.data.data : null,
     };
   } catch (error: any) {
-    // 502 Bad Gateway — requestError в теле ответа
+    console.error(`[CMD:${command}] HTTP error:`, error.response?.status, error.response?.data);
     if (error.response?.data?.requestError) {
       return { requestError: error.response.data.requestError };
     }
-    // Другие ошибки
-    return { requestError: error.response?.data?.details || error.message || 'Ошибка сети' };
+    return { requestError: error.message || 'Ошибка сети' };
   }
 };
