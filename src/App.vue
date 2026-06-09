@@ -4,6 +4,11 @@
     <router-view />
   </div>
 
+  <!-- Лендинг для неавторизованных пользователей -->
+  <div v-else-if="isLandingPage">
+    <router-view />
+  </div>
+
   <!-- Основной layout с адаптивным меню -->
   <div v-else class="flex flex-col lg:flex-row min-h-screen bg-gray-50">
 
@@ -51,7 +56,7 @@
 
       <!-- Навигация -->
       <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
-        <router-link to="/" @click="mobileMenuOpen = false"
+        <router-link to="/dashboard" @click="mobileMenuOpen = false"
           class="flex items-center gap-3 px-4 py-3.5 rounded-lg hover:bg-gray-700 transition-colors touch-target"
           active-class="bg-gray-700">
           <!-- Пульс -->
@@ -195,7 +200,7 @@
 
       <!-- Мобильная нижняя панель навигации -->
       <nav class="lg:hidden bg-white border-t flex justify-around py-2 sticky bottom-0 z-30 safe-bottom">
-        <router-link to="/"
+        <router-link to="/dashboard"
           class="flex flex-col items-center gap-0.5 px-3 py-1 text-gray-400 hover:text-blue-600 transition-colors touch-target"
           active-class="!text-blue-600">
           <!-- Иконка: Мониторинг (пульс/график) -->
@@ -263,6 +268,7 @@ const notifications = ref<Array<{ id: string; title: string; message: string }>>
 
 // ===== Вычисляемые =====
 const isAuthPage = computed(() => route.path.startsWith('/auth'));
+const isLandingPage = computed(() => route.path === '/' && !localStorage.getItem('token'));
 const isMobile = ref(window.innerWidth < 1024);
 
 const unreadNotifications = computed(() => notifications.value.length);
@@ -335,7 +341,7 @@ const logout = () => {
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
   mobileMenuOpen.value = false;
-  router.push('/auth/login');
+  router.push('/');
 };
 
 // ===== Закрытие уведомлений по клику вне =====
@@ -365,18 +371,22 @@ router.afterEach(() => {
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
   window.addEventListener('resize', handleResize);
-  loadNotifications();
 
-  // Обновляем уведомления каждые 30 секунд
-  const notificationsInterval = setInterval(loadNotifications, 30000);
+  // Загружаем уведомления только для авторизованных
+  if (localStorage.getItem('token')) {
+    loadNotifications();
 
-  // Обновляем токен каждые 4 минуты (240 секунд)
-  refreshInterval = setInterval(refreshAuthToken, 4 * 60 * 1000);
+    // Обновляем уведомления каждые 30 секунд
+    const notificationsInterval = setInterval(loadNotifications, 30000);
 
-  onUnmounted(() => {
-    clearInterval(notificationsInterval);
-    if (refreshInterval) clearInterval(refreshInterval);
-  });
+    // Обновляем токен каждые 4 минуты (240 секунд)
+    refreshInterval = setInterval(refreshAuthToken, 4 * 60 * 1000);
+
+    onUnmounted(() => {
+      clearInterval(notificationsInterval);
+      if (refreshInterval) clearInterval(refreshInterval);
+    });
+  }
 });
 
 onUnmounted(() => {

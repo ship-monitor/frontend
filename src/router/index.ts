@@ -17,6 +17,12 @@ export type CustomRouteMeta = {
 
 const routes: Array<RouteRecordRaw> = [
   {
+    path: "/",
+    name: "Landing",
+    component: () => import("../pages/LandingPage.vue"),
+    meta: { onlyAnonymous: true } as CustomRouteMeta,
+  },
+  {
     path: "/auth/login",
     name: "Login",
     component: () => import("../pages/auth/LoginPage.vue"),
@@ -29,7 +35,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: { onlyAnonymous: true } as CustomRouteMeta,
   },
   {
-    path: "/",
+    path: "/dashboard",  // Измени путь дашборда
     name: "Dashboard",
     component: Dashboard,
     meta: { requireAuth: true } as CustomRouteMeta,
