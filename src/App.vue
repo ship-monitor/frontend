@@ -60,7 +60,7 @@
 
       <!-- Навигация -->
       <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
-        <router-link to="/dashboard" @click="mobileMenuOpen = false"
+        <router-link :to="ROUTES.DASHBOARD" @click="mobileMenuOpen = false"
           class="flex items-center gap-3 px-4 py-3.5 rounded-lg hover:bg-gray-700 transition-colors touch-target"
           active-class="bg-gray-700">
           <!-- Пульс -->
@@ -71,7 +71,7 @@
           <span class="text-base">Мониторинг</span>
         </router-link>
 
-        <router-link to="/organizations" @click="mobileMenuOpen = false"
+        <router-link :to="ROUTES.ORGANIZATIONS" @click="mobileMenuOpen = false"
           class="flex items-center gap-3 px-4 py-3.5 rounded-lg hover:bg-gray-700 transition-colors touch-target"
           active-class="bg-gray-700">
           <!-- Здание -->
@@ -84,7 +84,7 @@
           <span class="text-base">Организации</span>
         </router-link>
 
-        <router-link to="/profile" @click="mobileMenuOpen = false"
+        <router-link :to="ROUTES.PROFILE" @click="mobileMenuOpen = false"
           class="flex items-center gap-3 px-4 py-3.5 rounded-lg hover:bg-gray-700 transition-colors touch-target"
           active-class="bg-gray-700">
           <!-- Человек -->
@@ -96,7 +96,7 @@
           <span class="text-base">Профиль</span>
         </router-link>
 
-        <router-link to="/settings" @click="mobileMenuOpen = false"
+        <router-link :to="ROUTES.SETTINGS" @click="mobileMenuOpen = false"
           class="flex items-center gap-3 px-4 py-3.5 rounded-lg hover:bg-gray-700 transition-colors touch-target"
           active-class="bg-gray-700">
           <!-- Шестерёнка -->
@@ -204,7 +204,7 @@
 
       <!-- Мобильная нижняя панель навигации -->
       <nav class="lg:hidden bg-white border-t flex justify-around py-2 sticky bottom-0 z-30 safe-bottom">
-        <router-link to="/dashboard"
+        <router-link :to="ROUTES.DASHBOARD"
           class="flex flex-col items-center gap-0.5 px-3 py-1 text-gray-400 hover:text-blue-600 transition-colors touch-target"
           active-class="!text-blue-600">
           <!-- Иконка: Мониторинг (пульс/график) -->
@@ -215,7 +215,7 @@
           <span class="text-[10px] font-medium">Мониторинг</span>
         </router-link>
 
-        <router-link to="/organizations"
+        <router-link :to="ROUTES.ORGANIZATIONS"
           class="flex flex-col items-center gap-0.5 px-3 py-1 text-gray-400 hover:text-blue-600 transition-colors touch-target"
           active-class="!text-blue-600">
           <!-- Иконка: Организации (здание) -->
@@ -228,7 +228,7 @@
           <span class="text-[10px] font-medium">Организации</span>
         </router-link>
 
-        <router-link to="/profile"
+        <router-link :to="ROUTES.PROFILE"
           class="flex flex-col items-center gap-0.5 px-3 py-1 text-gray-400 hover:text-blue-600 transition-colors touch-target"
           active-class="!text-blue-600">
           <!-- Иконка: Профиль (человек) -->
@@ -261,6 +261,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getInvitations, acceptInvitation, rejectInvitation, type Invitation } from '@/data';
 import api from '@/api';
+import { ROUTES } from '@/constants/routes';
 
 const route = useRoute();
 const router = useRouter();
@@ -271,8 +272,8 @@ const showNotifications = ref(false);
 const notifications = ref<Array<{ id: string; title: string; message: string }>>([]);
 
 // ===== Вычисляемые =====
-const isAuthPage = computed(() => route.path.startsWith('/auth'));
-const isLandingPage = computed(() => route.path === '/');
+const isAuthPage = computed(() => route.path.startsWith(ROUTES.LOGIN));
+const isLandingPage = computed(() => route.path === ROUTES.LANDING);
 const isMobile = ref(window.innerWidth < 1024);
 
 const unreadNotifications = computed(() => notifications.value.length);
@@ -300,7 +301,7 @@ const refreshAuthToken = async () => {
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
-        router.push('/auth/login');
+        router.push(ROUTES.LOGIN);
       }
     }, 5000);
   }
@@ -345,7 +346,7 @@ const logout = () => {
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
   mobileMenuOpen.value = false;
-  router.push('/');
+  router.push(ROUTES.LANDING);
 };
 
 // ===== Закрытие уведомлений по клику вне =====
