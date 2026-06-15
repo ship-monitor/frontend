@@ -272,7 +272,7 @@ const showNotifications = ref(false);
 const notifications = ref<Array<{ id: string; title: string; message: string }>>([]);
 
 // ===== Вычисляемые =====
-const isAuthPage = computed(() => route.path.startsWith(ROUTES.LOGIN));
+const isAuthPage = computed(() => route.path.startsWith('/auth'));
 const isLandingPage = computed(() => route.path === ROUTES.LANDING);
 const isMobile = ref(window.innerWidth < 1024);
 

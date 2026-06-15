@@ -95,12 +95,6 @@ router.beforeEach((to) => {
     };
   }
 
-
-  if (routeMeta?.onlyAnonymous && isAuthenticated) {
-    return ROUTES.LANDING;
-  }
-
-
   return true;
 });
 
