@@ -20,7 +20,6 @@ const routes: Array<RouteRecordRaw> = [
     path: "/",
     name: "Landing",
     component: () => import("../pages/LandingPage.vue"),
-    meta: { onlyAnonymous: true } as CustomRouteMeta,
   },
   {
     path: "/auth/login",
@@ -72,7 +71,7 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: "/:pathMatch(.*)*",
-    redirect: "/",
+    redirect: "/dashboard",
   },
 ];
 
@@ -92,9 +91,7 @@ router.beforeEach((to) => {
     };
   }
 
-  if (routeMeta?.onlyAnonymous && isAuthenticated) {
-    return "/";
-  }
+  return true;
 
   return true;
 });

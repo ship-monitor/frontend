@@ -10,7 +10,7 @@ const form = reactive<{
   password: string;
 }>({ email: "", password: "" });
 
-const PAGE_TO_REDIRECT = "/dashboard";
+const PAGE_TO_REDIRECT = "/";
 const REGISTER_PAGE = "/auth/register";
 
 const handleLogin = async () => {

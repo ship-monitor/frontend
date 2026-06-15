@@ -4,7 +4,7 @@
     <router-view />
   </div>
 
-  <!-- Лендинг для неавторизованных пользователей -->
+  <!-- Лендинг для неавторизованных -->
   <div v-else-if="isLandingPage">
     <router-view />
   </div>
@@ -24,7 +24,9 @@
         </svg>
       </button>
 
-      <h2 class="text-lg font-bold">ШиП-монитор</h2>
+      <router-link to="/">
+        <h2 class="text-lg font-bold">ШиП-монитор</h2>
+      </router-link>
 
       <button @click="showNotifications = !showNotifications"
         class="relative p-2 hover:bg-gray-700 rounded-lg touch-target" aria-label="Уведомления">
@@ -51,7 +53,9 @@
     ]">
       <!-- Логотип (только десктоп) -->
       <div class="hidden lg:block p-4 border-b border-gray-700">
-        <h2 class="text-xl font-bold">ШиП-монитор</h2>
+        <router-link to="/">
+          <h2 class="text-xl font-bold">ШиП-монитор</h2>
+        </router-link>
       </div>
 
       <!-- Навигация -->
@@ -268,7 +272,7 @@ const notifications = ref<Array<{ id: string; title: string; message: string }>>
 
 // ===== Вычисляемые =====
 const isAuthPage = computed(() => route.path.startsWith('/auth'));
-const isLandingPage = computed(() => route.path === '/' && !localStorage.getItem('token'));
+const isLandingPage = computed(() => route.path === '/');
 const isMobile = ref(window.innerWidth < 1024);
 
 const unreadNotifications = computed(() => notifications.value.length);
