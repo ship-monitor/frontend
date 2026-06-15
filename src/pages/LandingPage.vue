@@ -1,7 +1,6 @@
 <template>
     <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
         <!-- ====== Хедер с логотипом ====== -->
-        <!-- ====== Хедер с логотипом ====== -->
         <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center py-3 sm:py-4">
@@ -12,16 +11,24 @@
                         </div>
                     </div>
 
-                    <!-- Кнопки входа -->
+                    <!-- Кнопки -->
                     <div class="flex items-center gap-2 sm:gap-3">
-                        <router-link to="/auth/login"
-                            class="text-sm sm:text-base px-3 sm:px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors font-medium">
-                            Войти
-                        </router-link>
-                        <router-link to="/auth/register"
-                            class="text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium whitespace-nowrap">
-                            Регистрация
-                        </router-link>
+                        <template v-if="!isAuthenticated">
+                            <router-link to="/auth/login"
+                                class="text-sm sm:text-base px-3 sm:px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors font-medium">
+                                Войти
+                            </router-link>
+                            <router-link to="/auth/register"
+                                class="text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium whitespace-nowrap">
+                                Регистрация
+                            </router-link>
+                        </template>
+                        <template v-else>
+                            <router-link to="/organizations"
+                                class="text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium whitespace-nowrap">
+                                Мои организации
+                            </router-link>
+                        </template>
                     </div>
                 </div>
             </div>
@@ -55,19 +62,32 @@
                     </p>
 
                     <div class="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
-                        <router-link to="/auth/register"
-                            class="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
-                            Подключить мониторинг
-                            <svg class="ml-2 -mr-1 w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                            </svg>
-                        </router-link>
-                        <router-link to="/auth/login"
-                            class="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium rounded-xl text-blue-700 bg-white border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200">
-                            Войти в систему
-                        </router-link>
+                        <template v-if="!isAuthenticated">
+                            <router-link to="/auth/register"
+                                class="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                                Подключить мониторинг
+                                <svg class="ml-2 -mr-1 w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                            </router-link>
+                            <router-link to="/auth/login"
+                                class="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium rounded-xl text-blue-700 bg-white border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200">
+                                Войти в систему
+                            </router-link>
+                        </template>
+                        <template v-else>
+                            <router-link to="/organizations"
+                                class="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                                Мои организации
+                                <svg class="ml-2 -mr-1 w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 7l5 5-5 5" />
+                                </svg>
+                            </router-link>
+                        </template>
                     </div>
                 </div>
             </div>
@@ -111,7 +131,8 @@
                                 <p class="text-sm sm:text-base text-gray-600 leading-relaxed">
                                     Ночью или в выходной день выходит из строя компрессор. Персонала нет на месте. К
                                     утру понедельника вся камера разморожена — <span
-                                        class="font-semibold text-red-600">убыток от 1 до 10+ миллионов рублей</span>.
+                                        class="font-semibold text-red-600">убыток
+                                        от 1 до 10+ миллионов рублей</span>.
                                     Страховка не покрывает, виновных нет.
                                 </p>
                                 <div class="mt-3 flex items-center gap-2 text-green-600">
@@ -578,11 +599,18 @@
                                 </li>
 
                             </ul>
-
-                            <router-link to="/auth/register"
-                                class="block w-full py-3 px-6 text-center bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium">
-                                Подключить
-                            </router-link>
+                            <template v-if="!isAuthenticated">
+                                <router-link to="/auth/register"
+                                    class="block w-full py-3 px-6 text-center bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium">
+                                    Подключить
+                                </router-link>
+                            </template>
+                            <template v-else>
+                                <router-link to="/organizations"
+                                    class="block w-full py-3 px-6 text-center bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium">
+                                    Мои организации
+                                </router-link>
+                            </template>
                         </div>
                     </div>
 
@@ -645,10 +673,18 @@
                                 </li>
                             </ul>
 
-                            <router-link to="/auth/register"
-                                class="block w-full py-3 px-6 text-center bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium">
-                                Получить предложение
-                            </router-link>
+                            <template v-if="!isAuthenticated">
+                                <router-link to="/auth/register"
+                                    class="block w-full py-3 px-6 text-center bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium">
+                                    Получить предложение
+                                </router-link>
+                            </template>
+                            <template v-else>
+                                <router-link to="/organizations"
+                                    class="block w-full py-3 px-6 text-center bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium">
+                                    Мои организации
+                                </router-link>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -787,8 +823,11 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import BIG_LOGO_D from "@/assets/big-logo-dark.png";
 import BIG_LOGO from "@/assets/big-logo.png";
+
+const isAuthenticated = computed(() => !!localStorage.getItem('token'));
 </script>
 
 <style scoped>
