@@ -56,7 +56,7 @@
       class="bg-white rounded-lg border p-6 sm:p-8 text-center text-gray-500">
       <p class="text-base sm:text-lg mb-2">Нет подключенных устройств</p>
       <p class="text-xs sm:text-sm mb-4">Добавьте устройства через раздел "Организации"</p>
-      <router-link :to="ROUTES.ORGANIZATIONS"
+      <router-link :to="route.organizations()"
         class="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm">
         Перейти к организациям
       </router-link>
