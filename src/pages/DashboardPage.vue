@@ -123,7 +123,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, onActivated } from "vue";
 import { useRouter } from "vue-router";
-import { ROUTES } from '@/constants/routes';
+import { route } from '@/constants/routes';
 import { getUsersOrganizations, getOrganizationDevices, sendDeviceCommand } from "@/data";
 
 const router = useRouter();
@@ -278,8 +278,7 @@ function formatTimeAgo(timestamp: number): string {
 
 function goToSensor(sensor: SensorDisplay) {
   if (!sensor.organizationId) return;
-  localStorage.setItem(`device_org_${sensor.id}`, sensor.organizationId);
-  router.push(`${ROUTES.SENSORS}/${sensor.id}?orgId=${sensor.organizationId}`);
+  router.push(route.sensorDetails(sensor.id) + '?orgId=' + sensor.organizationId);
 }
 
 async function pingDevice(orgId: string, deviceId: string): Promise<boolean> {
