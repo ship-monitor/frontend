@@ -42,7 +42,7 @@
     <div class="bg-gray-50 rounded-xl border p-4">
       <p class="text-xs text-gray-500">
         Настройки email-уведомлений, изменение email и пароля находятся в разделе
-        <router-link to="/profile" class="text-blue-500 hover:text-blue-700">Профиль</router-link>.
+        <router-link :to="ROUTES.PROFILE" class="text-blue-500 hover:text-blue-700">Профиль</router-link>.
       </p>
     </div>
   </div>
@@ -50,6 +50,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { ROUTES } from '@/constants/routes';
 
 const settings = ref({
   autoRefresh: true,

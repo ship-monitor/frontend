@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { ROUTES } from "@/constants/routes";
 import api from "@/api";
 import { useRouter } from "vue-router";
 import textbox from "@/components/textbox.vue";
@@ -40,7 +41,7 @@ const handleRegister = async () => {
       typeof user === "object" ? JSON.stringify(user) : user
     );
 
-    router.push("/");
+    router.push(ROUTES.LANDING);
   } catch (error) {
     if (error instanceof AxiosError) {
       console.error("Ошибка:", error.response?.data || error.message);
@@ -71,7 +72,7 @@ const handleRegister = async () => {
       </button>
       <p class="mt-4 text-center text-sm text-gray-600">
         Уже есть аккаунт?
-        <router-link to="/auth/login" class="text-blue-600 hover:underline">
+        <router-link :to="ROUTES.LOGIN" class="text-blue-600 hover:underline">
           Войти
         </router-link>
       </p>

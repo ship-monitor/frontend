@@ -14,21 +14,22 @@
                     <!-- Кнопки -->
                     <div class="flex items-center gap-2 sm:gap-3">
                         <template v-if="!isAuthenticated">
-                            <router-link to="/auth/login"
+                            <router-link :to="ROUTES.LOGIN"
                                 class="text-sm sm:text-base px-3 sm:px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors font-medium">
                                 Войти
                             </router-link>
-                            <router-link to="/auth/register"
+                            <router-link :to="ROUTES.REGISTER"
                                 class="text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium whitespace-nowrap">
                                 Регистрация
                             </router-link>
                         </template>
                         <template v-else>
-                            <router-link to="/organizations"
+                            <router-link :to="ROUTES.ORGANIZATIONS"
                                 class="text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium whitespace-nowrap">
                                 Мои организации
                             </router-link>
                         </template>
+
                     </div>
                 </div>
             </div>
@@ -63,7 +64,7 @@
 
                     <div class="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
                         <template v-if="!isAuthenticated">
-                            <router-link to="/auth/register"
+                            <router-link :to="ROUTES.REGISTER"
                                 class="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
                                 Подключить мониторинг
                                 <svg class="ml-2 -mr-1 w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor"
@@ -72,13 +73,13 @@
                                         d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                 </svg>
                             </router-link>
-                            <router-link to="/auth/login"
+                            <router-link :to="ROUTES.LOGIN"
                                 class="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium rounded-xl text-blue-700 bg-white border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200">
                                 Войти в систему
                             </router-link>
                         </template>
                         <template v-else>
-                            <router-link to="/organizations"
+                            <router-link :to="ROUTES.ORGANIZATIONS"
                                 class="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
                                 Мои организации
                                 <svg class="ml-2 -mr-1 w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor"
@@ -89,6 +90,7 @@
                             </router-link>
                         </template>
                     </div>
+
                 </div>
             </div>
 
@@ -598,15 +600,20 @@
                                     <span>Графики температуры</span>
                                 </li>
 
-                            </ul>
+
+</ul>
+
                             <template v-if="!isAuthenticated">
-                                <router-link to="/auth/register"
+                                <router-link :to="ROUTES.REGISTER"
+
                                     class="block w-full py-3 px-6 text-center bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium">
                                     Подключить
                                 </router-link>
                             </template>
                             <template v-else>
-                                <router-link to="/organizations"
+
+                                <router-link :to="ROUTES.ORGANIZATIONS"
+
                                     class="block w-full py-3 px-6 text-center bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium">
                                     Мои организации
                                 </router-link>
@@ -671,16 +678,19 @@
                                     </svg>
                                     <span>Расширенная гарантия 18 месяцев</span>
                                 </li>
-                            </ul>
+</ul>
 
                             <template v-if="!isAuthenticated">
-                                <router-link to="/auth/register"
+
+                                <router-link :to="ROUTES.REGISTER"
+
                                     class="block w-full py-3 px-6 text-center bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium">
                                     Получить предложение
                                 </router-link>
                             </template>
                             <template v-else>
-                                <router-link to="/organizations"
+                                <router-link :to="ROUTES.ORGANIZATIONS"
+
                                     class="block w-full py-3 px-6 text-center bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium">
                                     Мои организации
                                 </router-link>
@@ -826,6 +836,7 @@
 import { computed } from 'vue';
 import BIG_LOGO_D from "@/assets/big-logo-dark.png";
 import BIG_LOGO from "@/assets/big-logo.png";
+import { ROUTES } from '@/constants/routes';
 
 const isAuthenticated = computed(() => !!localStorage.getItem('token'));
 </script>

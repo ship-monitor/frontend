@@ -3,12 +3,12 @@
     <!-- Логотип и навигация -->
     <div class="flex items-center gap-6">
       <img loading="lazy" :src="BIG_LOGO" :alt="COMPANY_NAME" :title="COMPANY_NAME" class="w-40 cursor-pointer"
-        @click="router.push('/')" />
+        @click="router.push(ROUTES.LANDING)" />
       <nav class="flex gap-4">
-        <router-link to="/" class="text-gray-600 hover:text-blue-600 transition-colors font-medium">
+        <router-link :to="ROUTES.ORGANIZATIONS" class="text-gray-600 hover:text-blue-600 transition-colors font-medium">
           Организации
         </router-link>
-        <router-link to="/invitations"
+        <router-link :to="ROUTES.INVITATIONS"
           class="text-gray-600 hover:text-blue-600 transition-colors font-medium flex items-center gap-1">
           Приглашения
           <span v-if="invitationCount > 0"
@@ -38,6 +38,7 @@ import { ref, onMounted } from "vue";
 import BIG_LOGO from "@/assets/big-logo.png";
 import { useRouter } from "vue-router";
 import { getInvitations } from "@/data";
+import { ROUTES } from "@/constants/routes";
 
 const COMPANY_NAME = "ШиП Монитор";
 const router = useRouter();
@@ -58,6 +59,6 @@ const handleLogout = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("user");
-  router.push("/auth");
+  router.push(ROUTES.LOGIN);
 };
 </script>

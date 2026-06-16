@@ -27,7 +27,7 @@
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
       <div v-for="org in organizations" :key="org.id"
         class="bg-white border rounded-xl p-4 sm:p-5 hover:shadow-md active:scale-[0.98] transition-all cursor-pointer touch-target"
-        @click="router.push(`/organizations/${org.id}`)">
+        @click="router.push(route.organizationDetails(org.id))">
         <h3 class="text-lg font-semibold mb-1 truncate">{{ org.name }}</h3>
         <p class="text-xs text-gray-400 mb-3 font-mono truncate">{{ org.id }}</p>
         <div class="flex justify-between items-center">
@@ -77,6 +77,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { route } from '@/constants/routes';
 import { getUsersOrganizations, createOrganization, type Organization } from '@/data';
 
 const router = useRouter();

@@ -56,7 +56,7 @@
       class="bg-white rounded-lg border p-6 sm:p-8 text-center text-gray-500">
       <p class="text-base sm:text-lg mb-2">Нет подключенных устройств</p>
       <p class="text-xs sm:text-sm mb-4">Добавьте устройства через раздел "Организации"</p>
-      <router-link to="/organizations"
+      <router-link :to="route.organizations()"
         class="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm">
         Перейти к организациям
       </router-link>
@@ -123,6 +123,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, onActivated } from "vue";
 import { useRouter } from "vue-router";
+import { route } from '@/constants/routes';
 import { getUsersOrganizations, getOrganizationDevices, sendDeviceCommand } from "@/data";
 
 const router = useRouter();
@@ -277,8 +278,7 @@ function formatTimeAgo(timestamp: number): string {
 
 function goToSensor(sensor: SensorDisplay) {
   if (!sensor.organizationId) return;
-  localStorage.setItem(`device_org_${sensor.id}`, sensor.organizationId);
-  router.push(`/sensors/${sensor.id}?orgId=${sensor.organizationId}`);
+  router.push(route.sensorDetails(sensor.id) + '?orgId=' + sensor.organizationId);
 }
 
 async function pingDevice(orgId: string, deviceId: string): Promise<boolean> {
