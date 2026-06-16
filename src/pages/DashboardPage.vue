@@ -279,7 +279,7 @@ function formatTimeAgo(timestamp: number): string {
 function goToSensor(sensor: SensorDisplay) {
   if (!sensor.organizationId) return;
   localStorage.setItem(`device_org_${sensor.id}`, sensor.organizationId);
-  router.push(`/sensors/${sensor.id}?orgId=${sensor.organizationId}`);
+  router.push(`${ROUTES.SENSORS}/${sensor.id}?orgId=${sensor.organizationId}`);
 }
 
 async function pingDevice(orgId: string, deviceId: string): Promise<boolean> {

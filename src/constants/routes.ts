@@ -5,6 +5,7 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   ORGANIZATIONS: '/organizations',
   ORGANIZATION_DETAILS: '/organizations/:id',
+  SENSORS: '/sensors',
   SENSOR_DETAILS: '/sensors/:id',
   PROFILE: '/profile',
   SETTINGS: '/settings',
