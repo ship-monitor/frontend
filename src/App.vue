@@ -29,7 +29,7 @@
     </header>
 
     <!-- ====== Боковое меню (десктоп) ====== -->
-    <aside class="hidden lg:flex bg-[#1E293B] text-white flex-col lg:w-64 lg:min-h-screen lg:sticky lg:top-0">
+    <aside class="hidden h-fit lg:flex bg-[#1E293B] text-white flex-col lg:w-64 lg:min-h-screen lg:sticky lg:top-0">
       <!-- Логотип (только десктоп) -->
       <div class="hidden lg:block p-4 border-b border-gray-700">
         <router-link to="/">
