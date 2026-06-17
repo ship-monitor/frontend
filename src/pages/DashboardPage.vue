@@ -81,7 +81,7 @@
         <div class="flex justify-between items-start mb-3">
           <div class="min-w-0 flex-1 mr-2">
             <h3 class="font-semibold text-gray-800 text-sm sm:text-base truncate">
-              {{ sensor.displayName }}
+              {{ sensor.name || sensor.displayName }}
             </h3>
             <p class="text-xs text-gray-400 font-mono truncate">{{ sensor.id }}</p>
           </div>
