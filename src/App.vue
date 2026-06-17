@@ -14,16 +14,6 @@
 
     <!-- ====== Мобильный хедер ====== -->
     <header class="lg:hidden bg-[#1E293B] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40">
-      <button @click="mobileMenuOpen = !mobileMenuOpen" class="p-2 -ml-2 hover:bg-gray-700 rounded-lg touch-target"
-        aria-label="Меню">
-        <svg v-if="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-        <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-
       <router-link to="/">
         <h2 class="text-lg font-bold">ШиП-монитор</h2>
       </router-link>
@@ -38,19 +28,8 @@
       </button>
     </header>
 
-    <!-- ====== Оверлей для мобильного меню ====== -->
-    <div v-if="mobileMenuOpen" class="lg:hidden fixed inset-0 z-30 bg-black/50 backdrop-blur-sm"
-      @click="mobileMenuOpen = false" />
-
-    <!-- ====== Боковое меню (десктоп) / Слайд-меню (мобильное) ====== -->
-    <aside :class="[
-      'bg-[#1E293B] text-white flex flex-col',
-      // Десктоп: фиксированная ширина
-      'lg:w-64 lg:min-h-screen lg:sticky lg:top-0',
-      // Мобильное: слайд слева
-      'fixed lg:relative inset-y-0 left-0 z-40 w-72 transition-transform duration-300 ease-in-out',
-      mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-    ]">
+    <!-- ====== Боковое меню (десктоп) ====== -->
+    <aside class="hidden lg:flex bg-[#1E293B] text-white flex-col lg:w-64 lg:min-h-screen lg:sticky lg:top-0">
       <!-- Логотип (только десктоп) -->
       <div class="hidden lg:block p-4 border-b border-gray-700">
         <router-link to="/">
@@ -60,7 +39,7 @@
 
       <!-- Навигация -->
       <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
-        <router-link :to="ROUTES.DASHBOARD" @click="mobileMenuOpen = false"
+        <router-link :to="ROUTES.DASHBOARD"
           class="flex items-center gap-3 px-4 py-3.5 rounded-lg hover:bg-gray-700 transition-colors touch-target"
           active-class="bg-gray-700">
           <!-- Пульс -->
@@ -71,7 +50,7 @@
           <span class="text-base">Мониторинг</span>
         </router-link>
 
-        <router-link :to="ROUTES.ORGANIZATIONS" @click="mobileMenuOpen = false"
+        <router-link :to="ROUTES.ORGANIZATIONS"
           class="flex items-center gap-3 px-4 py-3.5 rounded-lg hover:bg-gray-700 transition-colors touch-target"
           active-class="bg-gray-700">
           <!-- Здание -->
@@ -84,7 +63,7 @@
           <span class="text-base">Организации</span>
         </router-link>
 
-        <router-link :to="ROUTES.PROFILE" @click="mobileMenuOpen = false"
+        <router-link :to="ROUTES.PROFILE"
           class="flex items-center gap-3 px-4 py-3.5 rounded-lg hover:bg-gray-700 transition-colors touch-target"
           active-class="bg-gray-700">
           <!-- Человек -->
@@ -96,7 +75,7 @@
           <span class="text-base">Профиль</span>
         </router-link>
 
-        <router-link :to="ROUTES.SETTINGS" @click="mobileMenuOpen = false"
+        <router-link :to="ROUTES.SETTINGS"
           class="flex items-center gap-3 px-4 py-3.5 rounded-lg hover:bg-gray-700 transition-colors touch-target"
           active-class="bg-gray-700">
           <!-- Шестерёнка -->
@@ -167,7 +146,7 @@
       </header>
 
       <!-- Мобильный блок с уведомлениями (под хедером) -->
-      <div v-if="showNotifications && isMobile" class="lg:hidden bg-white border-b shadow-lg">
+      <div v-if="showNotifications" class="lg:hidden bg-white border-b shadow-lg">
         <div class="p-4 border-b">
           <div class="flex justify-between items-center">
             <h3 class="font-semibold">Уведомления</h3>
@@ -267,14 +246,12 @@ const route = useRoute();
 const router = useRouter();
 
 // ===== Состояние =====
-const mobileMenuOpen = ref(false);
 const showNotifications = ref(false);
 const notifications = ref<Array<{ id: string; title: string; message: string }>>([]);
 
 // ===== Вычисляемые =====
 const isAuthPage = computed(() => route.path.startsWith('/auth'));
 const isLandingPage = computed(() => route.path === ROUTES.LANDING);
-const isMobile = ref(window.innerWidth < 1024);
 
 const unreadNotifications = computed(() => notifications.value.length);
 
@@ -345,7 +322,6 @@ const logout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
-  mobileMenuOpen.value = false;
   router.push(ROUTES.LANDING);
 };
 
@@ -359,23 +335,12 @@ const handleClickOutside = (e: MouseEvent) => {
   }
 };
 
-// ===== Отслеживание размера экрана =====
-const handleResize = () => {
-  isMobile.value = window.innerWidth < 1024;
-  if (!isMobile.value) {
-    mobileMenuOpen.value = false;
-  }
-};
-
-// ===== Закрытие меню при переходе =====
 router.afterEach(() => {
-  mobileMenuOpen.value = false;
   showNotifications.value = false;
 });
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
-  window.addEventListener('resize', handleResize);
 
   // Загружаем уведомления только для авторизованных
   if (localStorage.getItem('token')) {
@@ -396,7 +361,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside);
-  window.removeEventListener('resize', handleResize);
   if (refreshInterval) clearInterval(refreshInterval);
 });
 </script>
