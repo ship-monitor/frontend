@@ -97,11 +97,10 @@
     <div class="bg-white rounded-xl border p-5 sm:p-6 mb-6">
       <h2 class="text-base font-semibold text-gray-800 mb-4">Изменить email</h2>
       <div class="space-y-3">
-        <input
+        <ShipTextbox
           v-model="newEmail"
           type="email"
           placeholder="Новый email"
-          class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none"
           inputmode="email"
           @keyup.enter="handleUpdateEmail"
         />
@@ -127,11 +126,10 @@
         Изменить пароль
       </h2>
       <div class="space-y-3">
-        <input
+        <ShipTextbox
           v-model="newPassword"
           type="password"
           placeholder="Новый пароль"
-          class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none"
         />
         <button
           @click="handleUpdatePassword"
@@ -155,6 +153,7 @@
 import { ref, onMounted } from "vue";
 import api from "@/api";
 import type { AxiosError } from "axios";
+import ShipTextbox from "@/components/ShipTextbox.vue";
 
 interface User {
   id: string;
