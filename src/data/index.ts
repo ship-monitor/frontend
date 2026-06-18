@@ -158,48 +158,25 @@ export const connectDevice = async (
   return checkResponse<Device>(result);
 };
 
-export const disconnectDevice = async (
-  orgId: string,
-  deviceId: string
-): Promise<void> => {
-  await api.delete(`/api/organizations/${orgId}/devices/${deviceId}`);
+export const disconnectDevice = async (deviceId: string): Promise<void> => {
+  await api.delete(`/api/devices/${deviceId}`);
 };
 
-export const getDeviceInfo = async (
-  orgId: string,
-  deviceId: string
-): Promise<Device> => {
-  const result = await api.get(
-    `/api/organizations/${orgId}/devices/${deviceId}`
-  );
+export const getDeviceInfo = async (deviceId: string): Promise<Device> => {
+  const result = await api.get(`/api/devices/${deviceId}`);
   return checkResponse<Device>(result);
 };
 
-// ============= Поиск организации по deviceId =============
-export const findOrganizationIdByDeviceId = async (
-  deviceId: string
-): Promise<string | null> => {
-  const orgs = await getUsersOrganizations();
-  for (const org of orgs) {
-    const devices = await getOrganizationDevices(org.id);
-    if (devices.some((d) => d.id === deviceId)) return org.id;
-  }
-  return null;
-};
-
-// ============= Команды =============
-// ============= Команды =============
-export const sendDeviceCommand = async <T>(
-  organizationId: string,
+export const sendDeviceCommand = async <T, K>(
   deviceId: string,
   command: string,
-  args?: Record<string, any>
+  args: K | null = null
 ): Promise<CommandResult<T>> => {
   try {
-    const result = await api.post(
-      `/api/organizations/${organizationId}/devices/${deviceId}/command`,
-      { command, args: args || {} }
-    );
+    const result = await api.post(`/api/devices/${deviceId}/command`, {
+      command,
+      args: args ?? {},
+    });
 
     // Логируем всё
     console.log(`[CMD:${command}] Status:`, result.status);
