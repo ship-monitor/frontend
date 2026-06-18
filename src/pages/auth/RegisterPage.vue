@@ -3,8 +3,9 @@ import { ref } from "vue";
 import { ROUTES } from "@/constants/routes";
 import api from "@/api";
 import { useRouter } from "vue-router";
-import textbox from "@/components/textbox.vue";
 import { AxiosError } from "axios";
+
+import ShipTextbox from "@/components/ShipTextbox.vue";
 
 const email = ref("");
 const password = ref("");
@@ -56,9 +57,9 @@ const handleRegister = async () => {
   <div class="min-h-screen flex items-center justify-center bg-gray-100">
     <div class="bg-white p-8 rounded-lg shadow-md w-96">
       <h1 class="text-2xl font-bold mb-6 text-center">Регистрация</h1>
-      <textbox v-model="name" placeholder="Имя" class="mb-4" />
-      <textbox v-model="email" placeholder="Email" class="mb-4" />
-      <textbox
+      <ship-textbox v-model="name" placeholder="Имя" class="mb-4" />
+      <ship-textbox v-model="email" placeholder="Email" class="mb-4" />
+      <ship-textbox
         v-model="password"
         placeholder="Password"
         type="password"

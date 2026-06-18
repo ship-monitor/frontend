@@ -1,7 +1,7 @@
 <template>
   <div>
     <input
-      v-model="model" 
+      v-model="model"
       v-bind="$attrs"
       class="border rounded px-2 py-1 w-full"
     />

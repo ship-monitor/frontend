@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { reactive } from "vue";
 import { useRouter } from "vue-router";
-import textbox from "@/components/textbox.vue";
 import { login } from "@/data/auth";
+import ShipTextbox from "@/components/ShipTextbox.vue";
 const router = useRouter();
 
 const form = reactive<{
@@ -39,8 +39,8 @@ const handleLogin = async () => {
       @submit.prevent="handleLogin"
     >
       <h1 class="text-2xl font-bold mb-6 text-center">Вход</h1>
-      <textbox v-model="form.email" placeholder="Email" class="mb-4" />
-      <textbox
+      <ship-textbox v-model="form.email" placeholder="Email" class="mb-4" />
+      <ship-textbox
         v-model="form.password"
         placeholder="Password"
         type="password"

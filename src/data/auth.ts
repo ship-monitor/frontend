@@ -29,7 +29,7 @@ export const login = async (
       password,
     });
     if ("details" in response.data) {
-      console.warn("Authenticvation failed:", response.data.details);
+      console.error("Authentication failed:", response.data.details);
       return false;
     }
 
