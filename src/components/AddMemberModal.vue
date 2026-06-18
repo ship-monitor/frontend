@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 import { inviteMembers } from "@/data";
+import ShipTextbox from "./ShipTextbox.vue";
 
 const props = defineProps<{
   show: boolean;
@@ -43,12 +44,11 @@ const inviteMembersHandler = async () => {
             <label class="block text-sm font-medium text-gray-700 mb-1.5"
               >Email участников (через запятую)</label
             >
-            <input
+            <ShipTextbox
               v-model="inviteEmails"
               type="text"
               inputmode="email"
               placeholder="user1@mail.com, user2@mail.com"
-              class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
         </div>

@@ -3,7 +3,7 @@
     <input
       v-model="model"
       v-bind="$attrs"
-      class="border rounded px-2 py-1 w-full"
+      class="px-4 py-3 w-full focus:ring-blue-500 outline-none border rounded-lg text-base focus:ring-2"
     />
   </div>
 </template>
