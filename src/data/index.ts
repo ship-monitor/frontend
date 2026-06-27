@@ -1,5 +1,5 @@
 import api from "@/api";
-import type { AxiosError, AxiosResponse } from "axios";
+import type { AxiosResponse } from "axios";
 
 export type Organization = {
   id: string;
@@ -33,12 +33,6 @@ export type Device = {
   createdAt?: string;
   temperature?: number | null;
   lastConnection?: string;
-};
-
-export type CommandResult<T> = {
-  data?: T;
-  commandError?: string;
-  requestError?: string;
 };
 
 const checkResponse = <T>(response: AxiosResponse): T => {
@@ -158,54 +152,38 @@ export const connectDevice = async (
   return checkResponse<Device>(result);
 };
 
-export const disconnectDevice = async (deviceId: string): Promise<void> => {
-  await api.delete(`/api/devices/${deviceId}`);
+export type DeviceStateItem = {
+  state: string;
+  value: boolean | number;
+  timestamp: string;
+  deviceId: string;
 };
 
-export const getDeviceInfo = async (deviceId: string): Promise<Device> => {
-  const result = await api.get(`/api/devices/${deviceId}`);
-  return checkResponse<Device>(result);
-};
-
-export const sendDeviceCommand = async <T, K>(
+export const getDeviceState = async (
   deviceId: string,
-  command: string,
-  args: K | null = null
-): Promise<CommandResult<T>> => {
-  try {
-    const result = await api.post(`/api/devices/${deviceId}/command`, {
-      command,
-      args: args ?? {},
-    });
-
-    // Логируем всё
-    console.log(`[CMD:${command}] Status:`, result.status);
-    console.log(`[CMD:${command}] Full body:`, JSON.stringify(result.data));
-    console.log(
-      `[CMD:${command}] data field:`,
-      JSON.stringify(result.data?.data)
-    );
-    console.log(`[CMD:${command}] commandError:`, result.data?.commandError);
-
-    return {
-      commandError: result.data?.commandError || undefined,
-      data: result.data?.data !== undefined ? result.data.data : null,
-    };
-  } catch (error) {
-    if (error as AxiosError) {
-      const aerror = error as AxiosError;
-      console.error(
-        `[CMD:${command}] HTTP error:`,
-        aerror.response?.status,
-        aerror.response?.data
-      );
-
-      const resp = aerror.response?.data as CommandResult<T>;
-      if (resp.requestError) {
-        return { requestError: resp.requestError };
-      }
-      return { requestError: aerror.message || "Ошибка сети" };
-    }
-    return { requestError: "something went wrong: " + error };
+  state: "network" | "temperature"
+): Promise<boolean | number | null> => {
+  const result = await api.get(`/api/v2/devices/${deviceId}/state/${state}`, {
+    validateStatus: () => true,
+  });
+  if (result.status === 404 || result.status === 403 || result.status === 401 || result.status === 204) {
+    return null;
   }
+  if (result.status !== 200) {
+    return null;
+  }
+  const data = checkResponse<{ result: DeviceStateItem[] }>(result);
+  const item = data.result?.[0];
+  if (item) {
+    return item.value;
+  }
+  return null;
+};
+
+export const getDeviceStateWithHistory = async (
+  deviceId: string,
+  state: "network" | "temperature"
+): Promise<DeviceStateItem[]> => {
+  const result = await api.get(`/api/v2/devices/${deviceId}/state/${state}?history=1`);
+  return checkResponse<{ result: DeviceStateItem[] }>(result).result || [];
 };

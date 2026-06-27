@@ -62,55 +62,49 @@
           <p class="text-gray-500">Нет подключенных устройств</p>
         </div>
 
-        <div
-          v-else
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
-        >
-          <div
-            v-for="device in devices"
-            :key="device.id"
-            class="bg-white border rounded-xl p-4"
-            :class="device.isConnected ? '' : 'opacity-75'"
-          >
-            <div class="flex justify-between items-start mb-3">
-              <div class="min-w-0 flex-1 mr-2">
-                <h3 class="font-semibold truncate">
-                  {{ getDeviceName(device) }}
-                </h3>
-                <p class="text-xs text-gray-400 font-mono truncate">
-                  {{ device.id }}
-                </p>
-              </div>
-              <span
-                :class="[
-                  'px-2.5 py-1 text-xs rounded-full font-medium whitespace-nowrap shrink-0',
-                  device.isConnected
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-gray-100 text-gray-600',
-                ]"
-              >
-                {{ device.isConnected ? "В сети" : "Не в сети" }}
-              </span>
-            </div>
+<div
+           v-else
+           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+         >
+           <div
+             v-for="device in devices"
+             :key="device.id"
+             class="bg-white border rounded-xl p-4 cursor-pointer hover:shadow-md transition-all"
+             :class="device.isConnected ? '' : 'opacity-75'"
+             @click="goToDevice(device.id)"
+           >
+             <div class="flex justify-between items-start mb-3">
+               <div class="min-w-0 flex-1 mr-2">
+                 <h3 class="font-semibold truncate">
+                   {{ getDeviceName(device) }}
+                 </h3>
+                 <p class="text-xs text-gray-400 font-mono truncate">
+                   {{ device.id }}
+                 </p>
+               </div>
+               <span
+                 :class="[
+                   'px-2.5 py-1 text-xs rounded-full font-medium whitespace-nowrap shrink-0',
+                   device.isConnected
+                     ? 'bg-green-100 text-green-800'
+                     : 'bg-gray-100 text-gray-600',
+                 ]"
+               >
+                 {{ device.isConnected ? "В сети" : "Не в сети" }}
+               </span>
+             </div>
 
-            <div
-              v-if="getDeviceTemp(device) !== null"
-              class="text-center py-3 mb-3 bg-gray-50 rounded-lg"
-            >
-              <span class="text-2xl font-bold text-gray-700">
-                {{ getDeviceTemp(device)!.toFixed(1) }}°C
-              </span>
-            </div>
-
-            <button
-              @click="confirmDisconnect(device)"
-              class="w-full px-3 py-2.5 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 active:bg-red-200 transition-colors touch-target"
-            >
-              Отключить
-            </button>
-          </div>
-        </div>
-      </div>
+             <div
+               v-if="getDeviceTemp(device) !== null"
+               class="text-center py-3 mb-3 bg-gray-50 rounded-lg"
+             >
+               <span class="text-2xl font-bold text-gray-700">
+                 {{ getDeviceTemp(device)!.toFixed(1) }}°C
+               </span>
+             </div>
+           </div>
+         </div>
+       </div>
 
       <div v-if="activeTab === 'members'" class="space-y-4">
         <button
@@ -279,22 +273,23 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import {
   getOrganizationById,
   getOrganizationDevices,
   connectDevice,
-  disconnectDevice,
   getOrganizationMembers,
   removeMembers,
-  sendDeviceCommand,
+  getDeviceState,
   type Organization,
   type Device,
   type Member,
 } from "@/data";
+import { route as routeHelper } from "@/constants/routes";
 import AddMemberModal from "@/components/AddMemberModal.vue";
 
-const route = useRoute();
+const router = useRouter();
+const routeParams = useRoute();
 
 const organization = ref<Organization | null>(null);
 const devices = ref<Device[]>([]);
@@ -360,14 +355,14 @@ const getDeviceTemp = (device: Device): number | null => {
   return null;
 };
 
-/**
- * Пинг устройства — реальная проверка связи через всю цепочку
- */
+function goToDevice(deviceId: string) {
+  router.push(routeHelper.sensorDetails(deviceId) + "?orgId=" + organization.value!.id);
+}
+
 async function pingDevice(deviceId: string): Promise<boolean> {
   try {
-    const result = await sendDeviceCommand(deviceId, "ping", {});
-    // Если нет ошибок — устройство ответило, значит в сети
-    return !result.requestError && !result.commandError;
+    const isOnline = await getDeviceState(deviceId, "network");
+    return isOnline === true;
   } catch {
     return false;
   }
@@ -389,7 +384,7 @@ async function refreshDevices() {
 
 const loadData = async () => {
   try {
-    const orgId = route.params.id as string;
+    const orgId = routeParams.params.id as string;
     const [org, devicesData, membersData] = await Promise.all([
       getOrganizationById(orgId),
       getOrganizationDevices(orgId),
@@ -430,17 +425,6 @@ const connectDeviceHandler = async () => {
       "Ошибка подключения устройства: " +
         ((error as { message: string }).message || "")
     );
-  }
-};
-
-const confirmDisconnect = async (device: Device) => {
-  const deviceName = getDeviceName(device);
-  if (!confirm(`Отключить устройство "${deviceName}"?`)) return;
-  try {
-    await disconnectDevice(device.id);
-    await loadData();
-  } catch (error) {
-    console.error("Failed to disconnect device:", error);
   }
 };
 
