@@ -34,14 +34,6 @@
         @update:period="selectedPeriod = $event"
       />
 
-      <SensorCommandsTab
-        v-if="activeTab === 'commands'"
-        :is-connected="deviceIsConnected"
-        :sending="sendingCommand"
-        :result="commandResult"
-        @execute="executeCommand"
-      />
-
       <SensorInfoTab
         v-if="activeTab === 'info'"
         :settings="settings"
@@ -56,22 +48,19 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { sendDeviceCommand } from "@/data";
+import { getDeviceState } from "@/data";
 import SensorHeader from "./SensorHeader.vue";
 import SensorTabs from "./SensorTabs.vue";
 import SensorTemperatureTab from "./SensorTemperatureTab.vue";
-import SensorCommandsTab from "./SensorCommandsTab.vue";
 import SensorInfoTab, { type SensorSettings } from "./SensorInfoTab.vue";
 
 const route = useRoute();
 const deviceId = route.params.id as string;
-const organizationId = ref((route.query.orgId as string) || "");
 
 const loading = ref(true);
 const tempLoading = ref(false);
 const statusLoading = ref(false);
 const saving = ref(false);
-const sendingCommand = ref(false);
 const activeTab = ref("temperature");
 const deviceIsConnected = ref(false);
 const sensorName = ref("");
@@ -83,12 +72,6 @@ const tempHistory = ref<
   Array<{ time: string; value: number; timestamp: number }>
 >([]);
 const selectedPeriod = ref("24h");
-
-const commandResult = ref<{
-  requestError?: string;
-  commandError?: string;
-  rawResponse?: string;
-} | null>(null);
 
 const settings = ref<SensorSettings>({
   name: "",
@@ -102,7 +85,6 @@ const settings = ref<SensorSettings>({
 
 const tabs = [
   { value: "temperature", label: "Температура" },
-  { value: "commands", label: "Команды" },
   { value: "info", label: "Информация" },
 ];
 
@@ -164,11 +146,10 @@ function saveSettings(s: SensorSettings) {
 }
 
 async function pingAndUpdateStatus() {
-  if (!organizationId.value) return;
   statusLoading.value = true;
   try {
-    const result = await sendDeviceCommand(deviceId, "ping", {});
-    deviceIsConnected.value = !result.requestError && !result.commandError;
+    const isOnline = await getDeviceState(deviceId, "network");
+    deviceIsConnected.value = isOnline === true;
   } catch {
     deviceIsConnected.value = false;
   } finally {
@@ -177,111 +158,37 @@ async function pingAndUpdateStatus() {
 }
 
 async function refreshTemperature() {
-  if (!organizationId.value) return;
   tempLoading.value = true;
   tempError.value = "";
 
-  const result = await sendDeviceCommand(deviceId, "get-temperature", {});
+  try {
+    const temp = await getDeviceState(deviceId, "temperature");
+    deviceIsConnected.value = temp !== null;
 
-  if (result.requestError) {
-    tempError.value = `Ошибка связи: ${result.requestError}`;
-    deviceIsConnected.value = false;
-    tempLoading.value = false;
-    return;
-  }
-
-  if (result.commandError) {
-    tempError.value = `Устройство вернуло ошибку: ${result.commandError}`;
-    tempLoading.value = false;
-    return;
-  }
-
-  deviceIsConnected.value = true;
-
-  const data = result.data as { temperature: number };
-  const temp = data?.temperature;
-  if (temp !== undefined && temp !== null) {
-    const numTemp = typeof temp === "number" ? temp : parseFloat(temp);
-    if (!isNaN(numTemp)) {
-      currentTemp.value = numTemp;
-      lastTempTime.value = new Date().toLocaleString("ru-RU");
-      tempError.value = "";
-      tempHistory.value.push({
-        time: new Date().toLocaleString("ru-RU"),
-        value: numTemp,
-        timestamp: Date.now(),
-      });
-      saveStoredData();
+    if (temp !== null && temp !== undefined) {
+      const numTemp = typeof temp === "number" ? temp : parseFloat(String(temp));
+      if (!isNaN(numTemp)) {
+        currentTemp.value = numTemp;
+        lastTempTime.value = new Date().toLocaleString("ru-RU");
+        tempError.value = "";
+        tempHistory.value.push({
+          time: new Date().toLocaleString("ru-RU"),
+          value: numTemp,
+          timestamp: Date.now(),
+        });
+        saveStoredData();
+      } else {
+        tempError.value = "Некорректное значение температуры";
+      }
     } else {
-      tempError.value = "Некорректное значение температуры";
+      tempError.value = "Устройство не вернуло данные о температуре";
     }
-  } else if (data && Object.keys(data).length > 0) {
-    tempError.value = `Ответ без температуры: ${JSON.stringify(data)}`;
-  } else {
-    tempError.value = "Устройство не вернуло данные о температуре";
+  } catch (error) {
+    tempError.value = `Ошибка связи: ${error instanceof Error ? error.message : String(error)}`;
+    deviceIsConnected.value = false;
   }
 
   tempLoading.value = false;
-}
-
-async function executeCommand<TArgs>(cmd: string, args: Record<string, TArgs>) {
-  if (!organizationId.value) {
-    commandResult.value = {
-      requestError: "Устройство не привязано к организации",
-    };
-    return;
-  }
-
-  sendingCommand.value = true;
-  commandResult.value = null;
-
-  const result = await sendDeviceCommand(deviceId, cmd, args);
-
-  if (result.requestError) {
-    commandResult.value = { requestError: result.requestError };
-    deviceIsConnected.value = false;
-  } else if (result.commandError) {
-    commandResult.value = {
-      commandError: result.commandError,
-      rawResponse: JSON.stringify(result.data, null, 2),
-    };
-    deviceIsConnected.value = true;
-  } else if (
-    result.data !== null &&
-    result.data !== undefined &&
-    typeof result.data === "object" &&
-    Object.keys(result.data).length > 0
-  ) {
-    commandResult.value = { rawResponse: JSON.stringify(result.data, null, 2) };
-    deviceIsConnected.value = true;
-
-    if (cmd === "get-temperature") {
-      const data = result.data as { temperature: number };
-      const temp = data.temperature;
-      if (temp !== undefined && temp !== null) {
-        const numTemp = typeof temp === "number" ? temp : parseFloat(temp);
-        if (!isNaN(numTemp)) {
-          currentTemp.value = numTemp;
-          lastTempTime.value = new Date().toLocaleString("ru-RU");
-          tempError.value = "";
-          tempHistory.value.push({
-            time: new Date().toLocaleString("ru-RU"),
-            value: numTemp,
-            timestamp: Date.now(),
-          });
-          saveStoredData();
-        }
-      }
-    }
-  } else {
-    commandResult.value = {
-      commandError:
-        "Команда не поддерживается устройством или не вернула данных",
-    };
-    deviceIsConnected.value = true;
-  }
-
-  sendingCommand.value = false;
 }
 
 async function loadDeviceData() {

@@ -208,7 +208,7 @@ import { route } from "@/constants/routes";
 import {
   getUsersOrganizations,
   getOrganizationDevices,
-  sendDeviceCommand,
+  getDeviceState,
 } from "@/data";
 
 const router = useRouter();
@@ -382,8 +382,8 @@ function goToSensor(sensor: SensorDisplay) {
 
 async function pingDevice(orgId: string, deviceId: string): Promise<boolean> {
   try {
-    const result = await sendDeviceCommand(orgId, deviceId, "ping");
-    return !result.requestError && !result.commandError;
+    const isOnline = await getDeviceState(deviceId, "network");
+    return isOnline === true;
   } catch {
     return false;
   }
