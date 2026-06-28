@@ -192,20 +192,19 @@ export const disconnectDevice = async (deviceId: string): Promise<void> => {
   await api.delete(`/api/devices/${deviceId}`);
 };
 
-export type DeviceStateRecord = {
-  state: string;
-  value: boolean | number;
+type State = "online" | "temperature";
+export type DeviceStateRecord<TValue> = {
+  state: State;
+  value: TValue;
   timestamp: string;
   deviceId: string;
 };
 
-type State = "online" | "temperature";
-
-export const getDeviceStates = async (
+export const getDeviceStates = async <TValue>(
   deviceId: string,
   state: State,
   history: number
-): Promise<DeviceStateRecord[] | null> => {
+): Promise<DeviceStateRecord<TValue>[] | null> => {
   if (history < 0) {
     return null;
   }
@@ -220,26 +219,28 @@ export const getDeviceStates = async (
     console.error("Failed receive statuses");
     return null;
   }
-  const data = checkResponse<{ result?: DeviceStateRecord[] }>(result);
+  const data = checkResponse<{ result?: DeviceStateRecord<TValue>[] }>(result);
   return data.result ?? null;
 };
 
-export const getDeviceState = async (
+export const getDeviceState = async <TValue>(
   deviceId: string,
   state: State
-): Promise<DeviceStateRecord | null> => {
-  const result = await getDeviceStates(deviceId, state, 1);
+): Promise<DeviceStateRecord<TValue> | null> => {
+  const result = await getDeviceStates<TValue>(deviceId, state, 1);
   return result?.[0] ?? null;
 };
 
-export const getDeviceStateWithHistory = async (
+export const getDeviceStateWithHistory = async <TValue>(
   deviceId: string,
-  state: "network" | "temperature"
-): Promise<DeviceStateRecord[]> => {
+  state: State
+): Promise<DeviceStateRecord<TValue>[]> => {
   const result = await api.get(
     `/api/v2/devices/${deviceId}/state/${state}?history=1`
   );
-  return checkResponse<{ result: DeviceStateRecord[] }>(result).result || [];
+  return (
+    checkResponse<{ result: DeviceStateRecord<TValue>[] }>(result).result || []
+  );
 };
 
 export const sendDeviceCommand = async (

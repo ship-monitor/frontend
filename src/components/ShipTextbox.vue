@@ -8,6 +8,6 @@
   </div>
 </template>
 
-<script setup>
-const model = defineModel(); // Это свяжет v-model из auth.vue с этим инпутом
+<script setup lang="ts">
+const model = defineModel();
 </script>

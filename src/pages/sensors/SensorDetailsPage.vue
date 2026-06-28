@@ -55,7 +55,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { getDeviceState, updateDevice, getDeviceById } from "@/data";
+import {
+  getDeviceState,
+  updateDevice,
+  getDeviceById,
+  type DeviceStateRecord,
+} from "@/data";
 import SensorHeader from "./SensorHeader.vue";
 import SensorTabs from "./SensorTabs.vue";
 import SensorTemperatureTab from "./SensorTemperatureTab.vue";
@@ -73,7 +78,7 @@ const activeTab = ref("temperature");
 const deviceIsConnected = ref(true);
 const sensorName = ref("");
 
-const currentTemp = ref<number | null>(null);
+const currentTemp = ref<DeviceStateRecord<number> | null>(null);
 const lastTempTime = ref("");
 const tempError = ref("");
 const tempHistory = ref<
@@ -130,17 +135,6 @@ function loadStoredData() {
   }
 }
 
-function saveStoredData() {
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({
-      tempHistory: tempHistory.value.slice(-200),
-      currentTemp: currentTemp.value,
-      lastTempTime: lastTempTime.value,
-    })
-  );
-}
-
 function loadSettingsFromStorage() {
   const saved = localStorage.getItem(SETTINGS_KEY);
   if (saved) {
@@ -188,34 +182,13 @@ async function refreshTemperature() {
   tempError.value = "";
 
   try {
-    const temp = await getDeviceState(deviceId, "temperature");
-    deviceIsConnected.value = temp !== null;
-
-    if (temp !== null && temp !== undefined) {
-      const numTemp =
-        typeof temp === "number" ? temp : parseFloat(String(temp));
-      if (!isNaN(numTemp)) {
-        currentTemp.value = numTemp;
-        lastTempTime.value = new Date().toLocaleString("ru-RU");
-        tempError.value = "";
-        tempHistory.value.push({
-          time: new Date().toLocaleString("ru-RU"),
-          value: numTemp,
-          timestamp: Date.now(),
-        });
-        saveStoredData();
-      } else {
-        tempError.value = "Некорректное значение температуры";
-      }
-    } else {
-      tempError.value = "Устройство не вернуло данные о температуре";
-    }
+    const temp = await getDeviceState<number>(deviceId, "temperature");
+    currentTemp.value = temp;
   } catch (error) {
     tempError.value = `Ошибка связи: ${error instanceof Error ? error.message : String(error)}`;
-    deviceIsConnected.value = false;
+  } finally {
+    tempLoading.value = false;
   }
-
-  tempLoading.value = false;
 }
 
 async function loadDeviceData() {

@@ -2,19 +2,19 @@
   <div class="space-y-6">
     <div class="bg-white rounded-xl border p-6 text-center">
       <p class="text-sm text-gray-500 mb-2">Текущая температура</p>
-<transition name="temp-fade" mode="out-in">
-         <div :key="currentTemp ?? 'null'" class="text-6xl font-bold mb-2" :class="tempColor">
-           {{ currentTemp !== null ? currentTemp.toFixed(1) + "°C" : "--" }}
-         </div>
-       </transition>
+      <transition name="temp-fade" mode="out-in">
+        <div
+          v-if="currentTemp"
+          class="text-6xl font-bold mb-2"
+          :class="tempColor"
+        >
+          {{ (currentTemp.value as number).toFixed(1) + "°C" }}
+        </div>
+      </transition>
       <p class="text-xs text-gray-400 mb-4">
         {{ lastTempTime || "Нет данных" }}
       </p>
-      <ShipButton
-        @click="$emit('refresh')"
-        :disabled="loading"
-        class="px-6"
-      >
+      <ShipButton @click="$emit('refresh')" :disabled="loading" class="px-6">
         {{ loading ? "Запрос..." : "Запросить температуру" }}
       </ShipButton>
       <transition name="error-fade" mode="out-in">
@@ -29,12 +29,20 @@
       </transition>
     </div>
 
-    <PeriodTabs :selected-period="selectedPeriod" :periods="periods" @select="$emit('update:period', $event)" />
+    <PeriodTabs
+      :selected-period="selectedPeriod"
+      :periods="periods"
+      @select="$emit('update:period', $event)"
+    />
 
     <div class="bg-white rounded-xl border p-6">
       <h2 class="text-lg font-semibold mb-4">График температуры</h2>
       <transition name="chart-empty-fade" mode="out-in">
-        <div v-if="history.length === 0" key="empty" class="text-center py-12 text-gray-500">
+        <div
+          v-if="history.length === 0"
+          key="empty"
+          class="text-center py-12 text-gray-500"
+        >
           Нет данных за выбранный период
         </div>
         <div v-else key="chart">
@@ -47,12 +55,14 @@
 
 <script setup lang="ts">
 import { computed, watch, onMounted, nextTick } from "vue";
+import { type DeviceStateRecord } from "@/data";
+
 import ShipButton from "@/components/ShipButton.vue";
 import PeriodTabs from "@/components/PeriodTabs.vue";
 import TemperatureChart from "@/components/TemperatureChart.vue";
 
 const props = defineProps<{
-  currentTemp: number | null;
+  currentTemp: DeviceStateRecord<number> | null;
   lastTempTime: string;
   error: string;
   loading: boolean;
@@ -80,7 +90,7 @@ const periods = [
 const tempColor = computed(() => {
   if (!props.isConnected) return "text-gray-400";
   if (props.currentTemp === null) return "text-gray-400";
-  const t = props.currentTemp;
+  const t = props.currentTemp.value;
   if (t < props.thresholds.min || t > props.thresholds.max)
     return "text-red-600";
   if (t < -20) return "text-blue-600";
