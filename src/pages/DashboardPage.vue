@@ -205,11 +205,8 @@
 import { ref, computed, onMounted, onUnmounted, onActivated } from "vue";
 import { useRouter } from "vue-router";
 import { route } from "@/constants/routes";
-import {
-  getUsersOrganizations,
-  getOrganizationDevices,
-  getDeviceState,
-} from "@/data";
+import { getUsersOrganizations, getOrganizationDevices } from "@/data";
+import { isOnline } from "@/utils/utils";
 
 const router = useRouter();
 
@@ -380,23 +377,6 @@ function goToSensor(sensor: SensorDisplay) {
   );
 }
 
-const Second = 1000;
-const PingInterval = 10 * Second;
-
-async function pingDevice(orgId: string, deviceId: string): Promise<boolean> {
-  try {
-    const lastState = await getDeviceState(deviceId, "online");
-    if (!lastState) return false;
-
-    if (new Date(lastState.timestamp).getTime() < Date.now() - PingInterval)
-      return false;
-
-    return lastState.value as boolean;
-  } catch {
-    return false;
-  }
-}
-
 async function loadSensors() {
   const orgs = await getUsersOrganizations();
   const allSensors: SensorDisplay[] = [];
@@ -406,7 +386,7 @@ async function loadSensors() {
 
     const pingResults = await Promise.all(
       devices.map(async (device) => {
-        const ok = await pingDevice(org.id, device.id);
+        const ok = await isOnline(device.id);
         return { device, ok };
       })
     );

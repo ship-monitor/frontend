@@ -30,7 +30,10 @@
           :loading="tempLoading"
           :selected-period="selectedPeriod"
           :history="tempHistory"
-          :thresholds="{ min: settings.minThreshold, max: settings.maxThreshold }"
+          :thresholds="{
+            min: settings.minThreshold,
+            max: settings.maxThreshold,
+          }"
           :is-connected="deviceIsConnected"
           @refresh="refreshTemperature"
           @update:period="selectedPeriod = $event"
@@ -52,22 +55,22 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { getDeviceState, getOrganizationDevices, updateDevice, getDeviceById } from "@/data";
+import { getDeviceState, updateDevice, getDeviceById } from "@/data";
 import SensorHeader from "./SensorHeader.vue";
 import SensorTabs from "./SensorTabs.vue";
 import SensorTemperatureTab from "./SensorTemperatureTab.vue";
 import SensorInfoTab, { type SensorSettings } from "./SensorInfoTab.vue";
+import { isOnline } from "@/utils/utils";
 
 const route = useRoute();
 const deviceId = route.params.id as string;
-const orgId = route.query.orgId as string | undefined;
 
 const loading = ref(true);
 const tempLoading = ref(false);
 const statusLoading = ref(false);
 const saving = ref(false);
 const activeTab = ref("temperature");
-const deviceIsConnected = ref(false);
+const deviceIsConnected = ref(true);
 const sensorName = ref("");
 
 const currentTemp = ref<number | null>(null);
@@ -100,8 +103,7 @@ const SETTINGS_KEY = `device_settings_${deviceId}`;
 function getDisplayName(apiName?: string): string {
   if (settings.value.name && settings.value.name.trim() !== "")
     return settings.value.name;
-  if (apiName && apiName !== "Unknown Device" && apiName !== "")
-    return apiName;
+  if (apiName && apiName !== "Unknown Device" && apiName !== "") return apiName;
   return deviceId.substring(0, 8);
 }
 
@@ -153,7 +155,7 @@ function loadSettingsFromStorage() {
 
 async function saveSettings(s: SensorSettings) {
   saving.value = true;
-  
+
   // Update device name via API if it changed
   if (s.name !== settings.value.name) {
     try {
@@ -162,7 +164,7 @@ async function saveSettings(s: SensorSettings) {
       console.error("Failed to update device name:", error);
     }
   }
-  
+
   settings.value = s;
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
   sensorName.value = getDisplayName();
@@ -178,15 +180,7 @@ function handleDeviceUpdate(device: { id: string; name: string }) {
 }
 
 async function pingAndUpdateStatus() {
-  statusLoading.value = true;
-  try {
-    const isOnline = await getDeviceState(deviceId, "network");
-    deviceIsConnected.value = isOnline === true;
-  } catch {
-    deviceIsConnected.value = false;
-  } finally {
-    statusLoading.value = false;
-  }
+  deviceIsConnected.value = await isOnline(deviceId);
 }
 
 async function refreshTemperature() {
@@ -198,7 +192,8 @@ async function refreshTemperature() {
     deviceIsConnected.value = temp !== null;
 
     if (temp !== null && temp !== undefined) {
-      const numTemp = typeof temp === "number" ? temp : parseFloat(String(temp));
+      const numTemp =
+        typeof temp === "number" ? temp : parseFloat(String(temp));
       if (!isNaN(numTemp)) {
         currentTemp.value = numTemp;
         lastTempTime.value = new Date().toLocaleString("ru-RU");
