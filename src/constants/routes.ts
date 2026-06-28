@@ -2,6 +2,7 @@ export const ROUTES = {
   LANDING: "/",
   LOGIN: "/auth/login",
   REGISTER: "/auth/register",
+  CONFIRM_EMAIL: "/auth/confirm-email/:token",
   DASHBOARD: "/dashboard",
   ORGANIZATIONS: "/organizations",
   ORGANIZATION_DETAILS: "/organizations/:id",
@@ -18,6 +19,7 @@ export const route = {
   landing: () => ROUTES.LANDING,
   login: () => ROUTES.LOGIN,
   register: () => ROUTES.REGISTER,
+  confirmEmail: (token: string) => ROUTES.CONFIRM_EMAIL.replace(":token", token),
   dashboard: () => ROUTES.DASHBOARD,
   organizations: () => ROUTES.ORGANIZATIONS,
   organizationDetails: (id: string) =>

@@ -26,13 +26,13 @@
               ID: {{ organization.id }}
             </p>
           </div>
-          <button
+          <!-- <button
             @click="refreshDevices"
             :disabled="statusLoading"
             class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 text-sm touch-target"
           >
             {{ statusLoading ? "Проверка..." : "Проверить связь" }}
-          </button>
+          </button> -->
         </div>
       </div>
 
@@ -94,7 +94,7 @@
                </span>
              </div>
 
-             <div
+<div
                v-if="getDeviceTemp(device) !== null"
                class="text-center py-3 mb-3 bg-gray-50 rounded-lg"
              >
@@ -102,6 +102,13 @@
                  {{ getDeviceTemp(device)!.toFixed(1) }}°C
                </span>
              </div>
+
+             <button
+               @click.stop="confirmDisconnect(device)"
+               class="w-full px-3 py-2.5 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 active:bg-red-200 transition-colors touch-target"
+             >
+               Отключить
+             </button>
            </div>
          </div>
        </div>
@@ -281,6 +288,7 @@ import {
   getOrganizationMembers,
   removeMembers,
   getDeviceState,
+  disconnectDevice,
   type Organization,
   type Device,
   type Member,
@@ -425,6 +433,17 @@ const connectDeviceHandler = async () => {
       "Ошибка подключения устройства: " +
         ((error as { message: string }).message || "")
     );
+  }
+};
+
+const confirmDisconnect = async (device: Device) => {
+  const deviceName = getDeviceName(device);
+  if (!confirm(`Отключить устройство "${deviceName}"?`)) return;
+  try {
+    await disconnectDevice(device.id);
+    await loadData();
+  } catch (error) {
+    console.error("Failed to disconnect device:", error);
   }
 };
 
