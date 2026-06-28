@@ -1,4 +1,4 @@
-import { getDeviceState, type DeviceStateRecord } from "@/data";
+import { type DeviceStateRecord, getDeviceState } from "@/data";
 
 const SECOND = 1000;
 const PING_INTERVAL = 10 * SECOND;
@@ -27,4 +27,17 @@ export const getLastTemperature = async (
     console.error(error);
     return null;
   }
+};
+
+export const formatTimeAgo = (timestamp: string): string => {
+  const date = new Date(timestamp);
+  const diff = Date.now() - date.getMilliseconds();
+  const sec = Math.floor(diff / 1000);
+  if (sec < 10) return "только что";
+  if (sec < 60) return `${sec}с назад`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}м назад`;
+  const hours = Math.floor(min / 60);
+  if (hours < 24) return `${hours}ч назад`;
+  return `${Math.floor(hours / 24)}д назад`;
 };
