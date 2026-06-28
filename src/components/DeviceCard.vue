@@ -1,35 +1,36 @@
 <template>
-    <RouterLink :to="route.sensorDetails(deviceId)" v-if="!error"
-        class="rounded-lg border p-4 sm:p-5 hover:shadow-md transition-all active:scale-[0.98]"
-        :class="{ 'bg-gray-200': !online?.value, 'bg-white': online?.value }">
-        <div class="flex justify-between items-start mb-3">
-            <div class="min-w-0 flex-1 mr-2">
-                <h3 class="font-semibold text-gray-800 text-sm sm:text-base truncate">
-                    {{ device.name }}
-                </h3>
-                <p class="text-xs text-gray-400 font-mono truncate">
-                    {{ device.id }}
-                </p>
+    <Transition name="fade" mode="out-in">
+        <RouterLink :to="route.sensorDetails(deviceId)" v-if="!error"
+            class="rounded-lg border grow p-4 sm:p-5 hover:shadow-md transition-all active:scale-[0.98]"
+            :class="{ 'bg-gray-200': !online?.value, 'bg-white': online?.value }">
+            <div class="flex justify-between items-start mb-3">
+                <div class="min-w-0 flex-1 mr-2">
+                    <h3 class="font-semibold text-gray-800 text-sm sm:text-base truncate">
+                        {{ device.name }}
+                    </h3>
+                    <p class="text-xs text-gray-400 font-mono truncate">
+                        {{ device.id }}
+                    </p>
+                </div>
+                <span :class="statusBadgeClass(online)">
+                    {{ statusLabel(online) }}
+                </span>
             </div>
-            <span :class="statusBadgeClass(online)">
-                {{ statusLabel(online) }}
-            </span>
-        </div>
-        <!-- Температура -->
-        <div class="text-center py-3">
-            <div class="text-3xl sm:text-4xl font-bold mb-1" :class="tempColor(temp)">
-                {{
-                    temp?.value
-                        ? Number(temp.value).toFixed(1) + "°C"
-                        : "--"
-                }}
+            <!-- Температура -->
+            <div class="text-center py-3">
+                <div class="text-3xl sm:text-4xl font-bold mb-1" :class="tempColor(temp)">
+                    {{
+                        temp?.value
+                            ? Number(temp.value).toFixed(1) + "°C"
+                            : "--"
+                    }}
+                </div>
+                <div class="text-xs text-gray-400" v-if="temp">
+                    {{ new Date(temp.timestamp).toLocaleDateString("ru") }}
+                    {{ new Date(temp.timestamp).toLocaleTimeString("ru") }}
+                </div>
             </div>
-            <div class="text-xs text-gray-400" v-if="temp">
-                {{ new Date(temp.timestamp).toLocaleDateString("ru") }}
-                {{ new Date(temp.timestamp).toLocaleTimeString("ru") }}
-            </div>
-        </div>
-        <!-- Организация и стабильность
+            <!-- Организация и стабильность
         <div class="flex items-center justify-between">
             <span class="text-xs text-gray-400 truncate mr-2">{{
                 sensor.organizationName
@@ -39,7 +40,8 @@
                     :class="ping ? 'bg-green-400' : 'bg-red-400'" :title="ping ? 'В сети' : 'Не в сети'"></span>
             </span>
         </div> -->
-    </RouterLink>
+        </RouterLink>
+    </Transition>
 </template>
 <script setup lang="ts">
 import { route, } from '@/constants/routes';
@@ -47,10 +49,11 @@ import { getDeviceById, getDeviceState, type Device, type DeviceStateRecord } fr
 import { getLastTemperature, } from '@/utils/utils';
 
 import { useAsyncState } from "@vueuse/core"
+import { er } from 'vue-router/dist/index-BQLwgiyK.js';
 
 const props = defineProps<{ deviceId: string }>()
 
-const { state: device, error } = useAsyncState(async () => await getDeviceById(props.deviceId), {} as Device)
+const { state: device, isReady, error } = useAsyncState(async () => await getDeviceById(props.deviceId), {} as Device)
 const { state: online } = useAsyncState(async () => await getDeviceState<boolean>(props.deviceId, "online"), { value: false } as DeviceStateRecord<boolean>)
 const { state: temp } = useAsyncState(async () => await getLastTemperature(props.deviceId), {} as DeviceStateRecord<number>)
 
@@ -82,3 +85,14 @@ function statusBadgeClass(record?: DeviceStateRecord<boolean>) {
 }
 
 </script>
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+</style>
