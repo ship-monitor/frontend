@@ -14,18 +14,36 @@
         </div>
         <div>
           <label class="block text-xs text-gray-500 mb-0.5">Email</label>
-          <p class="text-sm font-medium text-gray-800">{{ user?.email }}</p>
+          <div class="flex items-center gap-2">
+            <p class="text-sm font-medium text-gray-800">{{ user?.email }}</p>
+            <span
+              v-if="user?.emailVerified"
+              class="px-2 py-0.5 bg-green-50 text-green-600 rounded-full text-xs font-medium"
+            >
+              Подтверждён
+            </span>
+            <span
+              v-else
+              class="px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-xs font-medium"
+            >
+              Не подтверждён
+            </span>
+          </div>
         </div>
-        <div>
-          <label class="block text-xs text-gray-500 mb-0.5"
-            >Email подтверждён</label
+        <div v-if="!user?.emailVerified">
+          <button
+            @click="handleConfirmEmail"
+            :disabled="sendingConfirmation"
+            class="px-3 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 touch-target"
           >
-          <span
-            :class="user?.emailVerified ? 'text-green-600' : 'text-red-600'"
-            class="text-sm font-semibold"
-          >
-            {{ user?.emailVerified ? "Да" : "Нет" }}
-          </span>
+            {{ sendingConfirmation ? "Отправка..." : "Подтвердить почту" }}
+          </button>
+          <p v-if="confirmEmailSuccess" class="text-green-600 text-xs mt-1.5">
+            {{ confirmEmailSuccess }}
+          </p>
+          <p v-if="confirmEmailError" class="text-red-600 text-xs mt-1.5">
+            {{ confirmEmailError }}
+          </p>
         </div>
       </div>
     </div>
@@ -153,6 +171,7 @@
 import { ref, onMounted } from "vue";
 import api from "@/api";
 import type { AxiosError } from "axios";
+import { startEmailConfirmation } from "@/data";
 import ShipTextbox from "@/components/ShipTextbox.vue";
 
 interface User {
@@ -183,6 +202,11 @@ const newPassword = ref("");
 const updatingPassword = ref(false);
 const passwordError = ref("");
 const passwordSuccess = ref("");
+
+// Email confirmation
+const sendingConfirmation = ref(false);
+const confirmEmailSuccess = ref("");
+const confirmEmailError = ref("");
 
 onMounted(() => {
   loadUser();
@@ -259,6 +283,21 @@ async function handleUpdatePassword() {
       "Ошибка при обновлении пароля";
   } finally {
     updatingPassword.value = false;
+  }
+}
+
+async function handleConfirmEmail() {
+  sendingConfirmation.value = true;
+  confirmEmailSuccess.value = "";
+  confirmEmailError.value = "";
+
+  try {
+    await startEmailConfirmation();
+    confirmEmailSuccess.value = "Письмо для подтверждения отправлено на вашу почту";
+  } catch (e) {
+    confirmEmailError.value = e instanceof Error ? e.message : "Не удалось отправить письмо";
+  } finally {
+    sendingConfirmation.value = false;
   }
 }
 </script>

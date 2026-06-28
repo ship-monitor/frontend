@@ -1,10 +1,11 @@
 <template>
   <div class="max-w-7xl mx-auto p-4 sm:p-6">
     <div v-if="loading" class="text-center py-12 text-gray-500">
-      Загрузка...
+      <div class="animate-spin text-4xl mb-2">⚡</div>
+      <p>Загрузка...</p>
     </div>
 
-    <div v-else>
+    <div v-else class="space-y-6">
       <SensorHeader
         :name="sensorName"
         :device-id="deviceId"
@@ -20,27 +21,30 @@
         @select="activeTab = $event"
       />
 
-      <SensorTemperatureTab
-        v-if="activeTab === 'temperature'"
-        :current-temp="currentTemp"
-        :last-temp-time="lastTempTime"
-        :error="tempError"
-        :loading="tempLoading"
-        :selected-period="selectedPeriod"
-        :history="tempHistory"
-        :thresholds="{ min: settings.minThreshold, max: settings.maxThreshold }"
-        :is-connected="deviceIsConnected"
-        @refresh="refreshTemperature"
-        @update:period="selectedPeriod = $event"
-      />
+      <transition name="fade" mode="out-in">
+        <SensorTemperatureTab
+          v-if="activeTab === 'temperature'"
+          :current-temp="currentTemp"
+          :last-temp-time="lastTempTime"
+          :error="tempError"
+          :loading="tempLoading"
+          :selected-period="selectedPeriod"
+          :history="tempHistory"
+          :thresholds="{ min: settings.minThreshold, max: settings.maxThreshold }"
+          :is-connected="deviceIsConnected"
+          @refresh="refreshTemperature"
+          @update:period="selectedPeriod = $event"
+        />
 
-      <SensorInfoTab
-        v-if="activeTab === 'info'"
-        :settings="settings"
-        :saving="saving"
-        @save="saveSettings"
-        @cancel="loadSettingsFromStorage"
-      />
+        <SensorInfoTab
+          v-else-if="activeTab === 'info'"
+          :settings="settings"
+          :saving="saving"
+          @save="saveSettings"
+          @cancel="loadSettingsFromStorage"
+          @update="handleDeviceUpdate"
+        />
+      </transition>
     </div>
   </div>
 </template>
@@ -48,7 +52,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { getDeviceState } from "@/data";
+import { getDeviceState, getOrganizationDevices, updateDevice, getDeviceById } from "@/data";
 import SensorHeader from "./SensorHeader.vue";
 import SensorTabs from "./SensorTabs.vue";
 import SensorTemperatureTab from "./SensorTemperatureTab.vue";
@@ -56,6 +60,7 @@ import SensorInfoTab, { type SensorSettings } from "./SensorInfoTab.vue";
 
 const route = useRoute();
 const deviceId = route.params.id as string;
+const orgId = route.query.orgId as string | undefined;
 
 const loading = ref(true);
 const tempLoading = ref(false);
@@ -74,6 +79,7 @@ const tempHistory = ref<
 const selectedPeriod = ref("24h");
 
 const settings = ref<SensorSettings>({
+  id: deviceId,
   name: "",
   minThreshold: -17,
   maxThreshold: -15,
@@ -91,10 +97,21 @@ const tabs = [
 const STORAGE_KEY = `device_data_${deviceId}`;
 const SETTINGS_KEY = `device_settings_${deviceId}`;
 
-function getDisplayName(): string {
+function getDisplayName(apiName?: string): string {
   if (settings.value.name && settings.value.name.trim() !== "")
     return settings.value.name;
+  if (apiName && apiName !== "Unknown Device" && apiName !== "")
+    return apiName;
   return deviceId.substring(0, 8);
+}
+
+async function loadDeviceFromApi(): Promise<string | undefined> {
+  try {
+    const device = await getDeviceById(deviceId);
+    return device?.name;
+  } catch {
+    return undefined;
+  }
 }
 
 function loadStoredData() {
@@ -132,17 +149,32 @@ function loadSettingsFromStorage() {
       /* */
     }
   }
-  sensorName.value = getDisplayName();
 }
 
-function saveSettings(s: SensorSettings) {
+async function saveSettings(s: SensorSettings) {
   saving.value = true;
+  
+  // Update device name via API if it changed
+  if (s.name !== settings.value.name) {
+    try {
+      await updateDevice(deviceId, s.name);
+    } catch (error) {
+      console.error("Failed to update device name:", error);
+    }
+  }
+  
   settings.value = s;
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
   sensorName.value = getDisplayName();
   setTimeout(() => {
     saving.value = false;
   }, 300);
+}
+
+function handleDeviceUpdate(device: { id: string; name: string }) {
+  sensorName.value = device.name;
+  settings.value.name = device.name;
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings.value));
 }
 
 async function pingAndUpdateStatus() {
@@ -195,6 +227,9 @@ async function loadDeviceData() {
   loadStoredData();
   loadSettingsFromStorage();
 
+  const apiName = await loadDeviceFromApi();
+  sensorName.value = getDisplayName(apiName);
+
   await pingAndUpdateStatus();
 
   loading.value = false;
@@ -202,3 +237,15 @@ async function loadDeviceData() {
 
 onMounted(loadDeviceData);
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

@@ -132,6 +132,34 @@ export const rejectInvitation = async (invitationId: string): Promise<void> => {
 };
 
 // ============= Устройства =============
+export const getDeviceById = async (
+  deviceId: string
+): Promise<Device> => {
+  const result = await api.get(`/api/devices/${deviceId}`);
+  return checkResponse<Device>(result);
+};
+
+// ============= Подтверждение почты =============
+export const startEmailConfirmation = async (): Promise<void> => {
+  const result = await api.post("/api/users/start-email-confirmation", null, {
+    validateStatus: () => true,
+  });
+  if (result.status === 304) return;
+  if (result.status !== 200) {
+    throw new Error(result.data?.details || "Failed to send confirmation email");
+  }
+};
+
+export const confirmEmail = async (token: string): Promise<void> => {
+  const result = await api.post(`/api/users/confirm-email/${token}`, null, {
+    validateStatus: () => true,
+  });
+  if (result.status === 304) return;
+  if (result.status !== 200) {
+    throw new Error(result.data?.details || "Failed to confirm email");
+  }
+};
+
 export const getOrganizationDevices = async (
   orgId: string
 ): Promise<Device[]> => {
@@ -150,6 +178,18 @@ export const connectDevice = async (
     name,
   });
   return checkResponse<Device>(result);
+};
+
+export const updateDevice = async (
+  deviceId: string,
+  name: string
+): Promise<Device> => {
+  const result = await api.patch(`/api/devices/${deviceId}`, { name });
+  return checkResponse<Device>(result);
+};
+
+export const disconnectDevice = async (deviceId: string): Promise<void> => {
+  await api.delete(`/api/devices/${deviceId}`);
 };
 
 export type DeviceStateItem = {
