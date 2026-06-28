@@ -227,3 +227,11 @@ export const getDeviceStateWithHistory = async (
   const result = await api.get(`/api/v2/devices/${deviceId}/state/${state}?history=1`);
   return checkResponse<{ result: DeviceStateItem[] }>(result).result || [];
 };
+
+export const sendDeviceCommand = async (
+  deviceId: string,
+  command: string,
+  args: Record<string, string | number> = {}
+): Promise<void> => {
+  await api.post(`/api/v2/devices/${deviceId}/command`, { command, args });
+};
