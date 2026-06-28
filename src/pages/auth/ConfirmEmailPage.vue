@@ -66,7 +66,8 @@ onMounted(async () => {
       router.push("/profile");
     }, 2000);
   } catch (e) {
-    error.value = e instanceof Error ? e.message : "Не удалось подтвердить email";
+    error.value =
+      e instanceof Error ? e.message : "Не удалось подтвердить email";
   } finally {
     loading.value = false;
   }

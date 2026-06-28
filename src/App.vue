@@ -15,7 +15,7 @@
     <header
       class="lg:hidden bg-[#1E293B] text-white px-4 py-3 flex items-center justify-between sticky top-0 z-40"
     >
-      <router-link to="/">
+      <router-link :to="ROUTES.DASHBOARD">
         <h2 class="text-lg font-bold">ШиП-монитор</h2>
       </router-link>
 

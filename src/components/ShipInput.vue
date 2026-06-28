@@ -4,7 +4,7 @@
     v-bind="$attrs"
     :class="[
       'px-4 py-3 border rounded-lg text-base outline-none transition-all duration-150 focus:ring-2',
-      $attrs.class
+      $attrs.class,
     ]"
   />
 </template>

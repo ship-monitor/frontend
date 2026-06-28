@@ -3,76 +3,76 @@
 
 /* Базовые стили для мобильной адаптации */
 @layer base {
-    html {
-        -webkit-tap-highlight-color: transparent;
-        @apply antialiased;
-        /* Отключаем нежелательный зум */
-        touch-action: manipulation;
-    }
+  html {
+    -webkit-tap-highlight-color: transparent;
+    @apply antialiased;
+    /* Отключаем нежелательный зум */
+    touch-action: manipulation;
+  }
 
-    body {
-        @apply bg-gray-50 text-gray-900 min-h-screen;
-        /* Предотвращаем "отскок" на iOS */
-        overscroll-behavior-y: none;
-    }
+  body {
+    @apply bg-gray-50 text-gray-900 min-h-screen;
+    /* Предотвращаем "отскок" на iOS */
+    overscroll-behavior-y: none;
+  }
 
-    /* Адаптивный скролл */
-    * {
-        -webkit-overflow-scrolling: touch;
-    }
+  /* Адаптивный скролл */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
 
-    /* Убираем зум при фокусе на input на iOS */
-    input,
-    textarea,
-    select {
-        @apply text-base;
-        font-size: 16px !important;
-    }
+  /* Убираем зум при фокусе на input на iOS */
+  input,
+  textarea,
+  select {
+    @apply text-base;
+    font-size: 16px !important;
+  }
 
-    /* Улучшаем отображение placeholder */
-    ::placeholder {
-        @apply text-gray-400;
-    }
+  /* Улучшаем отображение placeholder */
+  ::placeholder {
+    @apply text-gray-400;
+  }
 }
 
 /* Дополнительные утилиты */
 @layer utilities {
-    .safe-bottom {
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 
-    .safe-top {
-        padding-top: env(safe-area-inset-top, 0px);
-    }
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
 
-    .touch-target {
-        @apply min-h-[44px] min-w-[44px];
-    }
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
 
-    /* Скрываем скроллбар, но оставляем прокрутку */
-    .hide-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
+  /* Скрываем скроллбар, но оставляем прокрутку */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 
-    .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Анимации */
 @keyframes slide-up {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-slide-up {
-    animation: slide-up 0.3s ease-out;
+  animation: slide-up 0.3s ease-out;
 }

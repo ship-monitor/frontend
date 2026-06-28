@@ -62,16 +62,16 @@ api.interceptors.response.use(
       if (response.status === 200 && response.data) {
         const { token, refreshToken: newRefreshToken } = response.data;
 
-if (token) {
-        localStorage.setItem(TOKEN_KEY, token);
+        if (token) {
+          localStorage.setItem(TOKEN_KEY, token);
 
-        if (newRefreshToken) {
-          localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
+          if (newRefreshToken) {
+            localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
+          }
+
+          originalRequest.headers.Authorization = `${token}`;
+          return api(originalRequest);
         }
-
-        originalRequest.headers.Authorization = `${token}`;
-        return api(originalRequest);
-      }
       }
 
       throw new Error("Failed to refresh token");

@@ -56,12 +56,6 @@ const props = defineProps<{
   saving: boolean;
 }>();
 
-const emit = defineEmits<{
-  save: [settings: SensorSettings];
-  cancel: [];
-  update: [device: { id: string; name: string }];
-}>();
-
 const local = reactive<SensorSettings>({ ...props.settings });
 
 watch(

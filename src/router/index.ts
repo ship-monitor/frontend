@@ -10,7 +10,7 @@ import { ROUTES } from "@/constants/routes";
 import Dashboard from "@/pages/DashboardPage.vue";
 import Profile from "@/pages/ProfilePage.vue";
 import Settings from "@/pages/SettingsPage.vue";
-import SensorDetailsPage from '@/pages/sensors/SensorDetailsPage.vue';
+import SensorDetailsPage from "@/pages/sensors/SensorDetailsPage.vue";
 
 export type CustomRouteMeta = {
   requireAuth: boolean;
@@ -55,7 +55,7 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: ROUTES.SENSOR_DETAILS,
-    name: 'sensor-details',
+    name: "sensor-details",
     component: SensorDetailsPage,
     meta: { requireAuth: true } as CustomRouteMeta,
   },
@@ -81,7 +81,6 @@ const routes: Array<RouteRecordRaw> = [
     path: "/:pathMatch(.*)*",
 
     redirect: ROUTES.LANDING,
-
   },
 ];
 

@@ -293,9 +293,11 @@ async function handleConfirmEmail() {
 
   try {
     await startEmailConfirmation();
-    confirmEmailSuccess.value = "Письмо для подтверждения отправлено на вашу почту";
+    confirmEmailSuccess.value =
+      "Письмо для подтверждения отправлено на вашу почту";
   } catch (e) {
-    confirmEmailError.value = e instanceof Error ? e.message : "Не удалось отправить письмо";
+    confirmEmailError.value =
+      e instanceof Error ? e.message : "Не удалось отправить письмо";
   } finally {
     sendingConfirmation.value = false;
   }

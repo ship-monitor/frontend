@@ -19,7 +19,8 @@ export const route = {
   landing: () => ROUTES.LANDING,
   login: () => ROUTES.LOGIN,
   register: () => ROUTES.REGISTER,
-  confirmEmail: (token: string) => ROUTES.CONFIRM_EMAIL.replace(":token", token),
+  confirmEmail: (token: string) =>
+    ROUTES.CONFIRM_EMAIL.replace(":token", token),
   dashboard: () => ROUTES.DASHBOARD,
   organizations: () => ROUTES.ORGANIZATIONS,
   organizationDetails: (id: string) =>
