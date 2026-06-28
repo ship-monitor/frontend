@@ -132,9 +132,7 @@ export const rejectInvitation = async (invitationId: string): Promise<void> => {
 };
 
 // ============= Устройства =============
-export const getDeviceById = async (
-  deviceId: string
-): Promise<Device> => {
+export const getDeviceById = async (deviceId: string): Promise<Device> => {
   const result = await api.get(`/api/devices/${deviceId}`);
   return checkResponse<Device>(result);
 };
@@ -146,7 +144,9 @@ export const startEmailConfirmation = async (): Promise<void> => {
   });
   if (result.status === 304) return;
   if (result.status !== 200) {
-    throw new Error(result.data?.details || "Failed to send confirmation email");
+    throw new Error(
+      result.data?.details || "Failed to send confirmation email"
+    );
   }
 };
 
@@ -192,40 +192,54 @@ export const disconnectDevice = async (deviceId: string): Promise<void> => {
   await api.delete(`/api/devices/${deviceId}`);
 };
 
-export type DeviceStateItem = {
+export type DeviceStateRecord = {
   state: string;
   value: boolean | number;
   timestamp: string;
   deviceId: string;
 };
 
+type State = "online" | "temperature";
+
+export const getDeviceStates = async (
+  deviceId: string,
+  state: State,
+  history: number
+): Promise<DeviceStateRecord[] | null> => {
+  if (history < 0) {
+    return null;
+  }
+
+  const result = await api.get(
+    `/api/v2/devices/${deviceId}/state/${state}?history=${history}`,
+    {
+      validateStatus: () => true,
+    }
+  );
+  if (result.status !== 200) {
+    console.error("Failed receive statuses");
+    return null;
+  }
+  const data = checkResponse<{ result?: DeviceStateRecord[] }>(result);
+  return data.result ?? null;
+};
+
 export const getDeviceState = async (
   deviceId: string,
-  state: "network" | "temperature"
-): Promise<boolean | number | null> => {
-  const result = await api.get(`/api/v2/devices/${deviceId}/state/${state}`, {
-    validateStatus: () => true,
-  });
-  if (result.status === 404 || result.status === 403 || result.status === 401 || result.status === 204) {
-    return null;
-  }
-  if (result.status !== 200) {
-    return null;
-  }
-  const data = checkResponse<{ result: DeviceStateItem[] }>(result);
-  const item = data.result?.[0];
-  if (item) {
-    return item.value;
-  }
-  return null;
+  state: State
+): Promise<DeviceStateRecord | null> => {
+  const result = await getDeviceStates(deviceId, state, 1);
+  return result?.[0] ?? null;
 };
 
 export const getDeviceStateWithHistory = async (
   deviceId: string,
   state: "network" | "temperature"
-): Promise<DeviceStateItem[]> => {
-  const result = await api.get(`/api/v2/devices/${deviceId}/state/${state}?history=1`);
-  return checkResponse<{ result: DeviceStateItem[] }>(result).result || [];
+): Promise<DeviceStateRecord[]> => {
+  const result = await api.get(
+    `/api/v2/devices/${deviceId}/state/${state}?history=1`
+  );
+  return checkResponse<{ result: DeviceStateRecord[] }>(result).result || [];
 };
 
 export const sendDeviceCommand = async (

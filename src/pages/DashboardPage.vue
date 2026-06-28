@@ -380,10 +380,18 @@ function goToSensor(sensor: SensorDisplay) {
   );
 }
 
+const Second = 1000;
+const PingInterval = 10 * Second;
+
 async function pingDevice(orgId: string, deviceId: string): Promise<boolean> {
   try {
-    const isOnline = await getDeviceState(deviceId, "network");
-    return isOnline === true;
+    const lastState = await getDeviceState(deviceId, "online");
+    if (!lastState) return false;
+
+    if (new Date(lastState.timestamp).getTime() < Date.now() - PingInterval)
+      return false;
+
+    return lastState.value as boolean;
   } catch {
     return false;
   }
