@@ -49,7 +49,6 @@ import { getDeviceById, getDeviceState, type Device, type DeviceStateRecord } fr
 import { getLastTemperature, } from '@/utils/utils';
 
 import { useAsyncState } from "@vueuse/core"
-import { er } from 'vue-router/dist/index-BQLwgiyK.js';
 
 const props = defineProps<{ deviceId: string }>()
 
@@ -70,11 +69,13 @@ const tempColor = (temp: DeviceStateRecord<number> | null) => {
     if (t < 15) return "text-green-500";
     return "text-orange-500";
 }
-function statusLabel(record: DeviceStateRecord<boolean>) {
+function statusLabel(record: DeviceStateRecord<boolean> | null) {
+    if (!record) return "Не в сети";
+
     if (record.value) return "В сети";
     else return "Не в сети"
 }
-function statusBadgeClass(record?: DeviceStateRecord<boolean>) {
+function statusBadgeClass(record: DeviceStateRecord<boolean> | null) {
     if (!record)
         return "px-2.5 py-1 text-xs rounded-full font-medium bg-gray-100 text-gray-600";
 
