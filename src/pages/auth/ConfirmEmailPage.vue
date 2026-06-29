@@ -30,27 +30,32 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { confirmEmail } from "@/data";
+import { confirmEmail } from "@/data"; // 1. Убедитесь, что импорт функции указан правильно
 
 const route = useRoute();
 const router = useRouter();
-const token = route.params.token as string;
+
+// 2. ИСПРАВЛЕНО: Заменили .params на .query, чтобы читать параметры после "?"
+const token = route.query.token as string; 
 
 const loading = ref(true);
 const success = ref(false);
 const error = ref("");
 
 onMounted(async () => {
+  // Если токена нет в URL, сразу показываем ошибку
   if (!token) {
     loading.value = false;
-    error.value = "Неверная ссылка подтверждения";
+    error.value = "Неверная ссылка подтверждения (токен отсутствует)";
     return;
   }
 
   try {
+    // 3. Отправляем считанный токен на Go-сервер
     await confirmEmail(token);
     success.value = true;
 
+    // Обновляем флаг подтверждения в локальном хранилище браузера
     const userStr = localStorage.getItem("user");
     if (userStr) {
       try {
@@ -62,10 +67,12 @@ onMounted(async () => {
       }
     }
 
+    // Через 2 секунды после успеха перенаправляем в профиль
     setTimeout(() => {
       router.push("/profile");
     }, 2000);
   } catch (e) {
+    // Если бэкенд вернет ошибку (например, токен просрочен в Redis) — выведем её текст
     error.value =
       e instanceof Error ? e.message : "Не удалось подтвердить email";
   } finally {

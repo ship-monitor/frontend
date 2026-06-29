@@ -2,7 +2,7 @@ export const ROUTES = {
   LANDING: "/",
   LOGIN: "/auth/login",
   REGISTER: "/auth/register",
-  CONFIRM_EMAIL: "/auth/confirm-email/:token",
+  CONFIRM_EMAIL: "/auth/confirm-email",
   DASHBOARD: "/dashboard",
   ORGANIZATIONS: "/organizations",
   ORGANIZATION_DETAILS: "/organizations/:id",

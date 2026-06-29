@@ -47,7 +47,6 @@ api.interceptors.response.use(
     try {
       const refreshToken = localStorage
         .getItem(REFRESH_TOKEN_KEY)
-        ?.replace(/^"|"$/g, "");
 
       if (!refreshToken) {
         throw new Error("No refresh token available");
