@@ -200,6 +200,8 @@ async function loadDeviceData() {
 
   await pingAndUpdateStatus();
 
+  await refreshTemperature();
+
   loading.value = false;
 }
 
