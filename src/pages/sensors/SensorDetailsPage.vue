@@ -183,11 +183,13 @@ async function loadTemperatureHistory() {
   try {
     const history = await getDeviceStates<number>(deviceId, "temperature", 100);
     if (history) {
-      tempHistory.value = history.map((record) => ({
+      const mapped = history.map((record) => ({
         time: record.timestamp,
         value: record.value as number,
         timestamp: new Date(record.timestamp).getTime(),
       }));
+      mapped.sort((a, b) => a.timestamp - b.timestamp);
+      tempHistory.value = mapped;
     }
   } catch (error) {
     console.error("Failed to load temperature history:", error);
@@ -231,7 +233,7 @@ function startAutoRefresh() {
   stopAutoRefresh();
   refreshTimer = setInterval(() => {
     refreshTemperature();
-  }, 60000);
+  }, 15000);
 }
 
 function stopAutoRefresh() {
