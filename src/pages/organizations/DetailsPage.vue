@@ -167,7 +167,7 @@
 </template>
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import {
     getOrganizationById,
     getOrganizationDevices,
@@ -179,12 +179,10 @@ import {
     type Device,
     type Member,
 } from "@/data";
-import { route as routeHelper } from "@/constants/routes";
 import AddMemberModal from "@/components/AddMemberModal.vue";
 import { isOnline } from "@/utils/utils";
 import DeviceCard from "@/components/DeviceCard.vue";
 
-const router = useRouter();
 const routeParams = useRoute();
 
 const organization = ref<Organization | null>(null);
@@ -233,28 +231,6 @@ const getDeviceName = (device: Device): string => {
     if (device.name && device.name !== "Unknown Device") return device.name;
     return device.id?.substring(0, 8) || "Без названия";
 };
-
-const getDeviceTemp = (device: Device): number | null => {
-    if (device.temperature !== undefined && device.temperature !== null)
-        return device.temperature;
-    const stored = localStorage.getItem(`device_data_${device.id}`);
-    if (stored) {
-        try {
-            const data = JSON.parse(stored);
-            if (data.currentTemp !== undefined && data.currentTemp !== null)
-                return data.currentTemp;
-        } catch {
-            /* */
-        }
-    }
-    return null;
-};
-
-function goToDevice(deviceId: string) {
-    router.push(
-        routeHelper.sensorDetails(deviceId) + "?orgId=" + organization.value!.id
-    );
-}
 
 async function pingDevice(deviceId: string): Promise<boolean> {
     return await isOnline(deviceId);

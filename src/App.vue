@@ -224,6 +224,7 @@ import {
 } from "@/data";
 import api from "@/api";
 import { ROUTES } from "@/constants/routes";
+import { isAuthError } from "@/utils/utils";
 import IconLogout from "./icons/IconLogout.vue";
 
 const route = useRoute();
@@ -260,9 +261,21 @@ const refreshAuthToken = async () => {
         }
     } catch (error) {
         console.error("[Auth] Failed to refresh token:", error);
-        // Если не удалось обновить - выходим через 5 секунд
-        setTimeout(() => {
+        if (isAuthError(error)) {
+            console.warn("[Auth] unauthorized, redirecting to login");
             if (localStorage.getItem("token")) {
+                localStorage.removeItem("token");
+                localStorage.removeItem("refreshToken");
+                localStorage.removeItem("user");
+                localStorage.removeItem("device_data");
+            }
+            if (route.path !== ROUTES.LOGIN) {
+                router.push(ROUTES.LOGIN);
+            }
+            return;
+        }
+        setTimeout(() => {
+            if (localStorage.getItem("token") && route.path !== ROUTES.LOGIN) {
                 localStorage.removeItem("token");
                 localStorage.removeItem("refreshToken");
                 localStorage.removeItem("user");
@@ -285,8 +298,13 @@ const loadNotifications = async () => {
                 title: "Приглашение в организацию",
                 message: `Вас пригласили в "${inv.organizationName || "Без названия"}"`,
             }));
-    } catch {
-        // Тишина
+    } catch (error) {
+        if (isAuthError(error)) {
+            console.warn("[App] unauthorized in loadNotifications, redirecting to login");
+            if (route.path !== ROUTES.LOGIN) {
+                router.push(ROUTES.LOGIN);
+            }
+        }
     }
 };
 

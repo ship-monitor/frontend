@@ -1,7 +1,22 @@
 <template>
-  <transition name="chart-fade" mode="out-in">
-    <canvas ref="chartCanvas" class="w-full h-64 sm:h-96"></canvas>
-  </transition>
+  <div class="relative">
+    <transition name="chart-fade" mode="out-in">
+      <canvas
+        ref="chartCanvas"
+        class="w-full h-80 sm:h-[28rem]"
+        @mousemove="onMouseMove"
+        @mouseleave="onMouseLeave"
+      />
+    </transition>
+    <div
+      v-if="tooltip.visible"
+      class="pointer-events-none absolute rounded-lg border bg-white/95 px-3 py-2 text-xs shadow-sm"
+      :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }"
+    >
+      <p class="font-semibold text-gray-800">{{ tooltip.value.toFixed(1) }}°C</p>
+      <p class="text-gray-500">{{ tooltip.time }}</p>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -15,7 +30,21 @@ const chartCanvas = ref<HTMLCanvasElement | null>(null);
 
 const filteredHistory = computed(() => props.history);
 
-function drawChart() {
+const tooltip = ref<{
+  visible: boolean;
+  x: number;
+  y: number;
+  value: number;
+  time: string;
+}>({
+  visible: false,
+  x: 0,
+  y: 0,
+  value: 0,
+  time: "",
+});
+
+function drawChart(highlightIndex: number | null = null) {
   if (!chartCanvas.value || filteredHistory.value.length === 0) return;
   const canvas = chartCanvas.value;
   const ctx = canvas.getContext("2d");
@@ -24,7 +53,7 @@ function drawChart() {
   const container = canvas.parentElement;
   if (container) {
     canvas.width = container.clientWidth - 32;
-    canvas.height = 300;
+    canvas.height = 360;
   }
 
   const { width, height } = canvas;
@@ -73,11 +102,54 @@ function drawChart() {
     const x = padding + i * stepX;
     const y =
       padding + (height - padding * 2) * ((maxVal - item.value) / range);
-    ctx.fillStyle = "#3b82f6";
+    const isHighlighted = highlightIndex === i;
+    ctx.fillStyle = isHighlighted ? "#1d4ed8" : "#3b82f6";
     ctx.beginPath();
-    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.arc(x, y, isHighlighted ? 5 : 3, 0, Math.PI * 2);
     ctx.fill();
   });
+}
+
+function getPointAtEvent(event: MouseEvent) {
+  if (!chartCanvas.value || filteredHistory.value.length === 0) return null;
+  const rect = chartCanvas.value.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const width = chartCanvas.value.width;
+  const padding = 40;
+  const stepX = (width - padding * 2) / (filteredHistory.value.length - 1);
+
+  let closestIndex = 0;
+  let closestDist = Infinity;
+  filteredHistory.value.forEach((_, i) => {
+    const px = padding + i * stepX;
+    const dist = Math.abs(x - px);
+    if (dist < closestDist) {
+      closestDist = dist;
+      closestIndex = i;
+    }
+  });
+
+  return closestIndex;
+}
+
+function onMouseMove(event: MouseEvent) {
+  const index = getPointAtEvent(event);
+  if (index === null) return;
+  const item = filteredHistory.value[index];
+  if (!item) return;
+  tooltip.value = {
+    visible: true,
+    x: event.offsetX + 12,
+    y: event.offsetY - 12,
+    value: item.value,
+    time: item.time,
+  };
+  drawChart(index);
+}
+
+function onMouseLeave() {
+  tooltip.value.visible = false;
+  drawChart(null);
 }
 
 watch(

@@ -6,7 +6,7 @@
         :key="period.value"
         variant="secondary"
         :class="selectedPeriod === period.value ? 'bg-blue-500 text-white' : ''"
-        @click="$emit('select', period.value)"
+        @click="$emit('update:selectedPeriod', period.value)"
       >
         {{ period.label }}
       </ShipButton>
@@ -22,7 +22,7 @@ defineProps<{
   periods: Array<{ label: string; value: string; ms: number }>;
 }>();
 
-defineEmits<{ select: [value: string] }>();
+defineEmits<{ "update:selectedPeriod": [value: string] }>();
 </script>
 
 <style scoped>
