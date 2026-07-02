@@ -87,12 +87,13 @@
 </template>
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, onActivated } from "vue";
-import { useRouter } from "vue-router";
-import { route } from "@/constants/routes";
+import { useRoute, useRouter } from "vue-router";
+import { route, ROUTES } from "@/constants/routes";
 import { getUsersOrganizations, getOrganizationDevices } from "@/data";
-import { isOnline } from "@/utils/utils";
+import { isOnline, isAuthError } from "@/utils/utils";
 import DeviceCard from "@/components/DeviceCard.vue";
 
+const currentRoute = useRoute();
 const router = useRouter();
 
 interface SensorDisplay {
@@ -208,64 +209,81 @@ function savePingHistory(deviceId: string, history: boolean[]) {
 
 
 async function loadSensors() {
-    const orgs = await getUsersOrganizations();
-    const allSensors: SensorDisplay[] = [];
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.log("[Dashboard] no token in loadSensors, stop auto refresh");
+        stopAutoRefresh();
+        return;
+      }
+      console.log("[Dashboard] loadSensors start");
+      const orgs = await getUsersOrganizations();
+      console.log("[Dashboard] orgs count", orgs.length);
+      const allSensors: SensorDisplay[] = [];
 
-    for (const org of orgs) {
+      for (const org of orgs) {
         const devices = await getOrganizationDevices(org.id);
 
         const pingResults = await Promise.all(
-            devices.map(async (device) => {
-                const ok = await isOnline(device.id);
-                return { device, ok };
-            }),
+          devices.map(async (device) => {
+            const ok = await isOnline(device.id);
+            return { device, ok };
+          }),
         );
 
         for (const { device, ok } of pingResults) {
-            // Загружаем температуру
-            let temperature: number | null = null;
-            const stored = localStorage.getItem(`device_data_${device.id}`);
-            if (stored) {
-                try {
-                    const data = JSON.parse(stored);
-                    temperature = data.currentTemp ?? null;
-                } catch {
-                    /* */
-                }
+          let temperature: number | null = null;
+          const stored = localStorage.getItem(`device_data_${device.id}`);
+          if (stored) {
+            try {
+              const data = JSON.parse(stored);
+              temperature = data.currentTemp ?? null;
+            } catch {
+              /* */
             }
+          }
 
-            // История пингов
-            const pingHistory = loadPingHistory(device.id);
-            pingHistory.push(ok);
-            if (pingHistory.length > 10) pingHistory.shift();
-            savePingHistory(device.id, pingHistory);
+          const pingHistory = loadPingHistory(device.id);
+          pingHistory.push(ok);
+          if (pingHistory.length > 10) pingHistory.shift();
+          savePingHistory(device.id, pingHistory);
 
-            // Определяем статус
-            const lastPings = pingHistory.slice(-5);
-            const allOffline = lastPings.length >= 3 && lastPings.every((p) => !p);
-            let status: "online" | "offline" | "error" = ok ? "online" : "offline";
-            if (allOffline && lastPings.length >= 3) {
-                status = "error";
-            }
+          const lastPings = pingHistory.slice(-5);
+          const allOffline = lastPings.length >= 3 && lastPings.every((p) => !p);
+          let status: "online" | "offline" | "error" = ok ? "online" : "offline";
+          if (allOffline && lastPings.length >= 3) {
+            status = "error";
+          }
 
-            allSensors.push({
-                id: device.id,
-                name: device.name,
-                displayName: getDisplayName(device.id, device.name),
-                status,
-                isConnected: ok,
-                temperature,
-                lastPingTime: ok ? Date.now() : null,
-                pingHistory,
-                tags: getTags(device.id),
-                organizationName: org.name,
-                organizationId: org.id,
-            });
+          allSensors.push({
+            id: device.id,
+            name: device.name,
+            displayName: getDisplayName(device.id, device.name),
+            status,
+            isConnected: ok,
+            temperature,
+            lastPingTime: ok ? Date.now() : null,
+            pingHistory,
+            tags: getTags(device.id),
+            organizationName: org.name,
+            organizationId: org.id,
+          });
         }
-    }
+      }
 
-    sensors.value = allSensors;
-}
+      sensors.value = allSensors;
+      console.log("[Dashboard] loadSensors done, sensors:", allSensors.length);
+    } catch (error) {
+      console.error("[Dashboard] loadSensors error:", error);
+      if (isAuthError(error)) {
+        console.warn("[Dashboard] unauthorized/auth error, redirecting to login");
+        stopAutoRefresh();
+        if (currentRoute.path !== ROUTES.LOGIN) {
+            router.push(ROUTES.LOGIN);
+        }
+      }
+    }
+  }
 
 async function refreshAll() {
     refreshing.value = true;
@@ -275,19 +293,34 @@ async function refreshAll() {
 
 function startAutoRefresh() {
     stopAutoRefresh();
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.log("[Dashboard] no token, skip auto refresh");
+      return;
+    }
+    let settings: { autoRefresh?: boolean; interval?: number } = {};
     const saved = localStorage.getItem("app-settings");
     if (saved) {
-        try {
-            const settings = JSON.parse(saved);
-            if (settings.autoRefresh && settings.interval) {
-                autoRefreshActive.value = true;
-                refreshTimer = setInterval(() => loadSensors(), settings.interval);
-            }
-        } catch {
-            /* */
-        }
+      try {
+        settings = JSON.parse(saved);
+      } catch {
+        settings = {};
+      }
     }
-}
+    console.log("[Dashboard] startAutoRefresh settings", settings);
+    if (settings.autoRefresh === undefined) settings.autoRefresh = true;
+    if (!settings.interval) settings.interval = 30000;
+    if (settings.autoRefresh) {
+      autoRefreshActive.value = true;
+      refreshTimer = setInterval(() => {
+        console.log("[Dashboard] auto refresh tick");
+        loadSensors();
+      }, settings.interval);
+      console.log("[Dashboard] auto refresh started, interval:", settings.interval);
+    } else {
+      console.log("[Dashboard] auto refresh disabled by settings");
+    }
+  }
 
 function stopAutoRefresh() {
     if (refreshTimer) {

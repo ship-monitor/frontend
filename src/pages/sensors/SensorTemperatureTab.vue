@@ -32,7 +32,7 @@
     <PeriodTabs
       :selected-period="selectedPeriod"
       :periods="periods"
-      @select="$emit('update:period', $event)"
+      @update:selected-period="$emit('update:period', $event)"
     />
 
     <div class="bg-white rounded-xl border p-6">
@@ -45,7 +45,10 @@
         >
           Нет данных за выбранный период
         </div>
-        <div v-else key="chart">
+        <div
+          v-else key="chart"
+          class="space-y-2"
+        >
           <TemperatureChart :history="filteredHistory" />
         </div>
       </transition>

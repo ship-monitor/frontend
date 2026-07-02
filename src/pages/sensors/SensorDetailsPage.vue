@@ -36,7 +36,6 @@
           }"
           :is-connected="deviceIsConnected"
           @refresh="refreshTemperature"
-          @update:period="selectedPeriod = $event"
         />
 
         <SensorInfoTab
@@ -53,10 +52,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import {
   getDeviceState,
+  getDeviceStates,
   updateDevice,
   getDeviceById,
   type DeviceStateRecord,
@@ -84,7 +84,9 @@ const tempError = ref("");
 const tempHistory = ref<
   Array<{ time: string; value: number; timestamp: number }>
 >([]);
-const selectedPeriod = ref("24h");
+const selectedPeriod = ref("1d");
+
+let refreshTimer: ReturnType<typeof setInterval> | null = null;
 
 const settings = ref<SensorSettings>({
   id: deviceId,
@@ -177,6 +179,21 @@ async function pingAndUpdateStatus() {
   deviceIsConnected.value = await isOnline(deviceId);
 }
 
+async function loadTemperatureHistory() {
+  try {
+    const history = await getDeviceStates<number>(deviceId, "temperature", 100);
+    if (history) {
+      tempHistory.value = history.map((record) => ({
+        time: record.timestamp,
+        value: record.value as number,
+        timestamp: new Date(record.timestamp).getTime(),
+      }));
+    }
+  } catch (error) {
+    console.error("Failed to load temperature history:", error);
+  }
+}
+
 async function refreshTemperature() {
   tempLoading.value = true;
   tempError.value = "";
@@ -184,6 +201,10 @@ async function refreshTemperature() {
   try {
     const temp = await getDeviceState<number>(deviceId, "temperature");
     currentTemp.value = temp;
+    if (temp) {
+      lastTempTime.value = new Date(temp.timestamp).toLocaleString("ru-RU");
+      await loadTemperatureHistory();
+    }
   } catch (error) {
     tempError.value = `Ошибка связи: ${error instanceof Error ? error.message : String(error)}`;
   } finally {
@@ -200,8 +221,36 @@ async function loadDeviceData() {
 
   await pingAndUpdateStatus();
 
+  await refreshTemperature();
+
   loading.value = false;
+  startAutoRefresh();
 }
+
+function startAutoRefresh() {
+  stopAutoRefresh();
+  refreshTimer = setInterval(() => {
+    refreshTemperature();
+  }, 60000);
+}
+
+function stopAutoRefresh() {
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+    refreshTimer = null;
+  }
+}
+
+watch([currentTemp, lastTempTime, tempHistory], () => {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  const data = stored ? JSON.parse(stored) : {};
+  data.currentTemp = currentTemp.value;
+  data.lastTempTime = lastTempTime.value;
+  data.tempHistory = tempHistory.value;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+});
+
+onUnmounted(stopAutoRefresh);
 
 onMounted(loadDeviceData);
 </script>

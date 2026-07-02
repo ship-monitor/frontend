@@ -1,7 +1,24 @@
+import axios from "axios";
 import { type DeviceStateRecord, getDeviceState } from "@/data";
 
 const SECOND = 1000;
 const PING_INTERVAL = 10 * SECOND;
+
+const AUTH_ERROR_MARKS = [
+  "unauthorized",
+  "bad credentials",
+  "token is expired",
+  "invalid claims",
+  "token has invalid claims",
+  "jwt",
+];
+
+export function isAuthError(error: unknown): boolean {
+  if (axios.isAxiosError(error) && error.response?.status === 401) return true;
+  const message = error instanceof Error ? error.message : String(error);
+  const normalized = message.toLowerCase();
+  return AUTH_ERROR_MARKS.some((mark) => normalized.includes(mark));
+}
 
 export async function isOnline(deviceId: string): Promise<boolean> {
   try {
