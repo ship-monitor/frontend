@@ -48,69 +48,6 @@
       </div>
     </div>
 
-    <!-- Настройки email-уведомлений -->
-    <div class="bg-white rounded-xl border p-5 sm:p-6 mb-6">
-      <h2 class="text-base font-semibold text-gray-800 mb-4">
-        Email-уведомления
-      </h2>
-      <div class="space-y-4">
-        <label
-          class="flex items-center justify-between p-3 bg-gray-50 rounded-lg touch-target cursor-pointer"
-        >
-          <div>
-            <p class="text-sm font-medium text-gray-800">
-              Приглашения в организации
-            </p>
-            <p class="text-xs text-gray-500">
-              Когда вас приглашают в новую организацию
-            </p>
-          </div>
-          <input
-            v-model="notifications.invitations"
-            type="checkbox"
-            class="w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-blue-500 shrink-0"
-            @change="saveNotifications"
-          />
-        </label>
-
-        <label
-          class="flex items-center justify-between p-3 bg-gray-50 rounded-lg touch-target cursor-pointer"
-        >
-          <div>
-            <p class="text-sm font-medium text-gray-800">Изменение роли</p>
-            <p class="text-xs text-gray-500">
-              Когда изменяют вашу роль в организации
-            </p>
-          </div>
-          <input
-            v-model="notifications.roleChanges"
-            type="checkbox"
-            class="w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-blue-500 shrink-0"
-            @change="saveNotifications"
-          />
-        </label>
-
-        <label
-          class="flex items-center justify-between p-3 bg-gray-50 rounded-lg touch-target cursor-pointer"
-        >
-          <div>
-            <p class="text-sm font-medium text-gray-800">
-              Системные уведомления
-            </p>
-            <p class="text-xs text-gray-500">
-              Важные обновления и новости сервиса
-            </p>
-          </div>
-          <input
-            v-model="notifications.system"
-            type="checkbox"
-            class="w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-blue-500 shrink-0"
-            @change="saveNotifications"
-          />
-        </label>
-      </div>
-    </div>
-
     <!-- Изменение email -->
     <div class="bg-white rounded-xl border p-5 sm:p-6 mb-6">
       <h2 class="text-base font-semibold text-gray-800 mb-4">Изменить email</h2>
@@ -184,13 +121,6 @@ interface User {
 
 const user = ref<User | null>(null);
 
-// Уведомления
-const notifications = ref({
-  invitations: true,
-  roleChanges: true,
-  system: false,
-});
-
 // Email
 const newEmail = ref("");
 const updatingEmail = ref(false);
@@ -210,7 +140,6 @@ const confirmEmailError = ref("");
 
 onMounted(() => {
   loadUser();
-  loadNotifications();
 });
 
 function loadUser() {
@@ -222,24 +151,6 @@ function loadUser() {
       console.error("Ошибка парсинга user из localStorage");
     }
   }
-}
-
-function loadNotifications() {
-  const saved = localStorage.getItem("profile_notifications");
-  if (saved) {
-    try {
-      notifications.value = JSON.parse(saved);
-    } catch {
-      /* */
-    }
-  }
-}
-
-function saveNotifications() {
-  localStorage.setItem(
-    "profile_notifications",
-    JSON.stringify(notifications.value)
-  );
 }
 
 async function handleUpdateEmail() {

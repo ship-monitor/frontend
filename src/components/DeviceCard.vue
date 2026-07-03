@@ -92,7 +92,7 @@ watch(() => props.deviceId, loadAll);
 
 onMounted(() => {
   loadAll();
-  timer = setInterval(loadAll, 60000);
+  timer = setInterval(loadAll, 10000);
 });
 
 onUnmounted(() => {

@@ -66,18 +66,6 @@
                     </svg>
                     <span class="text-base">Профиль</span>
                 </router-link>
-                <router-link :to="ROUTES.SETTINGS"
-                    class="flex items-center gap-3 px-4 py-3.5 rounded-lg hover:bg-gray-700 transition-colors touch-target"
-                    active-class="bg-gray-700">
-                    <!-- Шестерёнка -->
-                    <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3" />
-                        <path
-                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                    </svg>
-                    <span class="text-base">Настройки</span>
-                </router-link>
             </nav>
             <!-- Поддержка внизу -->
             <div class="p-4 border-t border-gray-700 text-sm text-gray-400">
@@ -354,8 +342,8 @@ onMounted(() => {
     if (localStorage.getItem("token")) {
         loadNotifications();
 
-        // Обновляем уведомления каждые 30 секунд
-        const notificationsInterval = setInterval(loadNotifications, 30000);
+        // Обновляем уведомления каждые 10 секунд
+        const notificationsInterval = setInterval(loadNotifications, 10000);
 
         // Обновляем токен каждые 4 минуты (240 секунд)
         refreshInterval = setInterval(refreshAuthToken, 4 * 60 * 1000);

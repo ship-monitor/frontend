@@ -9,7 +9,6 @@ import { ROUTES } from "@/constants/routes";
 
 import Dashboard from "@/pages/DashboardPage.vue";
 import Profile from "@/pages/ProfilePage.vue";
-import Settings from "@/pages/SettingsPage.vue";
 import SensorDetailsPage from "@/pages/sensors/SensorDetailsPage.vue";
 
 export type CustomRouteMeta = {
@@ -69,12 +68,6 @@ const routes: Array<RouteRecordRaw> = [
     path: ROUTES.PROFILE,
     name: "Profile",
     component: Profile,
-    meta: { requireAuth: true } as CustomRouteMeta,
-  },
-  {
-    path: ROUTES.SETTINGS,
-    name: "Settings",
-    component: Settings,
     meta: { requireAuth: true } as CustomRouteMeta,
   },
   {

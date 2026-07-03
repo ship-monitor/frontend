@@ -84,7 +84,7 @@ const tempError = ref("");
 const tempHistory = ref<
   Array<{ time: string; value: number; timestamp: number }>
 >([]);
-const selectedPeriod = ref("1d");
+const selectedPeriod = ref("24h");
 
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -233,7 +233,7 @@ function startAutoRefresh() {
   stopAutoRefresh();
   refreshTimer = setInterval(() => {
     refreshTemperature();
-  }, 15000);
+  }, 10000);
 }
 
 function stopAutoRefresh() {

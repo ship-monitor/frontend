@@ -1,15 +1,9 @@
 <template>
     <div class="p-4 sm:p-6">
-        <!-- Заголовок и кнопка обновления -->
+        <!-- Заголовок -->
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
             <h1 class="text-xl sm:text-2xl font-bold">Мониторинг</h1>
-            <div class="flex items-center gap-3">
-                <span v-if="autoRefreshActive" class="text-xs text-gray-400">Авто</span>
-                <button @click="refreshAll" :disabled="refreshing"
-                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 text-sm touch-target">
-                    {{ refreshing ? "Проверка..." : "Обновить" }}
-                </button>
-            </div>
+            <span v-if="autoRefreshActive" class="text-xs text-gray-400">Автообновление активно</span>
         </div>
         <!-- Счётчики -->
         <div class="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
@@ -35,7 +29,7 @@
         <!-- Поиск и фильтры -->
         <div class="flex flex-col sm:flex-row gap-2 mb-4">
             <div class="relative flex-1">
-                <input v-model="searchQuery" type="text" placeholder="Поиск по названию или тегу..."
+                <input v-model="searchQuery" type="text" placeholder="Поиск по названию..."
                     class="w-full pl-9 pr-4 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none"
                     stroke="currentColor" viewBox="0 0 24 24">
@@ -112,7 +106,6 @@ interface SensorDisplay {
 
 const sensors = ref<SensorDisplay[]>([]);
 const loading = ref(true);
-const refreshing = ref(false);
 const autoRefreshActive = ref(false);
 const searchQuery = ref("");
 const statusFilter = ref("all");
@@ -147,7 +140,6 @@ const filteredSensors = computed(() => {
         result = result.filter(
             (s) =>
                 s.displayName.toLowerCase().includes(query) ||
-                s.tags.some((t) => t.toLowerCase().includes(query)) ||
                 s.id.toLowerCase().includes(query) ||
                 s.organizationName.toLowerCase().includes(query),
         );
@@ -285,13 +277,7 @@ async function loadSensors() {
     }
   }
 
-async function refreshAll() {
-    refreshing.value = true;
-    await loadSensors();
-    refreshing.value = false;
-}
-
-function startAutoRefresh() {
+  function startAutoRefresh() {
     stopAutoRefresh();
     const token = localStorage.getItem("token");
     if (!token) {
@@ -309,7 +295,7 @@ function startAutoRefresh() {
     }
     console.log("[Dashboard] startAutoRefresh settings", settings);
     if (settings.autoRefresh === undefined) settings.autoRefresh = true;
-    if (!settings.interval) settings.interval = 30000;
+    if (!settings.interval) settings.interval = 10000;
     if (settings.autoRefresh) {
       autoRefreshActive.value = true;
       refreshTimer = setInterval(() => {

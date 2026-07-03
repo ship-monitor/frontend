@@ -9,7 +9,6 @@ export const ROUTES = {
   SENSORS: "/sensors",
   SENSOR_DETAILS: "/sensors/:id",
   PROFILE: "/profile",
-  SETTINGS: "/settings",
   INVITATIONS: "/invitations",
 } as const;
 
@@ -28,6 +27,5 @@ export const route = {
   sensors: () => ROUTES.SENSORS,
   sensorDetails: (id: string) => ROUTES.SENSOR_DETAILS.replace(":id", id),
   profile: () => ROUTES.PROFILE,
-  settings: () => ROUTES.SETTINGS,
   invitations: () => ROUTES.INVITATIONS,
 } as const;

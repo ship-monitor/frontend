@@ -81,13 +81,9 @@ defineEmits<{
 }>();
 
 const periods = [
-  { label: "Час", value: "1h", ms: 60 * 60 * 1000 },
-  { label: "2 часа", value: "2h", ms: 2 * 60 * 60 * 1000 },
-  { label: "3 часа", value: "3h", ms: 3 * 60 * 60 * 1000 },
-  { label: "6 часов", value: "6h", ms: 6 * 60 * 60 * 1000 },
   { label: "12 часов", value: "12h", ms: 12 * 60 * 60 * 1000 },
-  { label: "1 день", value: "1d", ms: 24 * 60 * 60 * 1000 },
-  { label: "2 дня", value: "2d", ms: 48 * 60 * 60 * 1000 },
+  { label: "24 часа", value: "24h", ms: 24 * 60 * 60 * 1000 },
+  { label: "48 часов", value: "48h", ms: 48 * 60 * 60 * 1000 },
 ];
 
 const tempColor = computed(() => {
