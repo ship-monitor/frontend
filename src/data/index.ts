@@ -243,10 +243,24 @@ export const getDeviceStateWithHistory = async <TValue>(
   );
 };
 
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  blocked: boolean;
+};
+
 export const sendDeviceCommand = async (
   deviceId: string,
   command: string,
   args: Record<string, string | number> = {}
 ): Promise<void> => {
   await api.post(`/api/v2/devices/${deviceId}/command`, { command, args });
+};
+
+export const getCurrentUser = async (): Promise<User> => {
+  const result = await api.get("/api/users/me");
+  console.debug(result.data);
+  return checkResponse<{ user: User }>(result).user;
 };

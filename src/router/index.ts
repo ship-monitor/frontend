@@ -4,12 +4,12 @@ import {
   type RouteRecordRaw,
 } from "vue-router";
 
-import { checkAuthStatus } from "@/api";
 import { ROUTES } from "@/constants/routes";
 
 import Dashboard from "@/pages/DashboardPage.vue";
 import Profile from "@/pages/ProfilePage.vue";
 import SensorDetailsPage from "@/pages/sensors/SensorDetailsPage.vue";
+import { isAuthenticated } from "@/auth";
 
 export type CustomRouteMeta = {
   requireAuth: boolean;
@@ -83,10 +83,9 @@ const router = createRouter({
 });
 
 router.beforeEach((to) => {
-  const isAuthenticated = checkAuthStatus();
   const routeMeta = to.meta as CustomRouteMeta;
 
-  if (routeMeta?.requireAuth && !isAuthenticated) {
+  if (routeMeta?.requireAuth && !isAuthenticated.value) {
     return {
       path: ROUTES.LOGIN,
       query: { redirect: to.fullPath },

@@ -1,9 +1,12 @@
 <template>
   <div class="max-w-lg mx-auto p-4 sm:p-6">
     <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-6">Профиль</h1>
+    <div>
+      <p v-if="error">{{ error }}</p>
+    </div>
 
     <!-- Информация о пользователе -->
-    <div class="bg-white rounded-xl border p-5 sm:p-6 mb-6">
+    <div class="bg-white rounded-xl border p-5 sm:p-6 mb-6" v-if="user">
       <h2 class="text-base font-semibold text-gray-800 mb-4">Информация</h2>
       <div class="space-y-4">
         <div>
@@ -105,21 +108,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import api from "@/api";
 import type { AxiosError } from "axios";
-import { startEmailConfirmation } from "@/data";
+import { getCurrentUser, startEmailConfirmation } from "@/data";
 import ShipTextbox from "@/components/ShipTextbox.vue";
+import { useAsyncState } from "@vueuse/core";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  emailVerified: boolean;
-  blocked: boolean;
-}
-
-const user = ref<User | null>(null);
+const { state: user, error } = useAsyncState(getCurrentUser(), null);
 
 // Email
 const newEmail = ref("");
@@ -138,26 +134,16 @@ const sendingConfirmation = ref(false);
 const confirmEmailSuccess = ref("");
 const confirmEmailError = ref("");
 
-onMounted(() => {
-  loadUser();
-});
-
-function loadUser() {
-  const userStr = localStorage.getItem("user");
-  if (userStr) {
-    try {
-      user.value = JSON.parse(userStr);
-    } catch {
-      console.error("Ошибка парсинга user из localStorage");
-    }
-  }
-}
-
+/**
+ * @deprecated Move this to data
+ */
 async function handleUpdateEmail() {
   if (!newEmail.value.trim() || !user.value) return;
   updatingEmail.value = true;
   emailError.value = "";
   emailSuccess.value = "";
+
+  if (!user) return;
 
   try {
     await api.post(`/api/users/${user.value.id}/set-email`, {

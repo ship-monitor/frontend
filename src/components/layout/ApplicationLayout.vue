@@ -7,7 +7,7 @@ import {
   rejectInvitation,
   type Invitation,
 } from "@/data";
-import api from "@/api";
+import { logout } from "@/auth";
 import { ROUTES } from "@/constants/routes";
 import { isAuthError } from "@/utils/utils";
 import IconLogout from "@/components/icons/IconLogout.vue";
@@ -36,49 +36,6 @@ const isAuthPage = computed(() => route.path.startsWith("/auth"));
 const isLandingPage = computed(() => route.path === ROUTES.LANDING);
 
 const unreadNotifications = computed(() => notifications.value.length);
-
-// ===== Обновление токена =====
-let refreshInterval: ReturnType<typeof setInterval> | null = null;
-
-const refreshAuthToken = async () => {
-  const refreshToken = localStorage
-    .getItem("refreshToken")
-    ?.replace(/^"|$/g, "");
-  if (!refreshToken) return;
-
-  try {
-    const response = await api.post("/api/auth/refresh", { refreshToken });
-    const newToken = response.data.token;
-    if (newToken) {
-      const cleanToken = String(newToken).replace(/["'\s]/g, "");
-      localStorage.setItem("token", cleanToken);
-      console.log("[Auth] Token refreshed successfully");
-    }
-  } catch (error) {
-    console.error("[Auth] Failed to refresh token:", error);
-    if (isAuthError(error)) {
-      console.warn("[Auth] unauthorized, redirecting to login");
-      if (localStorage.getItem("token")) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
-        localStorage.removeItem("device_data");
-      }
-      if (route.path !== ROUTES.LOGIN) {
-        router.push(ROUTES.LOGIN);
-      }
-      return;
-    }
-    setTimeout(() => {
-      if (localStorage.getItem("token") && route.path !== ROUTES.LOGIN) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
-        router.push(ROUTES.LOGIN);
-      }
-    }, 5000);
-  }
-};
 
 // ===== Методы =====
 const loadNotifications = async () => {
@@ -123,10 +80,8 @@ const handleRejectInvitation = async (id: string) => {
   }
 };
 
-const logout = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("user");
+const logoutHandler = () => {
+  logout();
   router.push(ROUTES.LANDING);
 };
 
@@ -151,22 +106,12 @@ onMounted(() => {
   if (localStorage.getItem("token")) {
     loadNotifications();
 
-    // Обновляем уведомления каждые 10 секунд
-    const notificationsInterval = setInterval(loadNotifications, 10000);
-
-    // Обновляем токен каждые 4 минуты (240 секунд)
-    refreshInterval = setInterval(refreshAuthToken, 4 * 60 * 1000);
-
-    onUnmounted(() => {
-      clearInterval(notificationsInterval);
-      if (refreshInterval) clearInterval(refreshInterval);
-    });
+    setInterval(loadNotifications, 10000);
   }
 });
 
 onUnmounted(() => {
   document.removeEventListener("click", handleClickOutside);
-  if (refreshInterval) clearInterval(refreshInterval);
 });
 </script>
 <template>
@@ -280,7 +225,7 @@ onUnmounted(() => {
           </div>
         </div>
         <button
-          @click="logout"
+          @click="logoutHandler"
           class="px-4 flex py-2 gap-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
         >
           <span> Выйти </span>
@@ -352,7 +297,7 @@ onUnmounted(() => {
           <span class="text-[10px] font-medium">{{ item.label }}</span>
         </router-link>
         <button
-          @click="logout"
+          @click="logoutHandler"
           class="flex flex-col items-center gap-0.5 px-3 py-1 text-gray-400 hover:text-red-500 transition-colors touch-target"
         >
           <!-- Иконка: Выход (дверь со стрелкой) -->
