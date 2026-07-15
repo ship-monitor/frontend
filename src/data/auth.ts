@@ -1,16 +1,18 @@
 import api from "@/api";
 import type { AxiosResponse } from "axios";
+import { Result } from "true-myth";
 
-type LoginResult =
-  | false
-  | {
-      token: string;
-      refreshToken: string;
-      user: {
-        id: string;
-        email: string;
-      };
+type LoginResult = Result<
+  {
+    token: string;
+    refreshToken: string;
+    user: {
+      id: string;
+      email: string;
     };
+  },
+  string
+>;
 
 export const login = async (
   email: string,
@@ -29,17 +31,15 @@ export const login = async (
       password,
     });
     if ("details" in response.data) {
-      console.error("Authentication failed:", response.data.details);
-      return false;
+      return Result.err("authentication failed: " + response.data.details);
     }
 
-    return {
+    return Result.ok({
       refreshToken: response.data.refreshToken,
       token: response.data.token,
       user: response.data.user,
-    };
+    });
   } catch (e) {
-    console.error("Login request failed", e);
-    return false;
+    return Result.err("login request failed: " + e);
   }
 };

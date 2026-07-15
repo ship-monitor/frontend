@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, type Component } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import {
   getInvitations,
   acceptInvitation,
@@ -9,13 +9,11 @@ import {
 } from "@/data";
 import { logout } from "@/auth";
 import { ROUTES } from "@/constants/routes";
-import { isAuthError } from "@/utils/utils";
 import IconLogout from "@/components/icons/IconLogout.vue";
 import IconPulse from "@/components/icons/IconPulse.vue";
 import IconBuilding from "@/components/icons/IconBuilding.vue";
 import IconPerson from "@/components/icons/IconPerson.vue";
 
-const route = useRoute();
 const router = useRouter();
 
 type NavigationItem = { label: string; link: string; icon: Component };
@@ -32,34 +30,23 @@ const notifications = ref<
 >([]);
 
 // ===== Вычисляемые =====
-const isAuthPage = computed(() => route.path.startsWith("/auth"));
-const isLandingPage = computed(() => route.path === ROUTES.LANDING);
 
 const unreadNotifications = computed(() => notifications.value.length);
 
 // ===== Методы =====
 const loadNotifications = async () => {
-  try {
-    const invitations = await getInvitations();
-    notifications.value = invitations
-      .filter(
-        (inv: Invitation) => inv.status === "pending" || inv.status === "active"
-      )
-      .map((inv: Invitation) => ({
-        id: inv.id,
-        title: "Приглашение в организацию",
-        message: `Вас пригласили в "${inv.organizationName || "Без названия"}"`,
-      }));
-  } catch (error) {
-    if (isAuthError(error)) {
-      console.warn(
-        "[App] unauthorized in loadNotifications, redirecting to login"
-      );
-      if (route.path !== ROUTES.LOGIN) {
-        router.push(ROUTES.LOGIN);
-      }
-    }
-  }
+  const invitations = (await getInvitations())
+    .inspectErr((err) => console.error("Failed load invitations: %s", err))
+    .unwrapOr([]);
+  notifications.value = invitations
+    .filter(
+      (inv: Invitation) => inv.status === "pending" || inv.status === "active"
+    )
+    .map((inv: Invitation) => ({
+      id: inv.id,
+      title: "Приглашение в организацию",
+      message: `Вас пригласили в "${inv.organizationName || "Без названия"}"`,
+    }));
 };
 
 const handleAcceptInvitation = async (id: string) => {

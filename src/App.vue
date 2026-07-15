@@ -14,7 +14,7 @@
 </template>
 <script setup lang="ts">
 import { computed } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import { ROUTES } from "@/constants/routes";
 import ApplicationLayout from "@/components/layout/ApplicationLayout.vue";
 

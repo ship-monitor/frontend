@@ -30,13 +30,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { confirmEmail } from "@/data"; // 1. Убедитесь, что импорт функции указан правильно
+import { confirmEmail } from "@/data";
 
 const route = useRoute();
 const router = useRouter();
 
-// 2. ИСПРАВЛЕНО: Заменили .params на .query, чтобы читать параметры после "?"
-const token = route.query.token as string; 
+const token = route.query.token as string;
 
 const loading = ref(true);
 const success = ref(false);

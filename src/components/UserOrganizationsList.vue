@@ -50,13 +50,9 @@ const organizations = ref<Organization[]>([]);
 const loading = ref(true);
 
 const loadOrganizations = async () => {
-  try {
-    organizations.value = await getUsersOrganizations();
-  } catch (error) {
-    console.error("Failed to load organizations:", error);
-  } finally {
-    loading.value = false;
-  }
+  organizations.value = (await getUsersOrganizations())
+    .inspectErr((err) => console.error("Failed load organizations: %s", err))
+    .unwrapOr([]);
 };
 
 const formatDate = (dateStr: string) => {

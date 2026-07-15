@@ -1,5 +1,6 @@
 import api from "@/api";
 import type { AxiosResponse } from "axios";
+import { Result, Unit } from "true-myth";
 
 export type Organization = {
   id: string;
@@ -35,42 +36,49 @@ export type Device = {
   lastConnection?: string;
 };
 
-const checkResponse = <T>(response: AxiosResponse): T => {
-  if (!response?.data) throw new Error("Empty response");
+export type APIError = string;
+
+const responseToResult = <TResponse>(
+  response: AxiosResponse
+): Result<TResponse, APIError> => {
+  if (!response?.data) return Result.err("empty response");
+
   if (typeof response.data === "object" && "details" in response.data) {
-    throw new Error(response.data.details || "Request failed");
+    return Result.err(response.data.details || "request failed");
   }
-  return response.data;
+  return Result.ok(response.data);
 };
 
 // ============= Организации =============
-export const getUsersOrganizations = async (): Promise<Organization[]> => {
-  const result = await api.get("/api/organizations/my");
-  return (
-    checkResponse<{ organizations: Organization[] }>(result).organizations || []
+export const getUsersOrganizations = async (): Promise<
+  Result<Organization[], APIError>
+> => {
+  const response = await api.get("/api/organizations/my");
+  return responseToResult<{ organizations: Organization[] }>(response).map(
+    (r) => r.organizations
   );
 };
 
 export const getOrganizationById = async (
   id: string
-): Promise<Organization> => {
-  const result = await api.get(`/api/organizations/${id}`);
-  return checkResponse<Organization>(result);
+): Promise<Result<Organization, APIError>> => {
+  const response = await api.get(`/api/organizations/${id}`);
+  return responseToResult<Organization>(response);
 };
 
 export const createOrganization = async (
   name: string
-): Promise<Organization> => {
+): Promise<Result<Organization, APIError>> => {
   const result = await api.post("/api/organizations/", { name });
-  return checkResponse<Organization>(result);
+  return responseToResult<Organization>(result);
 };
 
 export const updateOrganization = async (
   id: string,
   name: string
-): Promise<Organization> => {
+): Promise<Result<Organization, APIError>> => {
   const result = await api.patch(`/api/organizations/${id}`, { name });
-  return checkResponse<Organization>(result);
+  return responseToResult<Organization>(result);
 };
 
 export const deleteOrganization = async (id: string): Promise<void> => {
@@ -78,16 +86,13 @@ export const deleteOrganization = async (id: string): Promise<void> => {
 };
 
 // ============= Участники =============
-export const getOrganizationMembers = async (id: string): Promise<Member[]> => {
-  const result = await api.get(`/api/organizations/${id}/members`);
-  const data = checkResponse<{ members: Member[] }>(result);
-  return (data.members ?? []).map((m) => ({
-    userId: m.userId,
-    email: m.email,
-    name: m.name,
-    role: m.role,
-    joinedAt: m.joinedAt,
-  }));
+export const getOrganizationMembers = async (
+  id: string
+): Promise<Result<Member[], APIError>> => {
+  const response = await api.get(`/api/organizations/${id}/members`);
+  return responseToResult<{ members: Member[] }>(response).map(
+    (r) => r.members
+  );
 };
 
 export const inviteMembers = async (
@@ -117,10 +122,13 @@ export const removeMembers = async (
 };
 
 // ============= Приглашения =============
-export const getInvitations = async (): Promise<Invitation[]> => {
-  const result = await api.get("/api/invitations");
-  const data = checkResponse<{ invitations: Invitation[] }>(result);
-  return data.invitations ?? [];
+export const getInvitations = async (): Promise<
+  Result<Invitation[], APIError>
+> => {
+  const response = await api.get("/api/invitations");
+  return responseToResult<{ invitations: Invitation[] }>(response).map(
+    (r) => r.invitations
+  );
 };
 
 export const acceptInvitation = async (invitationId: string): Promise<void> => {
@@ -132,60 +140,72 @@ export const rejectInvitation = async (invitationId: string): Promise<void> => {
 };
 
 // ============= Устройства =============
-export const getDeviceById = async (deviceId: string): Promise<Device> => {
+export const getDeviceById = async (
+  deviceId: string
+): Promise<Result<Device, APIError>> => {
   const result = await api.get(`/api/devices/${deviceId}`);
-  return checkResponse<Device>(result);
+  return responseToResult<Device>(result);
 };
+
+const STATUS_OK = 200;
+const STATUS_CONFLICT = 304;
 
 // ============= Подтверждение почты =============
-export const startEmailConfirmation = async (): Promise<void> => {
-  const result = await api.post("/api/users/start-email-confirmation", null, {
+export const startEmailConfirmation = async (): Promise<
+  Result<Unit, APIError>
+> => {
+  const response = await api.post("/api/users/start-email-confirmation", null, {
     validateStatus: () => true,
   });
-  if (result.status === 304) return;
-  if (result.status !== 200) {
-    throw new Error(
-      result.data?.details || "Failed to send confirmation email"
+  if (response.status === STATUS_CONFLICT) return Result.ok();
+  if (response.status !== STATUS_OK) {
+    return Result.err(
+      response.data?.details || "Failed to send confirmation email"
     );
   }
+
+  return Result.ok();
 };
 
-export const confirmEmail = async (token: string): Promise<void> => {
-  const result = await api.post(`/api/users/confirm-email/${token}`, null, {
+export const confirmEmail = async (
+  token: string
+): Promise<Result<Unit, APIError>> => {
+  const response = await api.post(`/api/users/confirm-email/${token}`, null, {
     validateStatus: () => true,
   });
-  if (result.status === 304) return;
-  if (result.status !== 200) {
-    throw new Error(result.data?.details || "Failed to confirm email");
+  if (response.status === STATUS_CONFLICT) return Result.ok();
+  if (response.status !== STATUS_OK) {
+    return Result.err(response.data?.details || "Failed to confirm email");
   }
+
+  return Result.ok();
 };
 
 export const getOrganizationDevices = async (
   orgId: string
-): Promise<Device[]> => {
+): Promise<Result<Device[], APIError>> => {
   const result = await api.get(`/api/organizations/${orgId}/devices`);
-  const data = checkResponse<{ devices: Device[] }>(result);
-  return data.devices || [];
+  return responseToResult<{ devices: Device[] }>(result).map((r) => r.devices);
 };
 
 export const connectDevice = async (
   orgId: string,
   deviceId?: string,
   name?: string
-): Promise<Device> => {
+): Promise<Result<Device, APIError>> => {
   const result = await api.post(`/api/organizations/${orgId}/devices`, {
     deviceId,
     name,
   });
-  return checkResponse<Device>(result);
+  return responseToResult<Device>(result);
 };
 
 export const updateDevice = async (
   deviceId: string,
   name: string
-): Promise<Device> => {
+): Promise<Result<Device, APIError>> => {
   const result = await api.patch(`/api/devices/${deviceId}`, { name });
-  return checkResponse<Device>(result);
+  return responseToResult<Device>(result);
 };
 
 export const disconnectDevice = async (deviceId: string): Promise<void> => {
@@ -204,43 +224,50 @@ export const getDeviceStates = async <TValue>(
   deviceId: string,
   state: State,
   history: number
-): Promise<DeviceStateRecord<TValue>[] | null> => {
+): Promise<Result<DeviceStateRecord<TValue>[], APIError>> => {
   if (history < 0) {
-    return null;
+    return Result.err("history can't be less than zero");
   }
 
-  const result = await api.get(
+  const response = await api.get(
     `/api/v2/devices/${deviceId}/state/${state}?history=${history}`,
     {
       validateStatus: () => true,
     }
   );
-  if (result.status !== 200) {
-    console.error("Failed receive statuses");
-    return null;
-  }
-  const data = checkResponse<{ result?: DeviceStateRecord<TValue>[] }>(result);
-  return data.result ?? null;
+
+  return responseToResult<{ result: DeviceStateRecord<TValue>[] }>(
+    response
+  ).map((r) => r.result);
+};
+
+const first = <T>(array: T[]): Result<T, string> => {
+  const first = array[0];
+  if (first) return Result.ok(first);
+  else return Result.err("no elements provided");
 };
 
 export const getDeviceState = async <TValue>(
   deviceId: string,
   state: State
-): Promise<DeviceStateRecord<TValue> | null> => {
-  const result = await getDeviceStates<TValue>(deviceId, state, 1);
-  return result?.[0] ?? null;
+): Promise<Result<DeviceStateRecord<TValue>, APIError>> => {
+  const response = await getDeviceStates<TValue>(deviceId, state, 1);
+  return response
+    .map((r) => first(r))
+    .flatten()
+    .mapErr((e) => `no states provided in response ${e}`);
 };
 
 export const getDeviceStateWithHistory = async <TValue>(
   deviceId: string,
   state: State
-): Promise<DeviceStateRecord<TValue>[]> => {
-  const result = await api.get(
+): Promise<Result<DeviceStateRecord<TValue>[], APIError>> => {
+  const response = await api.get(
     `/api/v2/devices/${deviceId}/state/${state}?history=1`
   );
-  return (
-    checkResponse<{ result: DeviceStateRecord<TValue>[] }>(result).result || []
-  );
+  return responseToResult<{ result: DeviceStateRecord<TValue>[] }>(
+    response
+  ).map((r) => r.result);
 };
 
 type User = {
@@ -259,8 +286,7 @@ export const sendDeviceCommand = async (
   await api.post(`/api/v2/devices/${deviceId}/command`, { command, args });
 };
 
-export const getCurrentUser = async (): Promise<User> => {
+export const getCurrentUser = async (): Promise<Result<User, APIError>> => {
   const result = await api.get("/api/users/me");
-  console.debug(result.data);
-  return checkResponse<{ user: User }>(result).user;
+  return responseToResult<{ user: User }>(result).map((r) => r.user);
 };

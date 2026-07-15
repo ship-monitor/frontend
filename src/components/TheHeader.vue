@@ -72,12 +72,11 @@ const router = useRouter();
 const invitationCount = ref(0);
 
 const loadInvitationCount = async () => {
-  try {
-    const invitations = await getInvitations();
-    invitationCount.value = invitations.length;
-  } catch (error) {
-    console.error("Failed load invitations: " + error);
-  }
+  const invitations = await getInvitations();
+  invitationCount.value = invitations
+    .map((r) => r.length)
+    .inspectErr((err) => console.error("failed load invitations: %s", err))
+    .unwrapOr(0);
 };
 
 onMounted(loadInvitationCount);

@@ -124,7 +124,7 @@ const newOrgName = ref("");
 
 const loadOrganizations = async () => {
   try {
-    organizations.value = await getUsersOrganizations();
+    organizations.value = (await getUsersOrganizations()).unwrapOr([]);
   } catch (error) {
     console.error("Failed to load organizations:", error);
   } finally {
@@ -134,14 +134,16 @@ const loadOrganizations = async () => {
 
 const createOrg = async () => {
   if (!newOrgName.value.trim()) return;
-  try {
-    const org = await createOrganization(newOrgName.value);
-    organizations.value.unshift(org);
-    showCreateModal.value = false;
-    newOrgName.value = "";
-  } catch (error) {
-    console.error("Failed to create organization:", error);
+  const org = (await createOrganization(newOrgName.value))
+    .inspectErr((err) => console.error("Failed create organization: %s", err))
+    .unwrapOr(null);
+  if (!org) {
+    console.error("Organization create request failed");
+    return;
   }
+  organizations.value.unshift(org);
+  showCreateModal.value = false;
+  newOrgName.value = "";
 };
 
 const formatDate = (dateStr: string) => {

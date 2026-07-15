@@ -15,15 +15,14 @@ const form = reactive<{
 const PAGE_TO_REDIRECT = ROUTES.DASHBOARD;
 
 const handleLogin = async () => {
-  console.debug("Sending login request");
   const loginResult = await login(form.email, form.password);
-  console.debug("Login result");
 
-  if (!loginResult) {
+  if (loginResult.isErr) {
     alert("Неверный логин или пароль");
+    console.error("Failed login: %s", loginResult.error);
     return;
   }
-  setAuthState(loginResult.token, loginResult.refreshToken);
+  setAuthState(loginResult.value.token, loginResult.value.refreshToken);
 
   console.debug("Redirecting to " + PAGE_TO_REDIRECT + "...");
   router.push(PAGE_TO_REDIRECT);

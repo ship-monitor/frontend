@@ -14,12 +14,22 @@ export const setupClient = (client: AxiosInstance) => {
 const tokenStore = useLocalStorage(AUTH_TOKEN_KEY, "");
 const refreshTokenStore = useLocalStorage(AUTH_REFRESH_TOKEN_KEY, "");
 
+/**
+ * API interceptors cpecific code. Should be more secure.
+ * @returns String token.
+ */
 export const getToken = (): string => tokenStore.value;
 
 export const logout = () => {
   tokenStore.value = "";
   refreshTokenStore.value = "";
 };
+
+/**
+ *
+ * @param token
+ * @returns Maybe.just with validation errors, otherwise empty Maybe
+ */
 const validate = (token: string): Maybe<string> => {
   const parseResult = parseToken(token);
   if (parseResult.isErr) {

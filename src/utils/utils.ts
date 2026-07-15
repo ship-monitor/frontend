@@ -21,29 +21,19 @@ export function isAuthError(error: unknown): boolean {
 }
 
 export async function isOnline(deviceId: string): Promise<boolean> {
-  try {
-    const lastState = await getDeviceState<boolean>(deviceId, "online");
-    if (!lastState) return false;
-
-    if (new Date(lastState.timestamp).getTime() < Date.now() - PING_INTERVAL)
-      return false;
-
-    return lastState.value as boolean;
-  } catch {
-    return false;
-  }
+  return (await getDeviceState<boolean>(deviceId, "online"))
+    .map((r) => new Date(r.timestamp).getTime() < Date.now() - PING_INTERVAL)
+    .inspectErr((err) => console.error("Faild load online state: %s", err))
+    .unwrapOr(false);
 }
 
+// TODO: Move to Maybe
 export const getLastTemperature = async (
   deviceId: string
 ): Promise<DeviceStateRecord<number> | null> => {
-  try {
-    const state = await getDeviceState<number>(deviceId, "temperature");
-    return state;
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
+  return (await getDeviceState<number>(deviceId, "temperature"))
+    .inspectErr((err) => console.error("Failed load last temperature: %s", err))
+    .unwrapOr(null);
 };
 
 export const formatTimeAgo = (timestamp: string): string => {

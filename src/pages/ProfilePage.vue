@@ -115,7 +115,13 @@ import { getCurrentUser, startEmailConfirmation } from "@/data";
 import ShipTextbox from "@/components/ShipTextbox.vue";
 import { useAsyncState } from "@vueuse/core";
 
-const { state: user, error } = useAsyncState(getCurrentUser(), null);
+const { state: user, error } = useAsyncState(
+  async () =>
+    (await getCurrentUser())
+      .inspectErr((err) => console.error("Failed get current user: %s", err))
+      .unwrapOr(null),
+  null
+);
 
 // Email
 const newEmail = ref("");

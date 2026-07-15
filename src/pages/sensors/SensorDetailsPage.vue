@@ -43,7 +43,6 @@
           :settings="settings"
           :saving="saving"
           @save="saveSettings"
-          @cancel="loadSettingsFromStorage"
           @update="handleDeviceUpdate"
         />
       </transition>
@@ -52,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import {
   getDeviceState,
@@ -104,9 +103,6 @@ const tabs = [
   { value: "info", label: "Информация" },
 ];
 
-const STORAGE_KEY = `device_data_${deviceId}`;
-const SETTINGS_KEY = `device_settings_${deviceId}`;
-
 function getDisplayName(apiName?: string): string {
   if (settings.value.name && settings.value.name.trim() !== "")
     return settings.value.name;
@@ -115,54 +111,25 @@ function getDisplayName(apiName?: string): string {
 }
 
 async function loadDeviceFromApi(): Promise<string | undefined> {
-  try {
-    const device = await getDeviceById(deviceId);
-    return device?.name;
-  } catch {
-    return undefined;
-  }
-}
-
-function loadStoredData() {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) {
-    try {
-      const data = JSON.parse(stored);
-      if (data.tempHistory) tempHistory.value = data.tempHistory;
-      if (data.currentTemp !== undefined) currentTemp.value = data.currentTemp;
-      if (data.lastTempTime) lastTempTime.value = data.lastTempTime;
-    } catch {
-      /* */
-    }
-  }
-}
-
-function loadSettingsFromStorage() {
-  const saved = localStorage.getItem(SETTINGS_KEY);
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      settings.value = { ...settings.value, ...parsed };
-    } catch {
-      /* */
-    }
-  }
+  return (await getDeviceById(deviceId))
+    .map((dev) => dev.name)
+    .unwrapOr(undefined);
 }
 
 async function saveSettings(s: SensorSettings) {
   saving.value = true;
 
-  // Update device name via API if it changed
-  if (s.name !== settings.value.name) {
-    try {
-      await updateDevice(deviceId, s.name);
-    } catch (error) {
-      console.error("Failed to update device name:", error);
-    }
-  }
+  if (s.name === settings.value.name) return;
+
+  if (
+    (await updateDevice(deviceId, s.name))
+      .map(() => true)
+      .inspectErr((err) => console.error("Failed update device: %s", err))
+      .unwrapOr(false)
+  )
+    return;
 
   settings.value = s;
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
   sensorName.value = getDisplayName();
   setTimeout(() => {
     saving.value = false;
@@ -172,7 +139,6 @@ async function saveSettings(s: SensorSettings) {
 function handleDeviceUpdate(device: { id: string; name: string }) {
   sensorName.value = device.name;
   settings.value.name = device.name;
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings.value));
 }
 
 async function pingAndUpdateStatus() {
@@ -181,7 +147,11 @@ async function pingAndUpdateStatus() {
 
 async function loadTemperatureHistory() {
   try {
-    const history = await getDeviceStates<number>(deviceId, "temperature", 100);
+    const history = (
+      await getDeviceStates<number>(deviceId, "temperature", 100)
+    )
+      .inspectErr((err) => console.error("Failed load state: %s", err))
+      .unwrapOr([]);
     if (history) {
       const mapped = history.map((record) => ({
         time: record.timestamp,
@@ -201,9 +171,11 @@ async function refreshTemperature() {
   tempError.value = "";
 
   try {
-    const temp = await getDeviceState<number>(deviceId, "temperature");
-    currentTemp.value = temp;
+    const temp = (await getDeviceState<number>(deviceId, "temperature"))
+      .inspectErr((err) => console.error("Failed load temperature: %s", err))
+      .unwrapOr(null);
     if (temp) {
+      currentTemp.value = temp;
       lastTempTime.value = new Date(temp.timestamp).toLocaleString("ru-RU");
       await loadTemperatureHistory();
     }
@@ -215,9 +187,6 @@ async function refreshTemperature() {
 }
 
 async function loadDeviceData() {
-  loadStoredData();
-  loadSettingsFromStorage();
-
   const apiName = await loadDeviceFromApi();
   sensorName.value = getDisplayName(apiName);
 
@@ -242,15 +211,6 @@ function stopAutoRefresh() {
     refreshTimer = null;
   }
 }
-
-watch([currentTemp, lastTempTime, tempHistory], () => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  const data = stored ? JSON.parse(stored) : {};
-  data.currentTemp = currentTemp.value;
-  data.lastTempTime = lastTempTime.value;
-  data.tempHistory = tempHistory.value;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-});
 
 onUnmounted(stopAutoRefresh);
 
