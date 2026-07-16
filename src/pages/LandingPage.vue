@@ -391,7 +391,7 @@
           </div>
 
           <div class="relative z-10 text-center mb-10">
-            <h2 class="text-3xl sm:text-4xl font-bold mb-4">Остались вопросы?</h2>
+            <h2 class="text-3xl sm:text-4xl font-bold mb-4">Оставить заявку</h2>
             <p class="text-blue-100 text-lg">Оставьте заявку, и мы свяжемся с вами в ближайшее время</p>
           </div>
 
@@ -460,7 +460,7 @@
                 ]" placeholder="1" :disabled="formStatus === 'loading'" />
               <p v-if="formErrors.refrigerators_count" class="mt-1 text-sm text-red-200">{{
                 formErrors.refrigerators_count
-                }}</p>
+              }}</p>
             </div>
 
             <div>
