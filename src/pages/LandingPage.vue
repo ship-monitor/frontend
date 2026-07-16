@@ -379,6 +379,156 @@
       </div>
     </section>
 
+    <!-- ====== Форма лидов ====== -->
+    <section class="py-12 sm:py-20 bg-white">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-blue-600 rounded-3xl p-8 sm:p-12 text-white shadow-2xl relative overflow-hidden">
+          <div
+            class="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2">
+          </div>
+          <div
+            class="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 translate-y-1/2 -translate-x-1/2">
+          </div>
+
+          <div class="relative z-10 text-center mb-10">
+            <h2 class="text-3xl sm:text-4xl font-bold mb-4">Остались вопросы?</h2>
+            <p class="text-blue-100 text-lg">Оставьте заявку, и мы свяжемся с вами в ближайшее время</p>
+          </div>
+
+          <form @submit.prevent="handleSubmit" class="space-y-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label for="person_name" class="block text-sm font-medium text-blue-200 mb-2">Имя *</label>
+                <input id="person_name" v-model="leadForm.person_name" type="text" :class="[
+                  'w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all',
+                  formErrors.person_name
+                    ? 'border-red-300 bg-red-50 focus:ring-red-200'
+                    : 'border-blue-400 bg-white/10 focus:ring-white/50 focus:border-white',
+                  formStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''
+                ]" placeholder="Иван" :disabled="formStatus === 'loading'" />
+                <p v-if="formErrors.person_name" class="mt-1 text-sm text-red-200">{{ formErrors.person_name }}</p>
+              </div>
+
+              <div>
+                <label for="phone" class="block text-sm font-medium text-blue-200 mb-2">Телефон *</label>
+                <input id="phone" v-model="leadForm.phone" type="tel" :class="[
+                  'w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all',
+                  formErrors.phone
+                    ? 'border-red-300 bg-red-50 focus:ring-red-200'
+                    : 'border-blue-400 bg-white/10 focus:ring-white/50 focus:border-white',
+                  formStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''
+                ]" placeholder="+7 (999) 000-00-00" :disabled="formStatus === 'loading'" />
+                <p v-if="formErrors.phone" class="mt-1 text-sm text-red-200">{{ formErrors.phone }}</p>
+              </div>
+
+              <div>
+                <label for="email" class="block text-sm font-medium text-blue-200 mb-2">Email *</label>
+                <input id="email" v-model="leadForm.email" type="email" :class="[
+                  'w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all',
+                  formErrors.email
+                    ? 'border-red-300 bg-red-50 focus:ring-red-200'
+                    : 'border-blue-400 bg-white/10 focus:ring-white/50 focus:border-white',
+                  formStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''
+                ]" placeholder="example@mail.com" :disabled="formStatus === 'loading'" />
+                <p v-if="formErrors.email" class="mt-1 text-sm text-red-200">{{ formErrors.email }}</p>
+              </div>
+            </div>
+
+            <div>
+              <label for="company_name" class="block text-sm font-medium text-blue-200 mb-2">Название компании *</label>
+              <input id="company_name" v-model="leadForm.company_name" type="text" :class="[
+                'w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all',
+                formErrors.company_name
+                  ? 'border-red-300 bg-red-50 focus:ring-red-200'
+                  : 'border-blue-400 bg-white/10 focus:ring-white/50 focus:border-white',
+                formStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''
+              ]" placeholder="ООО Пример" :disabled="formStatus === 'loading'" />
+              <p v-if="formErrors.company_name" class="mt-1 text-sm text-red-200">{{ formErrors.company_name }}</p>
+            </div>
+
+            <div>
+              <label for="refrigerators_count" class="block text-sm font-medium text-blue-200 mb-2">Количество
+                холодильных
+                камер *</label>
+              <input id="refrigerators_count" v-model.number="leadForm.refrigerators_count" type="number" min="1"
+                :class="[
+                  'w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all',
+                  formErrors.refrigerators_count
+                    ? 'border-red-300 bg-red-50 focus:ring-red-200'
+                    : 'border-blue-400 bg-white/10 focus:ring-white/50 focus:border-white',
+                  formStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''
+                ]" placeholder="1" :disabled="formStatus === 'loading'" />
+              <p v-if="formErrors.refrigerators_count" class="mt-1 text-sm text-red-200">{{
+                formErrors.refrigerators_count
+                }}</p>
+            </div>
+
+            <div>
+              <label for="comment" class="block text-sm font-medium text-blue-200 mb-2">Комментарий</label>
+              <textarea id="comment" v-model="leadForm.comment" :class="[
+                'w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all resize-none',
+                'h-24',
+                formErrors.comment
+                  ? 'border-red-300 bg-red-50 focus:ring-red-200'
+                  : 'border-blue-400 bg-white/10 focus:ring-white/50 focus:border-white',
+                formStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''
+              ]" placeholder="Ваши пожелания или вопросы..." :disabled="formStatus === 'loading'" />
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="pt-0.5">
+                <input id="personal_data_agreement" v-model="leadForm.personal_data_agreement" type="checkbox" :class="[
+                  'w-4 h-4 rounded border-2 focus:ring-0 focus:ring-offset-0 cursor-pointer',
+                  formErrors.personal_data_agreement
+                    ? 'border-red-300'
+                    : 'border-blue-400',
+                  formStatus === 'loading' ? 'opacity-50 cursor-not-allowed' : ''
+                ]" :disabled="formStatus === 'loading'" />
+              </div>
+              <label for="personal_data_agreement" class="text-sm text-blue-100 leading-tight cursor-pointer">
+                Согласен на обработку персональных данных в соответствии с
+                <a href="#" class="text-white hover:text-blue-200 underline">политикой конфиденциальности</a>
+                *
+              </label>
+            </div>
+            <p v-if="formErrors.personal_data_agreement" class="text-sm text-red-200 ml-7">{{
+              formErrors.personal_data_agreement }}</p>
+
+            <template v-if="formStatus === 'success'">
+              <div class="bg-green-500/20 border border-green-400/50 rounded-xl p-4 text-center animate-fade-in">
+                <div class="flex items-center justify-center gap-2 text-green-300 mb-2">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span class="font-semibold">Заявка успешно отправлена!</span>
+                </div>
+                <p class="text-green-200 text-sm">Мы свяжемся с вами в ближайшее время</p>
+              </div>
+            </template>
+
+            <button type="submit" :class="[
+              'w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 transform active:scale-[0.98]',
+              formStatus === 'loading'
+                ? 'bg-blue-400 cursor-not-allowed'
+                : 'bg-white text-blue-700 hover:bg-blue-50 hover:shadow-lg',
+              formStatus === 'success' || formStatus === 'error' ? 'hidden' : ''
+            ]" :disabled="formStatus === 'loading'">
+              <span v-if="formStatus !== 'loading'">Отправить заявку</span>
+              <span v-else class="flex items-center justify-center gap-2">
+                <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                  </path>
+                </svg>
+                Отправляем...
+              </span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
     <!-- ====== Технологии ====== -->
     <section class="py-12 sm:py-20 bg-gray-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -876,15 +1026,92 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import BIG_LOGO_D from "@/assets/big-logo-dark.png";
 import BIG_LOGO from "@/assets/big-logo.png";
 import { ROUTES } from "@/constants/routes";
 import { useRoadmap } from "@/composables/useRoadmap";
+import { useLeads } from "@/composables/useLeads";
 
 const { roadmapItems, fetchRoadmap } = useRoadmap();
+const { createLead } = useLeads();
 
 const isAuthenticated = computed(() => !!localStorage.getItem("token"));
+
+const leadForm = reactive({
+  person_name: "",
+  email: "",
+  company_name: "",
+  refrigerators_count: 1,
+  comment: "",
+  personal_data_agreement: false,
+});
+
+const formStatus = ref<"idle" | "loading" | "success" | "error">("idle");
+const formErrors = ref<Record<string, string>>({});
+
+const validateForm = (): boolean => {
+  const errors: Record<string, string> = {};
+
+  if (!leadForm.person_name.trim()) {
+    errors.person_name = "Введите имя";
+  }
+
+  if (!leadForm.email.trim()) {
+    errors.email = "Введите email";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(leadForm.email)) {
+    errors.email = "Некорректный email";
+  }
+
+  if (!leadForm.company_name.trim()) {
+    errors.company_name = "Введите название компании";
+  }
+
+  if (leadForm.refrigerators_count < 1) {
+    errors.refrigerators_count = "Количество должно быть минимум 1";
+  }
+
+  if (!leadForm.personal_data_agreement) {
+    errors.personal_data_agreement = "Требуется согласие на обработку данных";
+  }
+
+  formErrors.value = errors;
+  return Object.keys(errors).length === 0;
+};
+
+const handleSubmit = async (): Promise<void> => {
+  if (!validateForm()) {
+    return;
+  }
+
+  formStatus.value = "loading";
+
+  const success = await createLead({
+    person_name: leadForm.person_name.trim(),
+    email: leadForm.email.trim(),
+    phone: leadForm.phone.trim(),
+    company_name: leadForm.company_name.trim(),
+    refrigerators_count: leadForm.refrigerators_count,
+    comment: leadForm.comment.trim(),
+    personal_data_agreement: leadForm.personal_data_agreement,
+  });
+
+  if (success) {
+    formStatus.value = "success";
+    setTimeout(() => {
+      leadForm.person_name = "";
+      leadForm.email = "";
+      leadForm.phone = "";
+      leadForm.company_name = "";
+      leadForm.refrigerators_count = 1;
+      leadForm.comment = "";
+      leadForm.personal_data_agreement = false;
+      formStatus.value = "idle";
+    }, 3000);
+  } else {
+    formStatus.value = "error";
+  }
+};
 
 onMounted(() => {
   fetchRoadmap();
@@ -918,5 +1145,21 @@ onMounted(() => {
 
 .animation-delay-2000 {
   animation-delay: 2s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
 }
 </style>
