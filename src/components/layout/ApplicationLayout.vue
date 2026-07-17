@@ -7,7 +7,7 @@ import {
   rejectInvitation,
   type Invitation,
 } from "@/data";
-import { logout } from "@/auth";
+import { logout } from "@/data";
 import { ROUTES } from "@/constants/routes";
 import IconLogout from "@/components/icons/IconLogout.vue";
 import IconPulse from "@/components/icons/IconPulse.vue";

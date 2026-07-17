@@ -1,13 +1,10 @@
 import { createApp } from "vue";
 import App from "@/App.vue";
-import router from "@/router";
+import { createAppRouter } from "@/router";
 import "./styles.css";
-import { setupClient } from "@/auth";
-import api from "@/api";
+import { createPinia } from "pinia";
 
 const app = createApp(App);
 
-app.use(router);
+app.use(createPinia()).use(createAppRouter());
 app.mount("#app");
-
-setupClient(api);

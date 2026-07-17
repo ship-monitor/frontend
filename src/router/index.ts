@@ -9,7 +9,7 @@ import { ROUTES } from "@/constants/routes";
 import Dashboard from "@/pages/DashboardPage.vue";
 import Profile from "@/pages/ProfilePage.vue";
 import SensorDetailsPage from "@/pages/sensors/SensorDetailsPage.vue";
-import { isAuthenticated } from "@/auth";
+import { useAuthStore } from "@/stores/authStore";
 
 export type CustomRouteMeta = {
   requireAuth: boolean;
@@ -76,23 +76,25 @@ const routes: Array<RouteRecordRaw> = [
     redirect: ROUTES.LANDING,
   },
 ];
+export const createAppRouter = () => {
+  const router = createRouter({
+    history: createWebHistory(import.meta.env.BASE_URL),
+    routes,
+  });
 
-const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes,
-});
+  const authStore = useAuthStore();
 
-router.beforeEach((to) => {
-  const routeMeta = to.meta as CustomRouteMeta;
+  router.beforeEach((to) => {
+    const routeMeta = to.meta as CustomRouteMeta;
 
-  if (routeMeta?.requireAuth && !isAuthenticated.value) {
-    return {
-      path: ROUTES.LOGIN,
-      query: { redirect: to.fullPath },
-    };
-  }
+    if (routeMeta?.requireAuth && !authStore.isAuthenticated) {
+      return {
+        path: ROUTES.LOGIN,
+        query: { redirect: to.fullPath },
+      };
+    }
 
-  return true;
-});
-
-export default router;
+    return true;
+  });
+  return router;
+};

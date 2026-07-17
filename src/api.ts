@@ -1,5 +1,6 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
-import { getToken, handleRefresh } from "@/auth";
+import { useRouter } from "vue-router";
+import { ROUTES } from "@/constants/routes";
 
 const createApi = () => {
   const backendUrl = import.meta.env.VITE_API_URL;
@@ -11,20 +12,12 @@ const createApi = () => {
   return axios.create({
     baseURL: backendUrl,
     validateStatus: () => true,
-    timeout: 10000,
+    timeout: 5000,
+    withCredentials: true,
   });
 };
 
 const api = createApi();
-
-api.interceptors.request.use((config) => {
-  const token = getToken();
-
-  if (token) {
-    config.headers.Authorization = token;
-  }
-  return config;
-});
 
 const UNAUTHORIZED = 401;
 
@@ -36,13 +29,13 @@ api.interceptors.response.use(
     };
 
     if (error.response?.status !== UNAUTHORIZED || originalRequest?._retry) {
+      const router = useRouter();
+      router.push(ROUTES.LOGIN);
+
       return Promise.reject(error);
     }
 
     originalRequest._retry = true;
-
-    const success = await handleRefresh();
-    if (!success) return Promise.reject("failed refresh token");
 
     return api.request(originalRequest);
   }

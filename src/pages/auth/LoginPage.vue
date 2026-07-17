@@ -4,7 +4,6 @@ import { useRouter } from "vue-router";
 import { login } from "@/data/auth";
 import ShipTextbox from "@/components/ShipTextbox.vue";
 import { ROUTES } from "@/constants/routes";
-import { setAuthState } from "@/auth";
 const router = useRouter();
 
 const form = reactive<{
@@ -22,7 +21,6 @@ const handleLogin = async () => {
     console.error("Failed login: %s", loginResult.error);
     return;
   }
-  setAuthState(loginResult.value.token, loginResult.value.refreshToken);
 
   console.debug("Redirecting to " + PAGE_TO_REDIRECT + "...");
   router.push(PAGE_TO_REDIRECT);

@@ -1,4 +1,4 @@
-import { ref, type Ref } from "vue";
+import { ref } from "vue";
 import cmsApi from "@/composables/api_cms";
 import type { RoadmapItem, RoadmapResponse } from "@/types/roadmap";
 
@@ -12,7 +12,9 @@ export const useRoadmap = () => {
     error.value = null;
 
     try {
-      const response = await cmsApi.get<RoadmapResponse>("/items/roadmap_items");
+      const response = await cmsApi.get<RoadmapResponse>(
+        "/items/roadmap_items"
+      );
 
       if (response.status === 200 && response.data) {
         roadmapItems.value = response.data.data.sort((a, b) => {

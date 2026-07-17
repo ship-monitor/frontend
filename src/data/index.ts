@@ -253,8 +253,7 @@ export const getDeviceState = async <TValue>(
 ): Promise<Result<DeviceStateRecord<TValue>, APIError>> => {
   const response = await getDeviceStates<TValue>(deviceId, state, 1);
   return response
-    .map((r) => first(r))
-    .flatten()
+    .andThen((r) => first(r))
     .mapErr((e) => `no states provided in response ${e}`);
 };
 
@@ -289,4 +288,8 @@ export const sendDeviceCommand = async (
 export const getCurrentUser = async (): Promise<Result<User, APIError>> => {
   const result = await api.get("/api/users/me");
   return responseToResult<{ user: User }>(result).map((r) => r.user);
+};
+
+export const logout = async (): Promise<void> => {
+  await api.post("/api/auth/logout");
 };
