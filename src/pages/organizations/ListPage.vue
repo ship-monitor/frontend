@@ -1,34 +1,49 @@
 <template>
-  <div class="max-w-5xl mx-auto">
+  <div class="max-w-5xl mx-auto space-y-5 animate-fade-in">
     <div
-      class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6"
+      class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3"
     >
-      <h1 class="text-xl sm:text-2xl font-bold text-gray-800">
-        Мои организации
-      </h1>
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">
+          Мои организации
+        </h1>
+        <p class="text-sm text-ink-500 mt-0.5">Управление организациями и устройствами</p>
+      </div>
       <button
         @click="showCreateModal = true"
-        class="px-4 py-3 sm:py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:bg-blue-700 transition-colors font-medium touch-target self-start sm:self-auto"
+        class="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 active:scale-[0.98] transition-all font-semibold text-sm touch-target self-start sm:self-auto"
       >
-        + Создать организацию
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Создать
       </button>
     </div>
 
     <!-- Загрузка -->
-    <div v-if="loading" class="text-center py-12">
-      <div class="animate-spin text-3xl mb-2">⚡</div>
-      <p class="text-gray-500">Загрузка...</p>
+    <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      <div v-for="i in 3" :key="i" class="ship-card p-5">
+        <div class="skeleton h-5 w-32 mb-2"></div>
+        <div class="skeleton h-3 w-20 mb-4"></div>
+        <div class="skeleton h-4 w-24"></div>
+      </div>
     </div>
 
     <!-- Пусто -->
     <div
       v-else-if="organizations.length === 0"
-      class="text-center py-12 bg-gray-50 rounded-xl"
+      class="ship-card p-8 sm:p-12 text-center animate-scale-in"
     >
-      <p class="text-gray-500 text-base mb-4">У вас пока нет организаций</p>
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-brand-50 flex items-center justify-center">
+        <svg class="w-8 h-8 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+      </div>
+      <p class="text-lg font-semibold text-ink-900 mb-1">У вас пока нет организаций</p>
+      <p class="text-sm text-ink-500 mb-5">Создайте первую организацию для добавления устройств</p>
       <button
         @click="showCreateModal = true"
-        class="px-5 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 touch-target"
+        class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-semibold"
       >
         Создать первую организацию
       </button>
@@ -42,66 +57,78 @@
       <div
         v-for="org in organizations"
         :key="org.id"
-        class="bg-white border rounded-xl p-4 sm:p-5 hover:shadow-md active:scale-[0.98] transition-all cursor-pointer touch-target"
+        class="ship-card ship-card-hover p-5 active:scale-[0.98] cursor-pointer touch-target"
         @click="router.push(route.organizationDetails(org.id))"
       >
-        <h3 class="text-lg font-semibold mb-1 truncate">{{ org.name }}</h3>
-        <p class="text-xs text-gray-400 mb-3 font-mono truncate">
-          {{ org.id }}
-        </p>
-        <div class="flex justify-between items-center">
-          <span class="text-xs text-gray-400">
-            {{ formatDate(org.createdAt) }}
+        <div class="flex items-start gap-3 mb-3">
+          <div class="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <h3 class="text-base font-semibold text-ink-900 truncate">{{ org.name }}</h3>
+            <p class="text-xs text-ink-400 font-mono truncate">{{ org.id }}</p>
+          </div>
+        </div>
+        <div class="flex justify-between items-center pt-3 border-t border-ink-100">
+          <span class="text-xs text-ink-400">{{ formatDate(org.createdAt) }}</span>
+          <span class="text-brand-600 text-sm font-medium flex items-center gap-1">
+            Открыть
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
           </span>
-          <span class="text-blue-500 text-sm font-medium">Открыть →</span>
         </div>
       </div>
     </div>
 
     <!-- Модальное окно создания организации -->
     <Teleport to="body">
-      <div
-        v-if="showCreateModal"
-        class="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4"
-        @click.self="showCreateModal = false"
-      >
+      <Transition name="modal">
         <div
-          class="bg-white rounded-t-xl sm:rounded-xl p-5 sm:p-6 w-full sm:max-w-md max-h-[90vh] overflow-y-auto"
+          v-if="showCreateModal"
+          class="fixed inset-0 bg-ink-950/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4"
+          @click.self="showCreateModal = false"
         >
-          <h3 class="text-lg font-semibold mb-4">Создать организацию</h3>
+          <div
+            class="bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-md max-h-[90vh] overflow-y-auto shadow-xl"
+          >
+            <h3 class="text-lg font-bold text-ink-900 mb-4">Создать организацию</h3>
 
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">
-                Название организации
-              </label>
-              <input
-                v-model="newOrgName"
-                type="text"
-                placeholder="Моя организация"
-                class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none"
-                @keyup.enter="createOrg"
-              />
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-ink-700 mb-1.5">
+                  Название организации
+                </label>
+                <input
+                  v-model="newOrgName"
+                  type="text"
+                  placeholder="Моя организация"
+                  class="ship-field"
+                  @keyup.enter="createOrg"
+                />
+              </div>
+            </div>
+
+            <div class="mt-6 flex gap-3">
+              <button
+                @click="showCreateModal = false"
+                class="flex-1 px-4 py-3 text-ink-600 border border-ink-200 rounded-xl hover:bg-ink-50 touch-target transition-colors font-medium"
+              >
+                Отмена
+              </button>
+              <button
+                @click="createOrg"
+                :disabled="!newOrgName.trim()"
+                class="flex-1 px-4 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:opacity-50 disabled:pointer-events-none touch-target transition-colors font-semibold"
+              >
+                Создать
+              </button>
             </div>
           </div>
-
-          <div class="mt-6 flex gap-3">
-            <button
-              @click="showCreateModal = false"
-              class="flex-1 px-4 py-3 text-gray-600 border rounded-lg hover:bg-gray-50 touch-target"
-            >
-              Отмена
-            </button>
-            <button
-              @click="createOrg"
-              :disabled="!newOrgName.trim()"
-              class="flex-1 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 touch-target font-medium"
-            >
-              Создать
-            </button>
-          </div>
         </div>
-      </div>
+      </Transition>
     </Teleport>
   </div>
 </template>

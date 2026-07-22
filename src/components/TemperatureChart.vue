@@ -15,8 +15,8 @@
       class="chart-tooltip"
       :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }"
     >
-      <p class="font-semibold text-gray-800">{{ tooltip.value.toFixed(1) }}°C</p>
-      <p class="text-gray-500">{{ tooltip.time }}</p>
+      <p class="font-semibold text-ink-900">{{ tooltip.value.toFixed(1) }}°C</p>
+      <p class="text-ink-500">{{ tooltip.time }}</p>
     </div>
   </div>
 </template>
@@ -103,7 +103,7 @@ function drawChart(highlightIndex: number | null = null) {
 
   const history = props.history;
   if (history.length < 2) {
-    ctx.fillStyle = "#6b7280";
+    ctx.fillStyle = "#64748b";
     ctx.font = "14px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -126,8 +126,8 @@ function drawChart(highlightIndex: number | null = null) {
     return padding.top + chartHeight * ((maxVal - value) / range);
   }
 
-  ctx.strokeStyle = "#e5e7eb";
-  ctx.fillStyle = "#6b7280";
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.fillStyle = "#64748b";
   ctx.font = `${a.fontSizeY}px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif`;
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
@@ -142,7 +142,7 @@ function drawChart(highlightIndex: number | null = null) {
   }
 
   ctx.beginPath();
-  ctx.strokeStyle = "#3b82f6";
+  ctx.strokeStyle = "#10b981";
   ctx.lineWidth = a.lineWidth;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
@@ -165,7 +165,7 @@ function drawChart(highlightIndex: number | null = null) {
     const item = history[highlightIndex]!;
     const px = x(highlightIndex);
     const py = y(item.value);
-    ctx.fillStyle = "#1d4ed8";
+    ctx.fillStyle = "#059669";
     ctx.beginPath();
     ctx.arc(px, py, Math.max(4, a.lineWidth * 2.5), 0, Math.PI * 2);
     ctx.fill();
@@ -177,7 +177,7 @@ function drawChart(highlightIndex: number | null = null) {
 
   points.value = history.map((_, i) => ({ x: x(i), y: y(history[i]!.value) }));
 
-  ctx.fillStyle = "#6b7280";
+  ctx.fillStyle = "#64748b";
   ctx.font = `${a.fontSizeX}px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
@@ -329,8 +329,8 @@ onMounted(async () => {
   pointer-events: none;
   position: absolute;
   border-radius: 0.5rem;
-  border: 1px solid #e5e7eb;
-  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.97);
   padding: 0.5rem 0.75rem;
   font-size: 0.75rem;
   line-height: 1.25;

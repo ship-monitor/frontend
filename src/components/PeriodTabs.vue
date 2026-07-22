@@ -5,7 +5,7 @@
         v-for="period in periods"
         :key="period.value"
         variant="secondary"
-        :class="selectedPeriod === period.value ? 'bg-blue-500 text-white' : ''"
+        :class="selectedPeriod === period.value ? 'bg-brand-600 text-white border-brand-600' : ''"
         @click="$emit('update:selectedPeriod', period.value)"
       >
         {{ period.label }}

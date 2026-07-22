@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
-    <div class="bg-white rounded-xl border p-6 text-center">
-      <p class="text-sm text-gray-500 mb-2">Текущая температура</p>
+    <div class="ship-card p-6 text-center">
+      <p class="text-sm text-ink-500 mb-2">Текущая температура</p>
       <transition name="temp-fade" mode="out-in">
         <div
           v-if="currentTemp"
@@ -11,7 +11,7 @@
           {{ (currentTemp.value as number).toFixed(1) + "°C" }}
         </div>
       </transition>
-      <p class="text-xs text-gray-400 mb-4">
+      <p class="text-xs text-ink-400 mb-4">
         {{ lastTempTime || "Нет данных" }}
       </p>
       <ShipButton @click="$emit('refresh')" :disabled="loading" class="px-6">
@@ -22,7 +22,7 @@
           v-if="error"
           :key="error"
           class="text-xs mt-2"
-          :class="error.includes('Ошибка') ? 'text-red-500' : 'text-gray-500'"
+          :class="error.includes('Ошибка') ? 'text-red-500' : 'text-ink-500'"
         >
           {{ error }}
         </p>
@@ -35,13 +35,13 @@
       @update:selected-period="$emit('update:period', $event)"
     />
 
-    <div class="bg-white rounded-xl border p-6">
-      <h2 class="text-lg font-semibold mb-4">График температуры</h2>
+    <div class="ship-card p-6">
+      <h2 class="text-lg font-bold text-ink-900 mb-4">График температуры</h2>
       <transition name="chart-empty-fade" mode="out-in">
         <div
           v-if="history.length === 0"
           key="empty"
-          class="text-center py-12 text-gray-500"
+          class="text-center py-12 text-ink-500"
         >
           Нет данных за выбранный период
         </div>
@@ -87,15 +87,15 @@ const periods = [
 ];
 
 const tempColor = computed(() => {
-  if (!props.isConnected) return "text-gray-400";
-  if (props.currentTemp === null) return "text-gray-400";
+  if (!props.isConnected) return "text-ink-400";
+  if (props.currentTemp === null) return "text-ink-400";
   const t = props.currentTemp.value;
   if (t < props.thresholds.min || t > props.thresholds.max)
     return "text-red-600";
   if (t < -20) return "text-blue-600";
   if (t < -10) return "text-blue-500";
   if (t < 0) return "text-cyan-500";
-  if (t < 10) return "text-green-500";
+  if (t < 10) return "text-brand-500";
   if (t < 25) return "text-lime-500";
   return "text-orange-500";
 });

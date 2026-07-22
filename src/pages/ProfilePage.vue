@@ -1,33 +1,36 @@
 <template>
-  <div class="max-w-lg mx-auto p-4 sm:p-6">
-    <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-6">Профиль</h1>
+  <div class="max-w-lg mx-auto space-y-5 animate-fade-in">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">Профиль</h1>
+      <p class="text-sm text-ink-500 mt-0.5">Управление аккаунтом</p>
+    </div>
     <div>
       <p v-if="error">{{ error }}</p>
     </div>
 
     <!-- Информация о пользователе -->
-    <div class="bg-white rounded-xl border p-5 sm:p-6 mb-6" v-if="user">
-      <h2 class="text-base font-semibold text-gray-800 mb-4">Информация</h2>
+    <div class="ship-card p-5 sm:p-6 animate-fade-in-up" v-if="user">
+      <h2 class="text-base font-semibold text-ink-900 mb-4">Информация</h2>
       <div class="space-y-4">
         <div>
-          <label class="block text-xs text-gray-500 mb-0.5">Имя</label>
-          <p class="text-sm font-medium text-gray-800">
+          <label class="block text-xs text-ink-400 mb-0.5">Имя</label>
+          <p class="text-sm font-medium text-ink-800">
             {{ user?.name || "Не указано" }}
           </p>
         </div>
         <div>
-          <label class="block text-xs text-gray-500 mb-0.5">Email</label>
+          <label class="block text-xs text-ink-400 mb-0.5">Email</label>
           <div class="flex items-center gap-2">
-            <p class="text-sm font-medium text-gray-800">{{ user?.email }}</p>
+            <p class="text-sm font-medium text-ink-800">{{ user?.email }}</p>
             <span
               v-if="user?.emailVerified"
-              class="px-2 py-0.5 bg-green-50 text-green-600 rounded-full text-xs font-medium"
+              class="ship-badge ship-badge-success"
             >
               Подтверждён
             </span>
             <span
               v-else
-              class="px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-xs font-medium"
+              class="ship-badge ship-badge-danger"
             >
               Не подтверждён
             </span>
@@ -37,14 +40,14 @@
           <button
             @click="handleConfirmEmail"
             :disabled="sendingConfirmation"
-            class="px-3 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 touch-target"
+            class="inline-flex items-center gap-2 px-4 py-2.5 text-sm bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:opacity-50 touch-target transition-colors font-medium"
           >
             {{ sendingConfirmation ? "Отправка..." : "Подтвердить почту" }}
           </button>
-          <p v-if="confirmEmailSuccess" class="text-green-600 text-xs mt-1.5">
+          <p v-if="confirmEmailSuccess" class="text-brand-600 text-xs mt-2">
             {{ confirmEmailSuccess }}
           </p>
-          <p v-if="confirmEmailError" class="text-red-600 text-xs mt-1.5">
+          <p v-if="confirmEmailError" class="text-red-500 text-xs mt-2">
             {{ confirmEmailError }}
           </p>
         </div>
@@ -52,8 +55,8 @@
     </div>
 
     <!-- Изменение email -->
-    <div class="bg-white rounded-xl border p-5 sm:p-6 mb-6">
-      <h2 class="text-base font-semibold text-gray-800 mb-4">Изменить email</h2>
+    <div class="ship-card p-5 sm:p-6 animate-fade-in-up delay-100">
+      <h2 class="text-base font-semibold text-ink-900 mb-4">Изменить email</h2>
       <div class="space-y-3">
         <ShipTextbox
           v-model="newEmail"
@@ -64,7 +67,7 @@
         />
         <button
           @click="handleUpdateEmail"
-          class="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-medium text-sm touch-target"
+          class="w-full px-4 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:opacity-50 font-medium text-sm touch-target transition-colors"
           :disabled="!newEmail.trim() || updatingEmail"
         >
           {{ updatingEmail ? "Сохранение..." : "Обновить email" }}
@@ -73,14 +76,14 @@
       <p v-if="emailError" class="text-red-500 text-xs mt-2">
         {{ emailError }}
       </p>
-      <p v-if="emailSuccess" class="text-green-500 text-xs mt-2">
+      <p v-if="emailSuccess" class="text-brand-600 text-xs mt-2">
         {{ emailSuccess }}
       </p>
     </div>
 
     <!-- Изменение пароля -->
-    <div class="bg-white rounded-xl border p-5 sm:p-6">
-      <h2 class="text-base font-semibold text-gray-800 mb-4">
+    <div class="ship-card p-5 sm:p-6 animate-fade-in-up delay-200">
+      <h2 class="text-base font-semibold text-ink-900 mb-4">
         Изменить пароль
       </h2>
       <div class="space-y-3">
@@ -91,7 +94,7 @@
         />
         <button
           @click="handleUpdatePassword"
-          class="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 font-medium text-sm touch-target"
+          class="w-full px-4 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:opacity-50 font-medium text-sm touch-target transition-colors"
           :disabled="!newPassword.trim() || updatingPassword"
         >
           {{ updatingPassword ? "Сохранение..." : "Обновить пароль" }}
@@ -100,7 +103,7 @@
       <p v-if="passwordError" class="text-red-500 text-xs mt-2">
         {{ passwordError }}
       </p>
-      <p v-if="passwordSuccess" class="text-green-500 text-xs mt-2">
+      <p v-if="passwordSuccess" class="text-brand-600 text-xs mt-2">
         {{ passwordSuccess }}
       </p>
     </div>

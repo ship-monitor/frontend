@@ -1,13 +1,13 @@
 <template>
   <transition name="tag-fade" mode="out-in">
     <span
-      class="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm flex items-center gap-1.5"
+      class="px-3 py-1.5 bg-brand-50 text-brand-700 rounded-lg text-sm flex items-center gap-1.5 ring-1 ring-inset ring-brand-200"
     >
       {{ tag }}
       <button
         type="button"
         @click="$emit('remove')"
-        class="text-blue-400 hover:text-red-500 transition-colors ml-0.5"
+        class="text-brand-400 hover:text-red-500 transition-colors ml-0.5"
       >
         <svg
           class="w-3.5 h-3.5"

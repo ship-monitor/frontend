@@ -1,12 +1,12 @@
 <template>
   <transition name="tab-fade" mode="out-in">
     <div class="space-y-6">
-      <div class="bg-white rounded-xl border p-6">
-        <h2 class="text-lg font-semibold mb-6">Настройки устройства</h2>
+      <div class="ship-card p-6">
+        <h2 class="text-lg font-bold text-ink-900 mb-6">Настройки устройства</h2>
 
         <div class="space-y-6">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5"
+            <label class="block text-sm font-medium text-ink-700 mb-1.5"
               >Название устройства</label
             >
             <ShipInput
@@ -17,7 +17,7 @@
             />
           </div>
 
-          <div class="flex justify-end gap-3 pt-4 border-t">
+          <div class="flex justify-end gap-3 pt-4 border-t border-ink-100">
             <ShipButton variant="secondary" @click="$emit('cancel')">
               Отмена
             </ShipButton>

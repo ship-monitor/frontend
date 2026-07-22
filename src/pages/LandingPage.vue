@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen bg-linear-to-br from-blue-50 via-white to-cyan-50">
+  <div class="min-h-screen bg-linear-to-br from-brand-50 via-white to-brand-50">
     <!-- ====== Хедер с логотипом ====== -->
     <header
-      class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50"
+      class="bg-white/80 backdrop-blur-md border-b border-ink-200 sticky top-0 z-50"
     >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center py-3 sm:py-4">
@@ -22,13 +22,13 @@
             <template v-if="!isAuthenticated">
               <router-link
                 :to="ROUTES.LOGIN"
-                class="text-sm sm:text-base px-3 sm:px-4 py-2 text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                class="text-sm sm:text-base px-3 sm:px-4 py-2 text-ink-700 hover:text-brand-600 transition-colors font-medium"
               >
                 Войти
               </router-link>
               <router-link
                 :to="ROUTES.REGISTER"
-                class="text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-2.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium whitespace-nowrap"
+                class="text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-2.5 bg-linear-to-r from-brand-600 to-brand-700 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium whitespace-nowrap"
               >
                 Регистрация
               </router-link>
@@ -36,7 +36,7 @@
             <template v-else>
               <router-link
                 :to="ROUTES.DASHBOARD"
-                class="text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-2.5 bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium whitespace-nowrap"
+                class="text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-2.5 bg-linear-to-r from-brand-600 to-brand-700 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium whitespace-nowrap"
               >
                 К мониторингу
               </router-link>
@@ -53,31 +53,31 @@
       >
         <div class="text-center">
           <div
-            class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-xs sm:text-sm font-medium mb-6 sm:mb-8"
+            class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-brand-100 text-brand-700 rounded-full text-xs sm:text-sm font-medium mb-6 sm:mb-8"
           >
             <span class="relative flex h-2 w-2 sm:h-3 sm:w-3">
               <span
-                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"
+                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"
               ></span>
               <span
-                class="relative inline-flex rounded-full h-2 w-2 sm:h-3 sm:w-3 bg-blue-500"
+                class="relative inline-flex rounded-full h-2 w-2 sm:h-3 sm:w-3 bg-brand-500"
               ></span>
             </span>
             <span class="whitespace-nowrap">Мониторинг 24/7</span>
           </div>
 
           <h1
-            class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tight"
+            class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-ink-900 tracking-tight"
           >
             Система мониторинга
             <span
-              class="block text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-cyan-500"
+              class="block text-transparent bg-clip-text bg-linear-to-r from-brand-500 to-brand-400"
             >
               холодильного оборудования
             </span>
           </h1>
           <p
-            class="mt-4 sm:mt-6 max-w-2xl mx-auto text-base sm:text-lg lg:text-xl text-gray-600 leading-relaxed px-4"
+            class="mt-4 sm:mt-6 max-w-2xl mx-auto text-base sm:text-lg lg:text-xl text-ink-600 leading-relaxed px-4"
           >
             Контролируйте температуру в холодильных камерах 24/7. Получайте
             мгновенные SMS-уведомления при авариях, даже без интернета.
@@ -90,7 +90,7 @@
             <template v-if="!isAuthenticated">
               <router-link
                 :to="ROUTES.REGISTER"
-                class="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium rounded-xl text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                class="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium rounded-xl text-white bg-linear-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
               >
                 Подключить мониторинг
                 <svg
@@ -109,7 +109,7 @@
               </router-link>
               <router-link
                 :to="ROUTES.LOGIN"
-                class="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium rounded-xl text-blue-700 bg-white border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
+                class="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium rounded-xl text-brand-700 bg-white border-2 border-brand-200 hover:border-brand-300 hover:bg-brand-50 transition-all duration-200"
               >
                 Войти в систему
               </router-link>
@@ -117,7 +117,7 @@
             <template v-else>
               <router-link
                 :to="ROUTES.DASHBOARD"
-                class="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium rounded-xl text-white bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                class="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-medium rounded-xl text-white bg-linear-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
               >
                 К мониторингу
                 <svg
@@ -144,17 +144,17 @@
     <section class="py-12 sm:py-20 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10 sm:mb-16">
-          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-ink-900">
             Дорожная карта
           </h2>
-          <p class="mt-3 sm:mt-4 text-base sm:text-lg text-gray-600">
+          <p class="mt-3 sm:mt-4 text-base sm:text-lg text-ink-600">
             Что уже реализовано и что пока в разработке
           </p>
         </div>
 
         <div class="relative">
           <div
-            class="absolute top-0 left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-gradient-to-b from-blue-200 via-blue-300 to-blue-200 hidden lg:block"
+            class="absolute top-0 left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-gradient-to-b from-brand-200 via-brand-300 to-brand-200 hidden lg:block"
           ></div>
 
           <div class="space-y-8">
@@ -166,20 +166,20 @@
 
                 <div class="flex-1 w-full order-1 lg:order-2">
                   <div
-                    class="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300"
+                    class="bg-white rounded-2xl p-6 sm:p-8 border border-ink-200 hover:border-brand-300 hover:shadow-lg transition-all duration-300"
                   >
                     <div class="flex flex-wrap items-center gap-3 mb-3">
                       <span
-                        class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide bg-blue-100 text-blue-700"
+                        class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide bg-brand-100 text-brand-700"
                       >
                         {{ item.stage_date }}
                       </span>
                     </div>
-                    <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+                    <h3 class="text-lg sm:text-xl font-bold text-ink-900 mb-2">
                       {{ item.stage_name }}
                     </h3>
                     <p
-                      class="text-sm sm:text-base text-gray-600 leading-relaxed"
+                      class="text-sm sm:text-base text-ink-600 leading-relaxed"
                     >
                       {{ item.stage_description }}
                     </p>
@@ -197,10 +197,10 @@
         class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none"
       >
         <div
-          class="absolute -top-40 -right-40 w-60 sm:w-80 h-60 sm:h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"
+          class="absolute -top-40 -right-40 w-60 sm:w-80 h-60 sm:h-80 bg-brand-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"
         ></div>
         <div
-          class="absolute -bottom-40 -left-40 w-60 sm:w-80 h-60 sm:h-80 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"
+          class="absolute -bottom-40 -left-40 w-60 sm:w-80 h-60 sm:h-80 bg-brand-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"
         ></div>
       </div>
     </section>
@@ -209,10 +209,10 @@
     <section class="py-12 sm:py-20 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10 sm:mb-16">
-          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-ink-900">
             С какими проблемами сталкиваются владельцы холодильных складов?
           </h2>
-          <p class="mt-3 sm:mt-4 text-base sm:text-lg text-gray-600">
+          <p class="mt-3 sm:mt-4 text-base sm:text-lg text-ink-600">
             Каждая из этих проблем уже стоила кому-то бизнеса
           </p>
         </div>
@@ -241,10 +241,10 @@
                 </svg>
               </div>
               <div class="flex-1 min-w-0">
-                <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+                <h3 class="text-lg sm:text-xl font-bold text-ink-900 mb-2">
                   Полная потеря продукции из-за поломки в нерабочее время
                 </h3>
-                <p class="text-sm sm:text-base text-gray-600 leading-relaxed">
+                <p class="text-sm sm:text-base text-ink-600 leading-relaxed">
                   Ночью или в выходной день выходит из строя компрессор.
                   Персонала нет на месте. К утру понедельника вся камера
                   разморожена —
@@ -252,7 +252,7 @@
                     >убыток от 1 до 10+ миллионов рублей</span
                   >. Страховка не покрывает, виновных нет.
                 </p>
-                <div class="mt-3 flex items-center gap-2 text-green-600">
+                <div class="mt-3 flex items-center gap-2 text-brand-600">
                   <svg
                     class="w-5 h-5 shrink-0"
                     fill="none"
@@ -298,10 +298,10 @@
                 </svg>
               </div>
               <div class="flex-1 min-w-0">
-                <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+                <h3 class="text-lg sm:text-xl font-bold text-ink-900 mb-2">
                   Человеческий фактор и «забывчивость» персонала
                 </h3>
-                <p class="text-sm sm:text-base text-gray-600 leading-relaxed">
+                <p class="text-sm sm:text-base text-ink-600 leading-relaxed">
                   Сотрудник должен каждый час обходить камеры и записывать
                   температуру в журнал. На практике — записи делаются раз в
                   смену «на глаз», журналы заполняются задним числом. При
@@ -311,7 +311,7 @@
                     суток</span
                   >.
                 </p>
-                <div class="mt-3 flex items-center gap-2 text-green-600">
+                <div class="mt-3 flex items-center gap-2 text-brand-600">
                   <svg
                     class="w-5 h-5 shrink-0"
                     fill="none"
@@ -335,11 +335,11 @@
 
           <!-- Проблема 3 -->
           <div
-            class="bg-linear-to-r from-blue-50 to-white rounded-2xl p-6 sm:p-8 border border-blue-100 hover:shadow-lg transition-all duration-300"
+            class="bg-linear-to-r from-brand-50 to-white rounded-2xl p-6 sm:p-8 border border-brand-100 hover:shadow-lg transition-all duration-300"
           >
             <div class="flex flex-col sm:flex-row sm:items-start gap-4">
               <div
-                class="shrink-0 w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center"
+                class="shrink-0 w-12 h-12 bg-brand-500 rounded-xl flex items-center justify-center"
               >
                 <svg
                   class="w-6 h-6 text-white"
@@ -356,15 +356,15 @@
                 </svg>
               </div>
               <div class="flex-1 min-w-0">
-                <h3 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+                <h3 class="text-lg sm:text-xl font-bold text-ink-900 mb-2">
                   Невозможность контролировать удалённые объекты
                 </h3>
-                <p class="text-sm sm:text-base text-gray-600 leading-relaxed">
+                <p class="text-sm sm:text-base text-ink-600 leading-relaxed">
                   У вас несколько складов в разных районах или городах. Чтобы
                   проверить температуру, нужно объехать все точки или постоянно
                   звонить персоналу. Нет единой картины в реальном времени.
                 </p>
-                <div class="mt-3 flex items-center gap-2 text-green-600">
+                <div class="mt-3 flex items-center gap-2 text-brand-600">
                   <svg
                     class="w-5 h-5 shrink-0"
                     fill="none"
@@ -392,7 +392,7 @@
 
     <!-- ====== Российское ПО ====== -->
     <section
-      class="py-12 sm:py-20 bg-linear-to-br from-blue-600 to-blue-800 text-white"
+      class="py-12 sm:py-20 bg-linear-to-br from-ink-900 to-ink-800 text-white"
     >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="lg:flex lg:items-center lg:gap-16">
@@ -418,7 +418,7 @@
             <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6">
               Полностью российское программное обеспечение
             </h2>
-            <div class="space-y-4 text-blue-100 leading-relaxed">
+            <div class="space-y-4 text-brand-100 leading-relaxed">
               <p>
                 В условиях санкционных ограничений и требований к
                 импортозамещению, «ШиП-монитор» разработан на базе отечественных
@@ -432,10 +432,10 @@
               <div class="grid grid-cols-2 gap-4 mt-6">
                 <div class="flex items-start gap-3">
                   <div
-                    class="shrink-0 w-6 h-6 bg-green-400 rounded-full flex items-center justify-center mt-0.5"
+                    class="shrink-0 w-6 h-6 bg-brand-400 rounded-full flex items-center justify-center mt-0.5"
                   >
                     <svg
-                      class="w-4 h-4 text-blue-900"
+                      class="w-4 h-4 text-ink-900"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -450,17 +450,17 @@
                   </div>
                   <div>
                     <p class="font-medium">Нет санкционных рисков</p>
-                    <p class="text-sm text-blue-200">
+                    <p class="text-sm text-brand-200">
                       Не зависит от иностранных лицензий
                     </p>
                   </div>
                 </div>
                 <div class="flex items-start gap-3">
                   <div
-                    class="shrink-0 w-6 h-6 bg-green-400 rounded-full flex items-center justify-center mt-0.5"
+                    class="shrink-0 w-6 h-6 bg-brand-400 rounded-full flex items-center justify-center mt-0.5"
                   >
                     <svg
-                      class="w-4 h-4 text-blue-900"
+                      class="w-4 h-4 text-ink-900"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -475,17 +475,17 @@
                   </div>
                   <div>
                     <p class="font-medium">Техподдержка 24/7</p>
-                    <p class="text-sm text-blue-200">
+                    <p class="text-sm text-brand-200">
                       На русском языке, в любом часовом поясе
                     </p>
                   </div>
                 </div>
                 <div class="flex items-start gap-3">
                   <div
-                    class="shrink-0 w-6 h-6 bg-green-400 rounded-full flex items-center justify-center mt-0.5"
+                    class="shrink-0 w-6 h-6 bg-brand-400 rounded-full flex items-center justify-center mt-0.5"
                   >
                     <svg
-                      class="w-4 h-4 text-blue-900"
+                      class="w-4 h-4 text-ink-900"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -500,17 +500,17 @@
                   </div>
                   <div>
                     <p class="font-medium">Соответствие законам РФ</p>
-                    <p class="text-sm text-blue-200">
+                    <p class="text-sm text-brand-200">
                       152-ФЗ, требования СЭС, ХАССП
                     </p>
                   </div>
                 </div>
                 <div class="flex items-start gap-3">
                   <div
-                    class="shrink-0 w-6 h-6 bg-green-400 rounded-full flex items-center justify-center mt-0.5"
+                    class="shrink-0 w-6 h-6 bg-brand-400 rounded-full flex items-center justify-center mt-0.5"
                   >
                     <svg
-                      class="w-4 h-4 text-blue-900"
+                      class="w-4 h-4 text-ink-900"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -525,7 +525,7 @@
                   </div>
                   <div>
                     <p class="font-medium">Хранение данных в РФ</p>
-                    <p class="text-sm text-blue-200">
+                    <p class="text-sm text-brand-200">
                       Серверы на территории России
                     </p>
                   </div>
@@ -542,35 +542,35 @@
                 <div
                   class="flex items-center justify-between py-3 border-b border-white/10"
                 >
-                  <span class="text-blue-200">Фронтенд</span>
+                  <span class="text-brand-200">Фронтенд</span>
                   <span class="font-medium">Vue 3, TypeScript</span>
                 </div>
                 <div
                   class="flex items-center justify-between py-3 border-b border-white/10"
                 >
-                  <span class="text-blue-200">Бэкенд</span>
+                  <span class="text-brand-200">Бэкенд</span>
                   <span class="font-medium">Node.js, PostgreSQL</span>
                 </div>
                 <div
                   class="flex items-center justify-between py-3 border-b border-white/10"
                 >
-                  <span class="text-blue-200">Инфраструктура</span>
+                  <span class="text-brand-200">Инфраструктура</span>
                   <span class="font-medium">Docker, Linux</span>
                 </div>
                 <div
                   class="flex items-center justify-between py-3 border-b border-white/10"
                 >
-                  <span class="text-blue-200">Связь</span>
+                  <span class="text-brand-200">Связь</span>
                   <span class="font-medium">GSM, Wi-Fi, Ethernet</span>
                 </div>
                 <div
                   class="flex items-center justify-between py-3 border-b border-white/10"
                 >
-                  <span class="text-blue-200">Протоколы</span>
+                  <span class="text-brand-200">Протоколы</span>
                   <span class="font-medium">HTTPS, MQTT, SMS</span>
                 </div>
                 <div class="flex items-center justify-between py-3">
-                  <span class="text-blue-200">Разработчик</span>
+                  <span class="text-brand-200">Разработчик</span>
                   <span class="font-medium">Россия</span>
                 </div>
               </div>
@@ -584,18 +584,18 @@
     <section class="py-12 sm:py-20 bg-white">
       <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
-          class="bg-blue-600 rounded-3xl p-8 sm:p-12 text-white shadow-2xl relative overflow-hidden"
+          class="bg-brand-600 rounded-3xl p-8 sm:p-12 text-white shadow-2xl relative overflow-hidden"
         >
           <div
-            class="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"
+            class="absolute top-0 right-0 w-64 h-64 bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"
           ></div>
           <div
-            class="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 translate-y-1/2 -translate-x-1/2"
+            class="absolute bottom-0 left-0 w-64 h-64 bg-brand-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 translate-y-1/2 -translate-x-1/2"
           ></div>
 
           <div class="relative z-10 text-center mb-10">
             <h2 class="text-3xl sm:text-4xl font-bold mb-4">Оставить заявку</h2>
-            <p class="text-blue-100 text-lg">
+            <p class="text-brand-100 text-lg">
               Оставьте заявку, и мы свяжемся с вами в ближайшее время
             </p>
           </div>
@@ -605,7 +605,7 @@
               <div>
                 <label
                   for="person_name"
-                  class="block text-sm font-medium text-blue-200 mb-2"
+                  class="block text-sm font-medium text-brand-200 mb-2"
                   >Имя *</label
                 >
                 <input
@@ -616,7 +616,7 @@
                     'w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all',
                     formErrors.person_name
                       ? 'border-red-300 bg-red-50 focus:ring-red-200'
-                      : 'border-blue-400 bg-white/10 focus:ring-white/50 focus:border-white',
+                      : 'border-brand-400 bg-white/10 focus:ring-white/50 focus:border-white',
                     formStatus === 'loading'
                       ? 'opacity-50 cursor-not-allowed'
                       : '',
@@ -635,7 +635,7 @@
               <div>
                 <label
                   for="phone"
-                  class="block text-sm font-medium text-blue-200 mb-2"
+                  class="block text-sm font-medium text-brand-200 mb-2"
                   >Телефон *</label
                 >
                 <input
@@ -646,7 +646,7 @@
                     'w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all',
                     formErrors.phone
                       ? 'border-red-300 bg-red-50 focus:ring-red-200'
-                      : 'border-blue-400 bg-white/10 focus:ring-white/50 focus:border-white',
+                      : 'border-brand-400 bg-white/10 focus:ring-white/50 focus:border-white',
                     formStatus === 'loading'
                       ? 'opacity-50 cursor-not-allowed'
                       : '',
@@ -662,7 +662,7 @@
               <div>
                 <label
                   for="email"
-                  class="block text-sm font-medium text-blue-200 mb-2"
+                  class="block text-sm font-medium text-brand-200 mb-2"
                   >Email *</label
                 >
                 <input
@@ -673,7 +673,7 @@
                     'w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all',
                     formErrors.email
                       ? 'border-red-300 bg-red-50 focus:ring-red-200'
-                      : 'border-blue-400 bg-white/10 focus:ring-white/50 focus:border-white',
+                      : 'border-brand-400 bg-white/10 focus:ring-white/50 focus:border-white',
                     formStatus === 'loading'
                       ? 'opacity-50 cursor-not-allowed'
                       : '',
@@ -690,7 +690,7 @@
             <div>
               <label
                 for="company_name"
-                class="block text-sm font-medium text-blue-200 mb-2"
+                class="block text-sm font-medium text-brand-200 mb-2"
                 >Название компании *</label
               >
               <input
@@ -701,7 +701,7 @@
                   'w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all',
                   formErrors.company_name
                     ? 'border-red-300 bg-red-50 focus:ring-red-200'
-                    : 'border-blue-400 bg-white/10 focus:ring-white/50 focus:border-white',
+                    : 'border-brand-400 bg-white/10 focus:ring-white/50 focus:border-white',
                   formStatus === 'loading'
                     ? 'opacity-50 cursor-not-allowed'
                     : '',
@@ -720,7 +720,7 @@
             <div>
               <label
                 for="refrigerators_count"
-                class="block text-sm font-medium text-blue-200 mb-2"
+                class="block text-sm font-medium text-brand-200 mb-2"
                 >Количество холодильных камер *</label
               >
               <input
@@ -732,7 +732,7 @@
                   'w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all',
                   formErrors.refrigerators_count
                     ? 'border-red-300 bg-red-50 focus:ring-red-200'
-                    : 'border-blue-400 bg-white/10 focus:ring-white/50 focus:border-white',
+                    : 'border-brand-400 bg-white/10 focus:ring-white/50 focus:border-white',
                   formStatus === 'loading'
                     ? 'opacity-50 cursor-not-allowed'
                     : '',
@@ -751,7 +751,7 @@
             <div>
               <label
                 for="comment"
-                class="block text-sm font-medium text-blue-200 mb-2"
+                class="block text-sm font-medium text-brand-200 mb-2"
                 >Комментарий</label
               >
               <textarea
@@ -762,7 +762,7 @@
                   'h-24',
                   formErrors.comment
                     ? 'border-red-300 bg-red-50 focus:ring-red-200'
-                    : 'border-blue-400 bg-white/10 focus:ring-white/50 focus:border-white',
+                    : 'border-brand-400 bg-white/10 focus:ring-white/50 focus:border-white',
                   formStatus === 'loading'
                     ? 'opacity-50 cursor-not-allowed'
                     : '',
@@ -782,7 +782,7 @@
                     'w-4 h-4 rounded border-2 focus:ring-0 focus:ring-offset-0 cursor-pointer',
                     formErrors.personal_data_agreement
                       ? 'border-red-300'
-                      : 'border-blue-400',
+                      : 'border-brand-400',
                     formStatus === 'loading'
                       ? 'opacity-50 cursor-not-allowed'
                       : '',
@@ -792,10 +792,10 @@
               </div>
               <label
                 for="personal_data_agreement"
-                class="text-sm text-blue-100 leading-tight cursor-pointer"
+                class="text-sm text-brand-100 leading-tight cursor-pointer"
               >
                 Согласен на обработку персональных данных в соответствии с
-                <a href="#" class="text-white hover:text-blue-200 underline"
+                <a href="#" class="text-white hover:text-brand-200 underline"
                   >политикой конфиденциальности</a
                 >
                 *
@@ -810,10 +810,10 @@
 
             <template v-if="formStatus === 'success'">
               <div
-                class="bg-green-500/20 border border-green-400/50 rounded-xl p-4 text-center animate-fade-in"
+                class="bg-brand-500/20 border border-brand-400/50 rounded-xl p-4 text-center animate-fade-in"
               >
                 <div
-                  class="flex items-center justify-center gap-2 text-green-300 mb-2"
+                  class="flex items-center justify-center gap-2 text-brand-300 mb-2"
                 >
                   <svg
                     class="w-6 h-6"
@@ -830,7 +830,7 @@
                   </svg>
                   <span class="font-semibold">Заявка успешно отправлена!</span>
                 </div>
-                <p class="text-green-200 text-sm">
+                <p class="text-brand-200 text-sm">
                   Мы свяжемся с вами в ближайшее время
                 </p>
               </div>
@@ -841,8 +841,8 @@
               :class="[
                 'w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 transform active:scale-[0.98]',
                 formStatus === 'loading'
-                  ? 'bg-blue-400 cursor-not-allowed'
-                  : 'bg-white text-blue-700 hover:bg-blue-50 hover:shadow-lg',
+                  ? 'bg-brand-400 cursor-not-allowed'
+                  : 'bg-white text-brand-700 hover:bg-brand-50 hover:shadow-lg',
                 formStatus === 'success' || formStatus === 'error'
                   ? 'hidden'
                   : '',
@@ -879,13 +879,13 @@
     </section>
 
     <!-- ====== Технологии ====== -->
-    <section class="py-12 sm:py-20 bg-gray-50">
+    <section class="py-12 sm:py-20 bg-ink-50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10 sm:mb-16">
-          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-ink-900">
             Технологии, на которых построена система
           </h2>
-          <p class="mt-3 sm:mt-4 text-base sm:text-lg text-gray-600">
+          <p class="mt-3 sm:mt-4 text-base sm:text-lg text-ink-600">
             Надёжное промышленное решение
           </p>
         </div>
@@ -893,13 +893,13 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           <!-- Аппаратная часть -->
           <div
-            class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200"
+            class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-ink-200"
           >
             <h3
-              class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3"
+              class="text-xl sm:text-2xl font-bold text-ink-900 mb-6 flex items-center gap-3"
             >
               <span
-                class="w-10 h-10 bg-linear-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center"
+                class="w-10 h-10 bg-linear-to-br from-brand-600 to-brand-700 rounded-xl flex items-center justify-center"
               >
                 <svg
                   class="w-6 h-6 text-white"
@@ -921,10 +921,10 @@
             <div class="space-y-3">
               <div class="flex items-start gap-3">
                 <div
-                  class="shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5"
+                  class="shrink-0 w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center mt-0.5"
                 >
                   <svg
-                    class="w-4 h-4 text-green-600"
+                    class="w-4 h-4 text-brand-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -938,10 +938,10 @@
                   </svg>
                 </div>
                 <div>
-                  <p class="font-semibold text-gray-900">
+                  <p class="font-semibold text-ink-900">
                     Вычислительное ядро:
                   </p>
-                  <p class="text-sm text-gray-600">
+                  <p class="text-sm text-ink-600">
                     Orange Pi — проверенный промышленный контроллер
                   </p>
                 </div>
@@ -949,10 +949,10 @@
 
               <div class="flex items-start gap-3">
                 <div
-                  class="shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5"
+                  class="shrink-0 w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center mt-0.5"
                 >
                   <svg
-                    class="w-4 h-4 text-green-600"
+                    class="w-4 h-4 text-brand-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -966,8 +966,8 @@
                   </svg>
                 </div>
                 <div>
-                  <p class="font-semibold text-gray-900">Связь:</p>
-                  <p class="text-sm text-gray-600">
+                  <p class="font-semibold text-ink-900">Связь:</p>
+                  <p class="text-sm text-ink-600">
                     GSM-модуль для SMS-уведомлений. Работает без интернета и
                     Wi-Fi
                   </p>
@@ -976,10 +976,10 @@
 
               <div class="flex items-start gap-3">
                 <div
-                  class="shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5"
+                  class="shrink-0 w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center mt-0.5"
                 >
                   <svg
-                    class="w-4 h-4 text-green-600"
+                    class="w-4 h-4 text-brand-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -993,8 +993,8 @@
                   </svg>
                 </div>
                 <div>
-                  <p class="font-semibold text-gray-900">Датчики:</p>
-                  <p class="text-sm text-gray-600">
+                  <p class="font-semibold text-ink-900">Датчики:</p>
+                  <p class="text-sm text-ink-600">
                     Выносные цифровые термодатчики. Длина кабеля до 5 метров
                   </p>
                 </div>
@@ -1002,10 +1002,10 @@
 
               <div class="flex items-start gap-3">
                 <div
-                  class="shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5"
+                  class="shrink-0 w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center mt-0.5"
                 >
                   <svg
-                    class="w-4 h-4 text-green-600"
+                    class="w-4 h-4 text-brand-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1019,8 +1019,8 @@
                   </svg>
                 </div>
                 <div>
-                  <p class="font-semibold text-gray-900">Питание:</p>
-                  <p class="text-sm text-gray-600">
+                  <p class="font-semibold text-ink-900">Питание:</p>
+                  <p class="text-sm text-ink-600">
                     5V, стандартный блок питания. Потребление менее 5 Вт
                   </p>
                 </div>
@@ -1028,10 +1028,10 @@
 
               <div class="flex items-start gap-3">
                 <div
-                  class="shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5"
+                  class="shrink-0 w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center mt-0.5"
                 >
                   <svg
-                    class="w-4 h-4 text-green-600"
+                    class="w-4 h-4 text-brand-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1045,8 +1045,8 @@
                   </svg>
                 </div>
                 <div>
-                  <p class="font-semibold text-gray-900">Корпус:</p>
-                  <p class="text-sm text-gray-600">
+                  <p class="font-semibold text-ink-900">Корпус:</p>
+                  <p class="text-sm text-ink-600">
                     Промышленный пластиковый бокс, защита IP54
                   </p>
                 </div>
@@ -1056,13 +1056,13 @@
 
           <!-- Программная часть -->
           <div
-            class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200"
+            class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-ink-200"
           >
             <h3
-              class="text-xl sm:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3"
+              class="text-xl sm:text-2xl font-bold text-ink-900 mb-6 flex items-center gap-3"
             >
               <span
-                class="w-10 h-10 bg-linear-to-br from-cyan-500 to-cyan-600 rounded-xl flex items-center justify-center"
+                class="w-10 h-10 bg-linear-to-br from-brand-400 to-brand-500 rounded-xl flex items-center justify-center"
               >
                 <svg
                   class="w-6 h-6 text-white"
@@ -1084,10 +1084,10 @@
             <div class="space-y-3">
               <div class="flex items-start gap-3">
                 <div
-                  class="shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5"
+                  class="shrink-0 w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center mt-0.5"
                 >
                   <svg
-                    class="w-4 h-4 text-blue-600"
+                    class="w-4 h-4 text-brand-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1101,8 +1101,8 @@
                   </svg>
                 </div>
                 <div>
-                  <p class="font-semibold text-gray-900">Стек технологий:</p>
-                  <p class="text-sm text-gray-600">
+                  <p class="font-semibold text-ink-900">Стек технологий:</p>
+                  <p class="text-sm text-ink-600">
                     Vue 3, TypeScript, Node.js, PostgreSQL, Docker
                   </p>
                 </div>
@@ -1110,10 +1110,10 @@
 
               <div class="flex items-start gap-3">
                 <div
-                  class="shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5"
+                  class="shrink-0 w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center mt-0.5"
                 >
                   <svg
-                    class="w-4 h-4 text-blue-600"
+                    class="w-4 h-4 text-brand-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1127,8 +1127,8 @@
                   </svg>
                 </div>
                 <div>
-                  <p class="font-semibold text-gray-900">Визуализация:</p>
-                  <p class="text-sm text-gray-600">
+                  <p class="font-semibold text-ink-900">Визуализация:</p>
+                  <p class="text-sm text-ink-600">
                     Графики температуры в реальном времени с историей за любой
                     период
                   </p>
@@ -1137,10 +1137,10 @@
 
               <div class="flex items-start gap-3">
                 <div
-                  class="shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5"
+                  class="shrink-0 w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center mt-0.5"
                 >
                   <svg
-                    class="w-4 h-4 text-blue-600"
+                    class="w-4 h-4 text-brand-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1154,8 +1154,8 @@
                   </svg>
                 </div>
                 <div>
-                  <p class="font-semibold text-gray-900">Уведомления:</p>
-                  <p class="text-sm text-gray-600">
+                  <p class="font-semibold text-ink-900">Уведомления:</p>
+                  <p class="text-sm text-ink-600">
                     Push-уведомления в браузере + SMS через GSM-модуль
                     (дублирование)
                   </p>
@@ -1164,10 +1164,10 @@
 
               <div class="flex items-start gap-3">
                 <div
-                  class="shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5"
+                  class="shrink-0 w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center mt-0.5"
                 >
                   <svg
-                    class="w-4 h-4 text-blue-600"
+                    class="w-4 h-4 text-brand-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1181,8 +1181,8 @@
                   </svg>
                 </div>
                 <div>
-                  <p class="font-semibold text-gray-900">Отчётность:</p>
-                  <p class="text-sm text-gray-600">
+                  <p class="font-semibold text-ink-900">Отчётность:</p>
+                  <p class="text-sm text-ink-600">
                     Автоматическая генерация журналов температуры для СЭС
                   </p>
                 </div>
@@ -1190,10 +1190,10 @@
 
               <div class="flex items-start gap-3">
                 <div
-                  class="shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mt-0.5"
+                  class="shrink-0 w-6 h-6 bg-brand-100 rounded-full flex items-center justify-center mt-0.5"
                 >
                   <svg
-                    class="w-4 h-4 text-blue-600"
+                    class="w-4 h-4 text-brand-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1207,8 +1207,8 @@
                   </svg>
                 </div>
                 <div>
-                  <p class="font-semibold text-gray-900">Доступ:</p>
-                  <p class="text-sm text-gray-600">
+                  <p class="font-semibold text-ink-900">Доступ:</p>
+                  <p class="text-sm text-ink-600">
                     Мультипользовательский (директор, менеджер, холодильщик). С
                     любого устройства
                   </p>
@@ -1224,10 +1224,10 @@
     <section class="py-12 sm:py-20 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10 sm:mb-16">
-          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-ink-900">
             Сколько стоит ваша уверенность?
           </h2>
-          <p class="mt-3 sm:mt-4 text-base sm:text-lg text-gray-600">
+          <p class="mt-3 sm:mt-4 text-base sm:text-lg text-ink-600">
             Прозрачные цены. Никаких скрытых платежей.
           </p>
         </div>
@@ -1237,36 +1237,36 @@
         >
           <!-- Тариф Базовый -->
           <div
-            class="bg-white rounded-2xl border-2 border-gray-200 p-6 sm:p-8 hover:border-blue-300 transition-all duration-300"
+            class="bg-white rounded-2xl border-2 border-ink-200 p-6 sm:p-8 hover:border-brand-300 transition-all duration-300"
           >
             <div class="text-center">
-              <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+              <h3 class="text-xl sm:text-2xl font-bold text-ink-900 mb-2">
                 Стартовый
               </h3>
-              <p class="text-sm text-gray-600 mb-6">
+              <p class="text-sm text-ink-600 mb-6">
                 Для небольших складов (1-3 камеры)
               </p>
 
               <div class="mb-6">
-                <span class="text-4xl sm:text-5xl font-extrabold text-gray-900"
+                <span class="text-4xl sm:text-5xl font-extrabold text-ink-900"
                   >25 000 ₽</span
                 >
-                <span class="text-gray-500 text-sm ml-1">/контроллер</span>
+                <span class="text-ink-500 text-sm ml-1">/контроллер</span>
               </div>
 
-              <div class="bg-blue-50 rounded-xl p-4 mb-6">
-                <p class="text-2xl font-bold text-blue-700">
-                  1 500 ₽<span class="text-sm font-normal text-blue-600"
+              <div class="bg-brand-50 rounded-xl p-4 mb-6">
+                <p class="text-2xl font-bold text-brand-700">
+                  1 500 ₽<span class="text-sm font-normal text-brand-600"
                     >/мес</span
                   >
                 </p>
-                <p class="text-xs text-blue-600 mt-1">Подписка на сервис</p>
+                <p class="text-xs text-brand-600 mt-1">Подписка на сервис</p>
               </div>
 
               <ul class="space-y-3 text-left mb-8">
                 <li class="flex items-start gap-2 text-sm">
                   <svg
-                    class="w-5 h-5 text-green-500 shrink-0 mt-0.5"
+                    class="w-5 h-5 text-brand-500 shrink-0 mt-0.5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1282,7 +1282,7 @@
                 </li>
                 <li class="flex items-start gap-2 text-sm">
                   <svg
-                    class="w-5 h-5 text-green-500 shrink-0 mt-0.5"
+                    class="w-5 h-5 text-brand-500 shrink-0 mt-0.5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1298,7 +1298,7 @@
                 </li>
                 <li class="flex items-start gap-2 text-sm">
                   <svg
-                    class="w-5 h-5 text-green-500 shrink-0 mt-0.5"
+                    class="w-5 h-5 text-brand-500 shrink-0 mt-0.5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1317,7 +1317,7 @@
               <template v-if="!isAuthenticated">
                 <router-link
                   :to="ROUTES.REGISTER"
-                  class="block w-full py-3 px-6 text-center bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium"
+                  class="block w-full py-3 px-6 text-center bg-linear-to-r from-brand-600 to-brand-700 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium"
                 >
                   Подключить
                 </router-link>
@@ -1325,7 +1325,7 @@
               <template v-else>
                 <router-link
                   :to="ROUTES.ORGANIZATIONS"
-                  class="block w-full py-3 px-6 text-center bg-linear-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium"
+                  class="block w-full py-3 px-6 text-center bg-linear-to-r from-brand-600 to-brand-700 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium"
                 >
                   Мои организации
                 </router-link>
@@ -1335,17 +1335,17 @@
 
           <!-- Тариф Корпоративный -->
           <div
-            class="bg-linear-to-br from-gray-900 to-gray-800 rounded-2xl p-6 sm:p-8 text-white transform scale-100 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden"
+            class="bg-linear-to-br from-ink-900 to-ink-800 rounded-2xl p-6 sm:p-8 text-white transform scale-100 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden"
           >
             <div
-              class="absolute top-4 right-4 bg-linear-to-r from-yellow-400 to-orange-500 text-gray-900 text-xs font-bold px-3 py-1 rounded-full"
+              class="absolute top-4 right-4 bg-linear-to-r from-yellow-400 to-orange-500 text-ink-900 text-xs font-bold px-3 py-1 rounded-full"
             >
               Популярный
             </div>
 
             <div class="text-center">
               <h3 class="text-xl sm:text-2xl font-bold mb-2">Корпоративный</h3>
-              <p class="text-sm text-gray-400 mb-6">
+              <p class="text-sm text-ink-400 mb-6">
                 Для распределительных центров (4+ камер)
               </p>
 
@@ -1353,27 +1353,27 @@
                 <span class="text-4xl sm:text-5xl font-extrabold"
                   >23 000 ₽</span
                 >
-                <span class="text-gray-400 text-sm ml-1">/контроллер</span>
-                <p class="text-xs text-green-400 mt-1">
+                <span class="text-ink-400 text-sm ml-1">/контроллер</span>
+                <p class="text-xs text-brand-400 mt-1">
                   Экономия 2 000 ₽ с каждого
                 </p>
               </div>
 
               <div class="bg-white/10 rounded-xl p-4 mb-6">
-                <p class="text-2xl font-bold text-cyan-400">
-                  1 200 ₽<span class="text-sm font-normal text-gray-400"
+                <p class="text-2xl font-bold text-brand-300">
+                  1 200 ₽<span class="text-sm font-normal text-ink-400"
                     >/мес</span
                   >
                 </p>
-                <p class="text-xs text-gray-400 mt-1">
+                <p class="text-xs text-ink-400 mt-1">
                   Подписка при 4+ контроллерах
                 </p>
               </div>
 
               <ul class="space-y-3 text-left mb-8">
-                <li class="flex items-start gap-2 text-sm text-gray-300">
+                <li class="flex items-start gap-2 text-sm text-ink-300">
                   <svg
-                    class="w-5 h-5 text-green-400 shrink-0 mt-0.5"
+                    class="w-5 h-5 text-brand-400 shrink-0 mt-0.5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1387,9 +1387,9 @@
                   </svg>
                   <span>Всё из «Стартового»</span>
                 </li>
-                <li class="flex items-start gap-2 text-sm text-gray-300">
+                <li class="flex items-start gap-2 text-sm text-ink-300">
                   <svg
-                    class="w-5 h-5 text-green-400 shrink-0 mt-0.5"
+                    class="w-5 h-5 text-brand-400 shrink-0 mt-0.5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1403,9 +1403,9 @@
                   </svg>
                   <span>Мультипользовательский доступ</span>
                 </li>
-                <li class="flex items-start gap-2 text-sm text-gray-300">
+                <li class="flex items-start gap-2 text-sm text-ink-300">
                   <svg
-                    class="w-5 h-5 text-green-400 shrink-0 mt-0.5"
+                    class="w-5 h-5 text-brand-400 shrink-0 mt-0.5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1419,9 +1419,9 @@
                   </svg>
                   <span>Приоритетная поддержка 24/7</span>
                 </li>
-                <li class="flex items-start gap-2 text-sm text-gray-300">
+                <li class="flex items-start gap-2 text-sm text-ink-300">
                   <svg
-                    class="w-5 h-5 text-green-400 shrink-0 mt-0.5"
+                    class="w-5 h-5 text-brand-400 shrink-0 mt-0.5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1440,7 +1440,7 @@
               <template v-if="!isAuthenticated">
                 <router-link
                   :to="ROUTES.REGISTER"
-                  class="block w-full py-3 px-6 text-center bg-linear-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium"
+                  class="block w-full py-3 px-6 text-center bg-linear-to-r from-brand-400 to-brand-500 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium"
                 >
                   Получить предложение
                 </router-link>
@@ -1448,7 +1448,7 @@
               <template v-else>
                 <router-link
                   :to="ROUTES.ORGANIZATIONS"
-                  class="block w-full py-3 px-6 text-center bg-linear-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium"
+                  class="block w-full py-3 px-6 text-center bg-linear-to-r from-brand-400 to-brand-500 text-white rounded-xl hover:shadow-lg transition-all duration-200 font-medium"
                 >
                   Мои организации
                 </router-link>
@@ -1461,7 +1461,7 @@
 
     <!-- ====== О компании ====== -->
     <section
-      class="py-12 sm:py-20 bg-linear-to-br from-gray-900 to-gray-800 text-white"
+      class="py-12 sm:py-20 bg-linear-to-br from-ink-900 to-ink-800 text-white"
     >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="lg:flex lg:items-center lg:gap-16">
@@ -1470,7 +1470,7 @@
               О компании «ШиП-монитор»
             </h2>
             <div
-              class="space-y-3 sm:space-y-4 text-sm sm:text-base text-gray-300 leading-relaxed"
+              class="space-y-3 sm:space-y-4 text-sm sm:text-base text-ink-300 leading-relaxed"
             >
               <p>
                 Мы специализируемся на разработке интеллектуальных систем
@@ -1485,26 +1485,26 @@
 
               <div class="grid grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
                 <div class="text-center">
-                  <div class="text-2xl sm:text-3xl font-bold text-blue-400">
+                  <div class="text-2xl sm:text-3xl font-bold text-brand-400">
                     24/7
                   </div>
-                  <div class="text-xs sm:text-sm text-gray-400 mt-1">
+                  <div class="text-xs sm:text-sm text-ink-400 mt-1">
                     Поддержка
                   </div>
                 </div>
                 <div class="text-center">
-                  <div class="text-2xl sm:text-3xl font-bold text-blue-400">
+                  <div class="text-2xl sm:text-3xl font-bold text-brand-400">
                     99.9%
                   </div>
-                  <div class="text-xs sm:text-sm text-gray-400 mt-1">
+                  <div class="text-xs sm:text-sm text-ink-400 mt-1">
                     Uptime серверов
                   </div>
                 </div>
                 <div class="text-center">
-                  <div class="text-2xl sm:text-3xl font-bold text-blue-400">
+                  <div class="text-2xl sm:text-3xl font-bold text-brand-400">
                     500+
                   </div>
-                  <div class="text-xs sm:text-sm text-gray-400 mt-1">
+                  <div class="text-xs sm:text-sm text-ink-400 mt-1">
                     Датчиков под управлением
                   </div>
                 </div>
@@ -1522,7 +1522,7 @@
               <div class="space-y-4">
                 <div class="flex items-start gap-3">
                   <div
-                    class="shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5"
+                    class="shrink-0 w-6 h-6 bg-brand-500 rounded-full flex items-center justify-center mt-0.5"
                   >
                     <svg
                       class="w-3 h-3 sm:w-4 sm:h-4 text-white"
@@ -1542,14 +1542,14 @@
                     <p class="font-medium text-white text-sm sm:text-base">
                       Срок окупаемости для клиента
                     </p>
-                    <p class="text-xs sm:text-sm text-gray-400">
+                    <p class="text-xs sm:text-sm text-ink-400">
                       от 1 до 3 месяцев (за счёт предотвращения 1 аварии)
                     </p>
                   </div>
                 </div>
                 <div class="flex items-start gap-3">
                   <div
-                    class="shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5"
+                    class="shrink-0 w-6 h-6 bg-brand-500 rounded-full flex items-center justify-center mt-0.5"
                   >
                     <svg
                       class="w-3 h-3 sm:w-4 sm:h-4 text-white"
@@ -1569,14 +1569,14 @@
                     <p class="font-medium text-white text-sm sm:text-base">
                       Точность измерений
                     </p>
-                    <p class="text-xs sm:text-sm text-gray-400">
+                    <p class="text-xs sm:text-sm text-ink-400">
                       Погрешность не более ±0.1°C
                     </p>
                   </div>
                 </div>
                 <div class="flex items-start gap-3">
                   <div
-                    class="shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5"
+                    class="shrink-0 w-6 h-6 bg-brand-500 rounded-full flex items-center justify-center mt-0.5"
                   >
                     <svg
                       class="w-3 h-3 sm:w-4 sm:h-4 text-white"
@@ -1596,14 +1596,14 @@
                     <p class="font-medium text-white text-sm sm:text-base">
                       Время развёртывания
                     </p>
-                    <p class="text-xs sm:text-sm text-gray-400">
+                    <p class="text-xs sm:text-sm text-ink-400">
                       15 минут на подключение одного контроллера
                     </p>
                   </div>
                 </div>
                 <div class="flex items-start gap-3">
                   <div
-                    class="shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5"
+                    class="shrink-0 w-6 h-6 bg-brand-500 rounded-full flex items-center justify-center mt-0.5"
                   >
                     <svg
                       class="w-3 h-3 sm:w-4 sm:h-4 text-white"
@@ -1623,7 +1623,7 @@
                     <p class="font-medium text-white text-sm sm:text-base">
                       Масштабируемость
                     </p>
-                    <p class="text-xs sm:text-sm text-gray-400">
+                    <p class="text-xs sm:text-sm text-ink-400">
                       От 1 до 1000+ датчиков в одной системе
                     </p>
                   </div>
@@ -1637,7 +1637,7 @@
 
     <!-- ====== Footer ====== -->
     <!-- ====== Footer ====== -->
-    <footer class="bg-gray-900 border-t border-gray-800">
+    <footer class="bg-ink-900 border-t border-ink-800">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div
           class="flex flex-col md:flex-row justify-between items-center gap-4"
@@ -1651,15 +1651,15 @@
             />
           </div>
 
-          <div class="text-gray-400 text-xs sm:text-sm text-center">
+          <div class="text-ink-400 text-xs sm:text-sm text-center">
             © {{ new Date().getFullYear() }} ШиП-монитор. Все права защищены.
           </div>
 
-          <div class="text-gray-400 text-xs sm:text-sm">
+          <div class="text-ink-400 text-xs sm:text-sm">
             По вопросам:
             <a
               href="mailto:support@ship-monitor.ru"
-              class="text-blue-400 hover:text-blue-300 transition-colors"
+              class="text-brand-400 hover:text-brand-300 transition-colors"
               >support@ship-monitor.ru</a
             >
           </div>

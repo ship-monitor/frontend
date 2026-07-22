@@ -3,7 +3,7 @@
     <select
       v-model="model"
       v-bind="$attrs"
-      class="w-full px-4 py-3 border rounded-lg text-base appearance-none bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all duration-150"
+      class="ship-field appearance-none pr-10 cursor-pointer"
     >
       <option
         v-for="option in options"
@@ -14,7 +14,7 @@
       </option>
     </select>
     <svg
-      class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none transition-transform duration-200"
+      class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-400 pointer-events-none transition-transform duration-200"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"

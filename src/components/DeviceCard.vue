@@ -1,43 +1,66 @@
 <template>
-  <div v-if="loading" class="rounded-lg border grow p-4 sm:p-5 bg-white">
-    <p class="text-sm text-gray-400 text-center">Загрузка...</p>
+  <!-- Skeleton при загрузке -->
+  <div v-if="loading" class="ship-card p-4 sm:p-5">
+    <div class="flex justify-between items-start mb-4">
+      <div class="flex-1">
+        <div class="skeleton h-4 w-28 mb-2"></div>
+        <div class="skeleton h-3 w-20"></div>
+      </div>
+      <div class="skeleton h-6 w-16 rounded-full"></div>
+    </div>
+    <div class="text-center py-3">
+      <div class="skeleton h-10 w-24 mx-auto mb-2"></div>
+      <div class="skeleton h-3 w-32 mx-auto"></div>
+    </div>
   </div>
+
   <RouterLink
     v-else-if="!error && device"
     :to="route.sensorDetails(deviceId)"
-    class="rounded-lg border grow p-4 sm:p-5 hover:shadow-md transition-all active:scale-[0.98]"
-    :class="{ 'bg-gray-200': !online?.value, 'bg-white': online?.value }"
+    class="ship-card ship-card-hover p-4 sm:p-5 block active:scale-[0.98]"
+    :class="{ 'opacity-60': !online?.value }"
   >
-    <div class="flex justify-between items-start mb-3">
+    <div class="flex justify-between items-start mb-4">
       <div class="min-w-0 flex-1 mr-2">
-        <h3 class="font-semibold text-gray-800 text-sm sm:text-base truncate">
+        <h3 class="font-semibold text-ink-900 text-sm sm:text-base truncate">
           {{ device.name }}
         </h3>
-        <p class="text-xs text-gray-400 font-mono truncate">
+        <p class="text-xs text-ink-400 font-mono truncate">
           {{ device.id }}
         </p>
       </div>
-      <span :class="statusBadgeClass(online)">
+      <span :class="['ship-badge', badgeClass(online)]">
+        <span v-if="online?.value" class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>
+        <span v-else class="w-1.5 h-1.5 rounded-full bg-red-400"></span>
         {{ statusLabel(online) }}
       </span>
     </div>
 
-    <div class="text-center py-3">
-      <div class="text-3xl sm:text-4xl font-bold mb-1" :class="tempColor(temp)">
+    <div class="text-center py-2">
+      <div class="text-3xl sm:text-4xl font-bold tracking-tight" :class="tempColor(temp)">
         {{
           temp?.value !== null && temp?.value !== undefined
             ? Number(temp.value).toFixed(1) + "°C"
             : "--"
         }}
       </div>
-      <div class="text-xs text-gray-400" v-if="temp">
+      <div class="text-xs text-ink-400 mt-1" v-if="temp">
         {{ new Date(temp.timestamp).toLocaleDateString("ru") }}
         {{ new Date(temp.timestamp).toLocaleTimeString("ru") }}
       </div>
     </div>
   </RouterLink>
-  <div v-else class="rounded-lg border grow p-4 sm:p-5 bg-white">
-    <p class="text-sm text-red-500 text-center">Ошибка загрузки</p>
+
+  <!-- Ошибка -->
+  <div v-else class="ship-card p-4 sm:p-5">
+    <div class="text-center py-3">
+      <div class="w-10 h-10 mx-auto mb-2 rounded-full bg-red-50 flex items-center justify-center">
+        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <p class="text-sm text-red-500 font-medium">Ошибка загрузки</p>
+    </div>
   </div>
 </template>
 
@@ -82,13 +105,6 @@ async function loadAll() {
     temp.value = null;
   }
 
-  console.log(
-    "[DeviceCard] loaded",
-    props.deviceId,
-    device.value?.name,
-    online.value?.value,
-    temp.value?.value
-  );
   loading.value = false;
 }
 
@@ -104,33 +120,23 @@ onUnmounted(() => {
 });
 
 const tempColor = (temp: DeviceStateRecord<number> | null) => {
-  if (temp === null) return "text-gray-400";
-
-  let min = -99;
-  let max = 99;
+  if (temp === null) return "text-ink-400";
 
   const t = temp.value;
-  if (t < min || t > max) return "text-red-600";
+  if (t < -99 || t > 99) return "text-red-600";
   if (t < -20) return "text-blue-600";
   if (t < 0) return "text-cyan-500";
-  if (t < 15) return "text-green-500";
+  if (t < 15) return "text-brand-500";
   return "text-orange-500";
 };
 
 function statusLabel(record: DeviceStateRecord<boolean> | null) {
   if (!record) return "Не в сети";
-
-  if (record.value) return "В сети";
-  else return "Не в сети";
+  return record.value ? "В сети" : "Не в сети";
 }
 
-function statusBadgeClass(record: DeviceStateRecord<boolean> | null) {
-  if (!record)
-    return "px-2.5 py-1 text-xs rounded-full font-medium bg-gray-100 text-gray-600";
-
-  if (record.value)
-    return "px-2.5 py-1 text-xs rounded-full font-medium bg-green-100 text-green-800";
-  else
-    return "px-2.5 py-1 text-xs rounded-full font-medium bg-red-100 text-red-800 border border-red-200";
+function badgeClass(record: DeviceStateRecord<boolean> | null) {
+  if (!record) return "ship-badge-muted";
+  return record.value ? "ship-badge-success" : "ship-badge-danger";
 }
 </script>

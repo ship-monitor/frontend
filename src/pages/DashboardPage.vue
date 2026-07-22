@@ -1,46 +1,64 @@
 <template>
-  <div class="p-4 sm:p-6">
+  <div class="space-y-5 sm:space-y-6 animate-fade-in">
     <!-- Заголовок -->
     <div
-      class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4"
+      class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3"
     >
-      <h1 class="text-xl sm:text-2xl font-bold">Мониторинг</h1>
-      <span v-if="autoRefreshActive" class="text-xs text-gray-400"
-        >Автообновление активно</span
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">
+          Мониторинг
+        </h1>
+        <p class="text-sm text-ink-500 mt-0.5">
+          Контроль температуры в реальном времени
+        </p>
+      </div>
+      <div
+        v-if="autoRefreshActive"
+        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 text-brand-700 text-xs font-medium ring-1 ring-inset ring-brand-200 w-fit"
       >
+        <span class="relative flex h-2 w-2">
+          <span
+            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"
+          ></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+        </span>
+        Автообновление активно
+      </div>
     </div>
+
     <!-- Счётчики -->
-    <div class="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
-      <div class="bg-white rounded-xl border p-3 text-center">
-        <p class="text-xl sm:text-2xl font-bold text-gray-800">
+    <div class="grid grid-cols-3 gap-3 sm:gap-4">
+      <div class="ship-card p-4 sm:p-5 text-center animate-fade-in-up">
+        <p class="text-2xl sm:text-3xl font-bold text-ink-900">
           {{ stats.total }}
         </p>
-        <p class="text-xs text-gray-500">Всего</p>
+        <p class="text-xs text-ink-500 mt-0.5">Всего</p>
       </div>
-      <div class="bg-white rounded-xl border p-3 text-center">
-        <p class="text-xl sm:text-2xl font-bold text-green-600">
+      <div class="ship-card p-4 sm:p-5 text-center animate-fade-in-up delay-100">
+        <p class="text-2xl sm:text-3xl font-bold text-brand-600">
           {{ stats.online }}
         </p>
-        <p class="text-xs text-gray-500">В сети</p>
+        <p class="text-xs text-ink-500 mt-0.5">В сети</p>
       </div>
-      <div class="bg-white rounded-xl border p-3 text-center">
-        <p class="text-xl sm:text-2xl font-bold text-gray-400">
+      <div class="ship-card p-4 sm:p-5 text-center animate-fade-in-up delay-200">
+        <p class="text-2xl sm:text-3xl font-bold text-ink-400">
           {{ stats.offline }}
         </p>
-        <p class="text-xs text-gray-500">Не в сети</p>
+        <p class="text-xs text-ink-500 mt-0.5">Не в сети</p>
       </div>
     </div>
+
     <!-- Поиск и фильтры -->
-    <div class="flex flex-col sm:flex-row gap-2 mb-4">
+    <div class="flex flex-col sm:flex-row gap-3">
       <div class="relative flex-1">
         <input
           v-model="searchQuery"
           type="text"
           placeholder="Поиск по названию..."
-          class="w-full pl-9 pr-4 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+          class="ship-field pl-10"
         />
         <svg
-          class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+          class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -55,40 +73,55 @@
       </div>
       <select
         v-model="statusFilter"
-        class="px-4 py-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none touch-target"
+        class="ship-field sm:w-44 cursor-pointer"
       >
-        <option value="all">Все</option>
+        <option value="all">Все статусы</option>
         <option value="online">В сети</option>
         <option value="offline">Не в сети</option>
         <option value="error">Ошибка</option>
       </select>
     </div>
-    <!-- Загрузка -->
-    <div v-if="loading" class="text-center py-12 text-gray-500">
-      Загрузка...
+
+    <!-- Загрузка (skeleton) -->
+    <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      <div v-for="i in 6" :key="i" class="ship-card p-5">
+        <div class="skeleton h-5 w-32 mb-3"></div>
+        <div class="skeleton h-3 w-20 mb-6"></div>
+        <div class="skeleton h-12 w-24 mx-auto"></div>
+      </div>
     </div>
+
     <!-- Пусто -->
     <div
       v-else-if="
         filteredSensors.length === 0 && !searchQuery && statusFilter === 'all'
       "
-      class="bg-white rounded-lg border p-6 sm:p-8 text-center text-gray-500"
+      class="ship-card p-8 sm:p-12 text-center animate-scale-in"
     >
-      <p class="text-base sm:text-lg mb-2">Нет подключенных устройств</p>
-      <p class="text-xs sm:text-sm mb-4">
-        Добавьте устройства через раздел "Организации"
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-ink-100 flex items-center justify-center">
+        <svg class="w-8 h-8 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+        </svg>
+      </div>
+      <p class="text-lg font-semibold text-ink-900 mb-1">Нет подключенных устройств</p>
+      <p class="text-sm text-ink-500 mb-5">
+        Добавьте устройства через раздел «Организации»
       </p>
       <router-link
         :to="route.organizations()"
-        class="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+        class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-semibold"
       >
         Перейти к организациям
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
       </router-link>
     </div>
+
     <!-- Ничего не найдено -->
     <div
       v-else-if="filteredSensors.length === 0"
-      class="bg-white rounded-lg border p-6 sm:p-8 text-center text-gray-500"
+      class="ship-card p-8 text-center text-ink-500 animate-scale-in"
     >
       <p class="text-sm">Ничего не найдено</p>
       <button
@@ -96,17 +129,18 @@
           searchQuery = '';
           statusFilter = 'all';
         "
-        class="mt-2 text-blue-500 hover:text-blue-700 text-sm"
+        class="mt-2 text-brand-600 hover:text-brand-700 text-sm font-medium"
       >
         Сбросить фильтры
       </button>
     </div>
+
     <!-- Сетка устройств -->
     <div
       v-else
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
     >
-      <device-card v-for="device in sensors" :device-id="device.id" />
+      <device-card v-for="device in sensors" :key="device.id" :device-id="device.id" />
     </div>
   </div>
 </template>

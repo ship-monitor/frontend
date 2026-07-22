@@ -1,27 +1,75 @@
-/* src/styles.css */
 @import "tailwindcss";
 
-/* Базовые стили для мобильной адаптации */
+/* ============================================================
+   ДИЗАЙН-СИСТЕМА «ШиП-монитор»
+   Палитра: Slate (surfaces) + Emerald (brand/actions)
+   Стиль: Modern Flat
+   ============================================================ */
+
+@theme {
+  /* ===== Brand: Emerald ===== */
+  --color-brand-50: #ecfdf5;
+  --color-brand-100: #d1fae5;
+  --color-brand-200: #a7f3d0;
+  --color-brand-300: #6ee7b7;
+  --color-brand-400: #34d399;
+  --color-brand-500: #10b981;
+  --color-brand-600: #059669;
+  --color-brand-700: #047857;
+  --color-brand-800: #065f46;
+  --color-brand-900: #064e3b;
+
+  /* ===== Surface: Slate (dark) ===== */
+  --color-ink-50: #f8fafc;
+  --color-ink-100: #f1f5f9;
+  --color-ink-200: #e2e8f0;
+  --color-ink-300: #cbd5e1;
+  --color-ink-400: #94a3b8;
+  --color-ink-500: #64748b;
+  --color-ink-600: #475569;
+  --color-ink-700: #334155;
+  --color-ink-800: #1e293b;
+  --color-ink-900: #0f172a;
+  --color-ink-950: #020617;
+
+  /* ===== Семантические радиусы ===== */
+  --radius-card: 0.875rem;
+  --radius-pill: 9999px;
+
+  /* ===== Тени ===== */
+  --shadow-card: 0 1px 3px 0 rgb(15 23 42 / 0.08), 0 1px 2px -1px rgb(15 23 42 / 0.08);
+  --shadow-card-hover: 0 10px 25px -5px rgb(15 23 42 / 0.1), 0 8px 10px -6px rgb(15 23 42 / 0.06);
+  --shadow-glow: 0 0 0 3px rgb(16 185 129 / 0.15);
+
+  /* ===== Анимации (utility-токены) ===== */
+  --animate-fade-in: fade-in 0.4s ease-out both;
+  --animate-fade-in-up: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-scale-in: scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-slide-down: slide-down 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-float: float 6s ease-in-out infinite;
+}
+
+/* ============================================================
+   БАЗОВЫЕ СТИЛИ
+   ============================================================ */
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
     @apply antialiased;
-    /* Отключаем нежелательный зум */
     touch-action: manipulation;
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 min-h-screen;
-    /* Предотвращаем "отскок" на iOS */
+    @apply bg-ink-50 text-ink-900 min-h-screen;
     overscroll-behavior-y: none;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
-  /* Адаптивный скролл */
   * {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Убираем зум при фокусе на input на iOS */
   input,
   textarea,
   select {
@@ -29,13 +77,92 @@
     font-size: 16px !important;
   }
 
-  /* Улучшаем отображение placeholder */
   ::placeholder {
-    @apply text-gray-400;
+    @apply text-ink-400;
+  }
+
+  /* Аккуратный скроллбар (десктоп) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-ink-300 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-ink-400;
+  }
+
+  /* Плавный переход при смене маршрутов */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
   }
 }
 
-/* Дополнительные утилиты */
+/* ============================================================
+   КОМПОНЕНТНЫЕ КЛАССЫ
+   ============================================================ */
+@layer components {
+  /* --- Карточка --- */
+  .ship-card {
+    @apply bg-white rounded-[var(--radius-card)] border border-ink-200 transition-all duration-200;
+    box-shadow: var(--shadow-card);
+  }
+
+  .ship-card-hover {
+    @apply hover:border-ink-300 hover:-translate-y-0.5;
+    box-shadow: var(--shadow-card);
+  }
+
+  .ship-card-hover:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  /* --- Поле ввода (база) --- */
+  .ship-field {
+    @apply w-full px-4 py-3 rounded-xl border border-ink-200 bg-white text-ink-900
+           outline-none transition-all duration-150
+           focus:border-brand-500;
+    box-shadow: var(--shadow-card);
+  }
+
+  .ship-field:focus {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .ship-field::placeholder {
+    @apply text-ink-400;
+  }
+
+  /* --- Бейдж статуса --- */
+  .ship-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full;
+  }
+
+  .ship-badge-success {
+    @apply bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-200;
+  }
+
+  .ship-badge-danger {
+    @apply bg-red-50 text-red-700 ring-1 ring-inset ring-red-200;
+  }
+
+  .ship-badge-muted {
+    @apply bg-ink-100 text-ink-500 ring-1 ring-inset ring-ink-200;
+  }
+}
+
+/* ============================================================
+   УТИЛИТЫ
+   ============================================================ */
 @layer utilities {
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -49,7 +176,6 @@
     @apply min-h-[44px] min-w-[44px];
   }
 
-  /* Скрываем скроллбар, но оставляем прокрутку */
   .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -58,21 +184,112 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
-}
 
-/* Анимации */
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+  /* Задержки анимаций для staggered-эффекта */
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
+
+  /* Градиентный текст */
+  .text-gradient-brand {
+    @apply text-transparent bg-clip-text;
+    background-image: linear-gradient(135deg, #10b981 0%, #059669 100%);
   }
 
+  /* Сетка-фон (декоративная) */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgb(15 23 42 / 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(15 23 42 / 0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  /* Skeleton-загрузка */
+  .skeleton {
+    @apply relative overflow-hidden bg-ink-100 rounded-md;
+  }
+
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgb(255 255 255 / 0.6),
+      transparent
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s linear infinite;
+  }
+}
+
+/* ============================================================
+   KEYFRAMES
+   ============================================================ */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+/* Совместимость со старыми классами анимаций */
 .animate-slide-up {
-  animation: slide-up 0.3s ease-out;
+  animation: fade-in-up 0.3s ease-out both;
 }

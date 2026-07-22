@@ -1,39 +1,42 @@
 <template>
-  <div class="max-w-7xl mx-auto">
+  <div class="max-w-7xl mx-auto space-y-5 animate-fade-in">
+    <!-- Загрузка -->
     <div v-if="loading" class="text-center py-12">
-      <div class="animate-spin text-4xl mb-2">⚡</div>
-      <p class="text-gray-500">Загрузка...</p>
+      <svg class="w-8 h-8 mx-auto text-brand-500 animate-spin mb-3" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p class="text-ink-400">Загрузка...</p>
     </div>
+
     <div v-else-if="!organization" class="text-center py-12">
-      <p class="text-gray-500">Организация не найдена</p>
+      <p class="text-ink-500">Организация не найдена</p>
     </div>
-    <div v-else>
-      <div class="mb-6">
+
+    <div v-else class="space-y-5">
+      <!-- Хедер -->
+      <div>
         <button
           @click="$router.back()"
-          class="text-sm text-gray-500 hover:text-gray-700 mb-2 flex items-center gap-1 touch-target"
+          class="text-sm text-ink-500 hover:text-ink-700 mb-2 flex items-center gap-1 touch-target transition-colors"
         >
-          &larr; Назад
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Назад
         </button>
-        <div class="flex flex-wrap justify-between items-center gap-3">
-          <div>
-            <h1 class="text-xl sm:text-2xl font-bold">
-              {{ organization.name }}
-            </h1>
-            <p class="text-xs text-gray-400 font-mono">
-              ID: {{ organization.id }}
-            </p>
-          </div>
-          <!-- <button
-            @click="refreshDevices"
-            :disabled="statusLoading"
-            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 text-sm touch-target"
-          >
-            {{ statusLoading ? "Проверка..." : "Проверить связь" }}
-          </button> -->
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">
+            {{ organization.name }}
+          </h1>
+          <p class="text-xs text-ink-400 font-mono mt-0.5">
+            ID: {{ organization.id }}
+          </p>
         </div>
       </div>
-      <div class="border-b mb-6 overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+
+      <!-- Табы -->
+      <div class="border-b border-ink-200 overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
         <nav class="flex gap-2 sm:gap-4 min-w-max">
           <button @click="activeTab = 'devices'" :class="tabClass('devices')">
             Устройства ({{ devices.length }})
@@ -43,75 +46,83 @@
           </button>
         </nav>
       </div>
+
+      <!-- Таб: Устройства -->
       <div v-if="activeTab === 'devices'" class="space-y-4">
         <button
           @click="showConnectDeviceModal = true"
-          class="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium touch-target"
+          class="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 active:scale-[0.98] font-semibold text-sm touch-target transition-all"
         >
-          + Подключить устройство
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Подключить устройство
         </button>
+
         <div
           v-if="devices.length === 0"
-          class="text-center py-12 bg-gray-50 rounded-xl"
+          class="ship-card p-8 text-center"
         >
-          <p class="text-gray-500">Нет подключенных устройств</p>
+          <p class="text-ink-500">Нет подключенных устройств</p>
         </div>
+
         <div
           v-else
           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
         >
           <div
             v-for="dev in devices"
+            :key="dev.id"
             class="flex flex-col gap-2 justify-between"
           >
             <DeviceCard :device-id="dev.id" />
             <button
               @click.stop="confirmDisconnect(dev)"
-              class="w-full px-3 py-2.5 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 active:bg-red-200 transition-colors touch-target"
+              class="w-full px-3 py-2.5 text-sm bg-red-50 text-red-600 rounded-xl hover:bg-red-100 active:bg-red-200 transition-colors touch-target font-medium"
             >
               Отключить
             </button>
           </div>
         </div>
       </div>
+
+      <!-- Таб: Участники -->
       <div v-if="activeTab === 'members'" class="space-y-4">
         <button
           @click="showAddMemberModal = true"
-          class="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium touch-target"
+          class="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 active:scale-[0.98] font-semibold text-sm touch-target transition-all"
         >
-          + Пригласить участников
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          </svg>
+          Пригласить участников
         </button>
+
         <div
           v-if="members.length === 0"
-          class="text-center py-12 text-gray-500"
+          class="ship-card p-8 text-center"
         >
-          Нет участников
+          <p class="text-ink-500">Нет участников</p>
         </div>
+
         <template v-else>
+          <!-- Десктоп таблица -->
           <div
-            class="hidden sm:block bg-white rounded-xl border overflow-hidden"
+            class="hidden sm:block ship-card overflow-hidden"
           >
             <table class="w-full">
-              <thead class="bg-gray-50">
+              <thead class="bg-ink-50">
                 <tr>
-                  <th
-                    class="px-4 py-3 text-left text-sm font-medium text-gray-500"
-                  >
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-ink-500 uppercase tracking-wide">
                     Участник
                   </th>
-                  <th
-                    class="px-4 py-3 text-left text-sm font-medium text-gray-500"
-                  >
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-ink-500 uppercase tracking-wide">
                     Email
                   </th>
-                  <th
-                    class="px-4 py-3 text-left text-sm font-medium text-gray-500"
-                  >
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-ink-500 uppercase tracking-wide">
                     Роль
                   </th>
-                  <th
-                    class="px-4 py-3 text-left text-sm font-medium text-gray-500"
-                  >
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-ink-500 uppercase tracking-wide">
                     Действия
                   </th>
                 </tr>
@@ -120,10 +131,10 @@
                 <tr
                   v-for="member in members"
                   :key="member.userId"
-                  class="border-t hover:bg-gray-50"
+                  class="border-t border-ink-100 hover:bg-ink-50 transition-colors"
                 >
-                  <td class="px-4 py-3">{{ member.name || "—" }}</td>
-                  <td class="px-4 py-3 text-gray-600 text-sm">
+                  <td class="px-4 py-3 text-sm font-medium text-ink-800">{{ member.name || "—" }}</td>
+                  <td class="px-4 py-3 text-ink-600 text-sm">
                     {{ member.email }}
                   </td>
                   <td class="px-4 py-3">
@@ -135,7 +146,7 @@
                     <button
                       v-if="member.role !== 'owner'"
                       @click="removeMember(member.userId)"
-                      class="text-red-600 hover:text-red-800 text-sm"
+                      class="text-red-600 hover:text-red-800 text-sm font-medium"
                     >
                       Удалить
                     </button>
@@ -144,16 +155,18 @@
               </tbody>
             </table>
           </div>
+
+          <!-- Мобильные карточки -->
           <div class="space-y-3 sm:hidden">
             <div
               v-for="member in members"
               :key="member.userId"
-              class="bg-white border rounded-xl p-4"
+              class="ship-card p-4"
             >
-              <div class="flex justify-between items-start mb-2">
+              <div class="flex justify-between items-start mb-3">
                 <div>
-                  <p class="font-medium">{{ member.name || "Без имени" }}</p>
-                  <p class="text-sm text-gray-500">{{ member.email }}</p>
+                  <p class="font-medium text-ink-900">{{ member.name || "Без имени" }}</p>
+                  <p class="text-sm text-ink-500">{{ member.email }}</p>
                 </div>
                 <span :class="getRoleBadgeClass(member.role)">
                   {{ getRoleLabel(member.role) }}
@@ -162,7 +175,7 @@
               <button
                 v-if="member.role !== 'owner'"
                 @click="removeMember(member.userId)"
-                class="mt-2 w-full px-3 py-2 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 touch-target"
+                class="w-full px-3 py-2 text-sm bg-red-50 text-red-600 rounded-xl hover:bg-red-100 touch-target font-medium transition-colors"
               >
                 Удалить
               </button>
@@ -171,59 +184,63 @@
         </template>
       </div>
     </div>
+
     <!-- Модалка: Подключение устройства -->
     <Teleport to="body">
-      <div
-        v-if="showConnectDeviceModal"
-        class="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4"
-        @click.self="showConnectDeviceModal = false"
-      >
+      <Transition name="modal">
         <div
-          class="bg-white rounded-t-xl sm:rounded-xl p-5 sm:p-6 w-full sm:max-w-md"
+          v-if="showConnectDeviceModal"
+          class="fixed inset-0 bg-ink-950/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4"
+          @click.self="showConnectDeviceModal = false"
         >
-          <h3 class="text-lg font-semibold mb-4">Подключить устройство</h3>
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5"
-                >ID устройства (Node ID)</label
-              >
-              <input
-                v-model="deviceIdToConnect"
-                type="text"
-                placeholder="UUID устройства"
-                class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none"
-              />
+          <div
+            class="bg-white rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 w-full sm:max-w-md shadow-xl"
+          >
+            <h3 class="text-lg font-bold text-ink-900 mb-4">Подключить устройство</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-ink-700 mb-1.5"
+                  >ID устройства (Node ID)</label
+                >
+                <input
+                  v-model="deviceIdToConnect"
+                  type="text"
+                  placeholder="UUID устройства"
+                  class="ship-field"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-ink-700 mb-1.5"
+                  >Название</label
+                >
+                <input
+                  v-model="deviceNameToConnect"
+                  type="text"
+                  placeholder="Холодильник N1"
+                  class="ship-field"
+                />
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5"
-                >Название</label
+            <div class="mt-6 flex gap-3">
+              <button
+                @click="showConnectDeviceModal = false"
+                class="flex-1 px-4 py-3 text-ink-600 border border-ink-200 rounded-xl hover:bg-ink-50 touch-target transition-colors font-medium"
               >
-              <input
-                v-model="deviceNameToConnect"
-                type="text"
-                placeholder="Холодильник N1"
-                class="w-full px-4 py-3 border rounded-lg text-base focus:ring-2 focus:ring-blue-500 outline-none"
-              />
+                Отмена
+              </button>
+              <button
+                @click="connectDeviceHandler"
+                :disabled="!deviceIdToConnect.trim()"
+                class="flex-1 px-4 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:opacity-50 disabled:pointer-events-none touch-target transition-colors font-semibold"
+              >
+                Подключить
+              </button>
             </div>
-          </div>
-          <div class="mt-6 flex gap-3">
-            <button
-              @click="showConnectDeviceModal = false"
-              class="flex-1 px-4 py-3 text-gray-600 border rounded-lg hover:bg-gray-50 touch-target"
-            >
-              Отмена
-            </button>
-            <button
-              @click="connectDeviceHandler"
-              :disabled="!deviceIdToConnect.trim()"
-              class="flex-1 px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 touch-target font-medium"
-            >
-              Подключить
-            </button>
           </div>
         </div>
-      </div>
+      </Transition>
     </Teleport>
+
     <!-- Модалка: Приглашение -->
     <AddMemberModal
       v-if="organization"
@@ -268,16 +285,15 @@ function tabClass(tab: string) {
   return [
     "px-4 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap touch-target",
     activeTab.value === tab
-      ? "border-blue-500 text-blue-600"
-      : "border-transparent text-gray-500 hover:text-gray-700",
+      ? "border-brand-500 text-brand-600"
+      : "border-transparent text-ink-500 hover:text-ink-700",
   ];
 }
 
 const getRoleBadgeClass = (role?: string) => {
-  const base = "px-2.5 py-1 text-xs rounded-full font-medium";
-  if (role === "owner") return `${base} bg-purple-100 text-purple-800`;
-  if (role === "administrator") return `${base} bg-blue-100 text-blue-800`;
-  return `${base} bg-gray-100 text-gray-800`;
+  if (role === "owner") return "ship-badge bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-200";
+  if (role === "administrator") return "ship-badge ship-badge-success";
+  return "ship-badge ship-badge-muted";
 };
 
 const getRoleLabel = (role?: string) => {
