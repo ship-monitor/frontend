@@ -7,7 +7,7 @@ import {
   rejectInvitation,
   type Invitation,
 } from "@/data";
-import { logout } from "@/data";
+import { useAuthStore } from "@/stores/authStore";
 import { ROUTES } from "@/constants/routes";
 import IconLogout from "@/components/icons/IconLogout.vue";
 import IconPulse from "@/components/icons/IconPulse.vue";
@@ -15,6 +15,7 @@ import IconBuilding from "@/components/icons/IconBuilding.vue";
 import IconPerson from "@/components/icons/IconPerson.vue";
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 type NavigationItem = { label: string; link: string; icon: Component };
 const NAVIGATION_ITEMS: NavigationItem[] = [
@@ -67,8 +68,8 @@ const handleRejectInvitation = async (id: string) => {
   }
 };
 
-const logoutHandler = () => {
-  logout();
+const logoutHandler = async () => {
+  await authStore.logout();
   router.push(ROUTES.LANDING);
 };
 
@@ -90,7 +91,7 @@ onMounted(() => {
   document.addEventListener("click", handleClickOutside);
 
   // Загружаем уведомления только для авторизованных
-  if (localStorage.getItem("token")) {
+  if (authStore.isAuthenticated) {
     loadNotifications();
 
     setInterval(loadNotifications, 10000);

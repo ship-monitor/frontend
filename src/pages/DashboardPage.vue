@@ -116,10 +116,12 @@ import { useRoute, useRouter } from "vue-router";
 import { route, ROUTES } from "@/constants/routes";
 import { getUsersOrganizations, getOrganizationDevices } from "@/data";
 import { isOnline, isAuthError } from "@/utils/utils";
+import { useAuthStore } from "@/stores/authStore";
 import DeviceCard from "@/components/DeviceCard.vue";
 
 const currentRoute = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 
 interface SensorDisplay {
   id: string;
@@ -303,9 +305,8 @@ async function loadSensors() {
 
 function startAutoRefresh() {
   stopAutoRefresh();
-  const token = localStorage.getItem("token");
-  if (!token) {
-    console.log("[Dashboard] no token, skip auto refresh");
+  if (!authStore.isAuthenticated) {
+    console.log("[Dashboard] not authenticated, skip auto refresh");
     return;
   }
   let settings: { autoRefresh?: boolean; interval?: number } = {};

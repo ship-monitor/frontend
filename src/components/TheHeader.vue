@@ -65,6 +65,7 @@ import { ref, onMounted } from "vue";
 import BIG_LOGO from "@/assets/big-logo.png";
 import { useRouter } from "vue-router";
 import { getInvitations } from "@/data";
+import { logout } from "@/data/auth";
 import { ROUTES } from "@/constants/routes";
 
 const COMPANY_NAME = "ШиП Монитор";
@@ -81,10 +82,8 @@ const loadInvitationCount = async () => {
 
 onMounted(loadInvitationCount);
 
-const handleLogout = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("user");
+const handleLogout = async () => {
+  await logout();
   router.push(ROUTES.LOGIN);
 };
 </script>

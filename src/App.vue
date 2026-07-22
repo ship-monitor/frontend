@@ -14,19 +14,13 @@
   </application-layout>
 </template>
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed } from "vue";
 import { useRoute } from "vue-router";
 import { ROUTES } from "@/constants/routes";
 import ApplicationLayout from "@/components/layout/ApplicationLayout.vue";
 import CookieBanner from "@/components/CookieBanner.vue";
-import { useAuthStore } from "@/stores/authStore";
 
 const route = useRoute();
-
-const authStore = useAuthStore();
-onMounted(async () => {
-  await authStore.initialize();
-});
 
 // ===== Вычисляемые =====
 const isAuthPage = computed(() => route.path.startsWith("/auth"));

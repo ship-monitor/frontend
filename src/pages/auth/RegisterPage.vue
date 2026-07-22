@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { ROUTES } from "@/constants/routes";
-import api from "@/api";
+import { register } from "@/data/auth";
 import { useRouter } from "vue-router";
-import { AxiosError } from "axios";
 
 import ShipTextbox from "@/components/ShipTextbox.vue";
 
@@ -11,52 +10,27 @@ const email = ref("");
 const password = ref("");
 const name = ref("");
 const router = useRouter();
+const errorMessage = ref<string | null>(null);
 
 const handleRegister = async () => {
-  // TODO: Move api request to other place
-  try {
-    const response = await api.post("/api/auth/register", {
-      email: email.value.trim(),
-      password: password.value,
-      name: name.value.trim(),
-    });
-
-    // Обрабатываем токен так же как в логине
-    let token = response.data.token;
-    let refreshToken = response.data.refreshToken;
-    let user = response.data.user;
-
-    if (typeof token === "object") {
-      token = token.token || token.accessToken || token.access_token;
-    }
-    if (typeof refreshToken === "object") {
-      refreshToken = refreshToken.refreshToken || refreshToken.refresh_token;
-    }
-
-    token = String(token || "").replace(/["'\s]/g, "");
-    refreshToken = String(refreshToken || "").replace(/["'\s]/g, "");
-
-    localStorage.setItem("token", token);
-    localStorage.setItem("refreshToken", refreshToken);
-    localStorage.setItem(
-      "user",
-      typeof user === "object" ? JSON.stringify(user) : user
-    );
-
-    router.push(ROUTES.LANDING);
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      console.error("Ошибка:", error.response?.data || error.message);
-      alert("Ошибка регистрации");
-    }
-    console.error("Ошибка:", error);
-  }
+  errorMessage.value = null;
+  const result = await register(email.value.trim(), password.value, name.value.trim());
+  result.match({
+    // Регистрация не логинит пользователя (cookie не выдаётся) — ведём на вход.
+    Ok: () => {
+      router.push({ path: ROUTES.LOGIN, query: { registered: "1" } });
+    },
+    Err: (err) => {
+      errorMessage.value = err;
+    },
+  });
 };
 </script>
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-100">
     <div class="bg-white p-8 rounded-lg shadow-md w-96">
       <h1 class="text-2xl font-bold mb-6 text-center">Регистрация</h1>
+      <div v-if="errorMessage" class="mb-4 text-red-600 text-sm text-center">{{ errorMessage }}</div>
       <ship-textbox
         v-model="name"
         placeholder="Имя"

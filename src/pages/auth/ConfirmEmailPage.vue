@@ -54,17 +54,8 @@ onMounted(async () => {
     await confirmEmail(token);
     success.value = true;
 
-    // Обновляем флаг подтверждения в локальном хранилище браузера
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      try {
-        const userData = JSON.parse(userStr);
-        userData.emailVerified = true;
-        localStorage.setItem("user", JSON.stringify(userData));
-      } catch {
-        /* */
-      }
-    }
+    // Статус подтверждения подтягивается заново на странице профиля
+    // через getCurrentUser, поэтому дополнительное обновление не требуется.
 
     // Через 2 секунды после успеха перенаправляем в профиль
     setTimeout(() => {

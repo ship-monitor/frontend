@@ -1676,11 +1676,13 @@ import BIG_LOGO from "@/assets/big-logo.png";
 import { ROUTES } from "@/constants/routes";
 import { useRoadmap } from "@/composables/useRoadmap";
 import { useLeads } from "@/composables/useLeads";
+import { useAuthStore } from "@/stores/authStore";
 
 const { roadmapItems, fetchRoadmap } = useRoadmap();
 const { createLead } = useLeads();
 
-const isAuthenticated = computed(() => !!localStorage.getItem("token"));
+const authStore = useAuthStore();
+const isAuthenticated = computed(() => authStore.isAuthenticated);
 
 const leadForm = reactive({
   person_name: "",

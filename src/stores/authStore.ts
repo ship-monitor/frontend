@@ -6,15 +6,20 @@ export const useAuthStore = defineStore("auth-store", {
   state: () => ({
     user: null as User | null,
     initialized: false,
+    ready: null as Promise<void> | null,
   }),
   getters: {
     isAuthenticated: (state) => state.user !== null,
   },
   actions: {
     async initialize() {
-      this.checkLogin();
+      if (!this.ready) {
+        this.ready = this.checkLogin().then(() => {
+          this.initialized = true;
+        });
+      }
 
-      this.initialized = true;
+      return this.ready;
     },
 
     async checkLogin() {

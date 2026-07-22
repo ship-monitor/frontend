@@ -1,6 +1,6 @@
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
-import { useRouter } from "vue-router";
+import axios from "axios";
 import { ROUTES } from "@/constants/routes";
+import { getAppRouter } from "@/router";
 
 const createApi = () => {
   const backendUrl = import.meta.env.VITE_API_URL;
@@ -21,24 +21,33 @@ const api = createApi();
 
 const UNAUTHORIZED = 401;
 
+// Публичные маршруты, с которых не нужно принудительно уводить на логин.
+const PUBLIC_PATHS: string[] = [
+  ROUTES.LANDING,
+  ROUTES.LOGIN,
+  ROUTES.REGISTER,
+];
+
+// С validateStatus: () => true axios не отклоняет ответы по статусу,
+// поэтому 401 обрабатываем здесь, в success-перехватчике.
 api.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & {
-      _retry?: boolean;
-    };
+  (response) => {
+    if (response.status === UNAUTHORIZED) {
+      const router = getAppRouter();
+      const currentPath = router?.currentRoute.value.path;
 
-    if (error.response?.status !== UNAUTHORIZED || originalRequest?._retry) {
-      const router = useRouter();
-      router.push(ROUTES.LOGIN);
-
-      return Promise.reject(error);
+      if (router && currentPath && !PUBLIC_PATHS.includes(currentPath)) {
+        router.push({
+          path: ROUTES.LOGIN,
+          query: { redirect: router.currentRoute.value.fullPath },
+        });
+      }
     }
 
-    originalRequest._retry = true;
-
-    return api.request(originalRequest);
-  }
+    return response;
+  },
+  // Сетевые ошибки/таймауты просто пробрасываем дальше без навигации.
+  (error) => Promise.reject(error)
 );
 
 export default api;

@@ -7,10 +7,8 @@ const PING_INTERVAL = 10 * SECOND;
 const AUTH_ERROR_MARKS = [
   "unauthorized",
   "bad credentials",
-  "token is expired",
-  "invalid claims",
-  "token has invalid claims",
-  "jwt",
+  "session expired",
+  "session is invalid",
 ];
 
 export function isAuthError(error: unknown): boolean {

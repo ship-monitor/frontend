@@ -157,7 +157,6 @@ async function handleUpdateEmail() {
     });
     emailSuccess.value = "Email обновлён";
     user.value.email = newEmail.value;
-    localStorage.setItem("user", JSON.stringify(user.value));
     newEmail.value = "";
   } catch (error) {
     emailError.value =

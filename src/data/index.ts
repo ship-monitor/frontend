@@ -286,10 +286,13 @@ export const sendDeviceCommand = async (
 };
 
 export const getCurrentUser = async (): Promise<Result<User, APIError>> => {
-  const result = await api.get("/api/users/me");
-  return responseToResult<{ user: User }>(result).map((r) => r.user);
+  try {
+    const result = await api.get("/api/users/me");
+    return responseToResult<{ user: User }>(result).map((r) => r.user);
+  } catch (e) {
+    // Сетевые/CORS-ошибки axios отклоняет несмотря на validateStatus.
+    return Result.err("failed to reach auth service: " + e);
+  }
 };
 
-export const logout = async (): Promise<void> => {
-  await api.post("/api/auth/logout");
-};
+export { logout } from "./auth";
