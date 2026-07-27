@@ -1,5 +1,4 @@
 <template>
-  <cookie-banner />
   <!-- Страницы входа/регистрации без меню -->
   <div v-if="isAuthPage">
     <router-view />
@@ -12,13 +11,14 @@
   <application-layout v-else>
     <router-view />
   </application-layout>
+  <cookie-banner></cookie-banner>
 </template>
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 import { ROUTES } from "@/constants/routes";
 import ApplicationLayout from "@/components/layout/ApplicationLayout.vue";
-import CookieBanner from "@/components/CookieBanner.vue";
+// import CookieBanner from "./components/CookieBanner.vue";
 
 const route = useRoute();
 
