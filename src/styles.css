@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: Dobryak;
+  src: url("/Dobryak_font.ttf");
+}
+
 /* ============================================================
    ДИЗАЙН-СИСТЕМА «ШиП-монитор»
    Палитра: Slate (surfaces) + Emerald (brand/actions)
@@ -7,6 +12,11 @@
    ============================================================ */
 
 @theme {
+  --font-accent: Dobryak;
+
+  --color-cotton: #f4f3f1;
+  --color-electric-blue: #3171c6;
+  --color-moonless-night: #2d2d2d;
   /* ===== Brand: Emerald ===== */
   --color-brand-50: #ecfdf5;
   --color-brand-100: #d1fae5;
@@ -37,8 +47,10 @@
   --radius-pill: 9999px;
 
   /* ===== Тени ===== */
-  --shadow-card: 0 1px 3px 0 rgb(15 23 42 / 0.08), 0 1px 2px -1px rgb(15 23 42 / 0.08);
-  --shadow-card-hover: 0 10px 25px -5px rgb(15 23 42 / 0.1), 0 8px 10px -6px rgb(15 23 42 / 0.06);
+  --shadow-card:
+    0 1px 3px 0 rgb(15 23 42 / 0.08), 0 1px 2px -1px rgb(15 23 42 / 0.08);
+  --shadow-card-hover:
+    0 10px 25px -5px rgb(15 23 42 / 0.1), 0 8px 10px -6px rgb(15 23 42 / 0.06);
   --shadow-glow: 0 0 0 3px rgb(16 185 129 / 0.15);
 
   /* ===== Анимации (utility-токены) ===== */
@@ -186,11 +198,21 @@
   }
 
   /* Задержки анимаций для staggered-эффекта */
-  .delay-100 { animation-delay: 100ms; }
-  .delay-200 { animation-delay: 200ms; }
-  .delay-300 { animation-delay: 300ms; }
-  .delay-400 { animation-delay: 400ms; }
-  .delay-500 { animation-delay: 500ms; }
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+  .delay-400 {
+    animation-delay: 400ms;
+  }
+  .delay-500 {
+    animation-delay: 500ms;
+  }
 
   /* Градиентный текст */
   .text-gradient-brand {
