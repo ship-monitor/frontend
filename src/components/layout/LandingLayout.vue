@@ -6,7 +6,7 @@ import BIG_LOGO from "@/assets/big-logo.png";
 const NAV_LINKS = [
   { label: "Документация", to: "/#" },
   { label: "Тарифы", to: "/#pricing" },
-  { label: "FAQ", to: "/#faq" },
+  { label: "Поддержка", to: "/#" },
 ];
 const mobileMenuOpen = ref(false);
 </script>

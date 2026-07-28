@@ -14,10 +14,10 @@
           class="mt-40 flex flex-col sm:flex-row gap-3 sm:gap-4 px-4 justify-center"
         >
           <router-link
-            :to="isAuthenticated ? ROUTES.DASHBOARD : ROUTES.REGISTER"
+            to="/#"
             class="text-xl items-center bg-electric-blue text-cotton rounded-full px-5 py-3 hover:bg-electric-blue/90"
           >
-            {{ isAuthenticated ? "Открыть дашборд" : "Подключить мониторинг" }}
+            Подключить мониторинг
           </router-link>
         </div>
       </div>
@@ -27,12 +27,11 @@
   <!-- ====== Дорожная карта ====== -->
   <section class="py-16 sm:py-24 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-baseline gap-4 mb-10">
-        <h2 class="text-4xl sm:text-5xl font-bold uppercase">Дорожная карта</h2>
-        <span class="text-moonless-night/40 text-sm hidden sm:inline"
-          >что сделано и что в работе</span
-        >
-      </div>
+      <ShipHeading
+        heading="Дорожная карта"
+        headingAlt="что сделано и что в работе"
+        description=""
+      />
 
       <div class="border-t border-moonless-night/10">
         <div
@@ -107,7 +106,11 @@
   <section id="lead-form" class="py-16 sm:py-24 bg-white">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-baseline gap-4 mb-10">
-        <h2 class="text-4xl sm:text-5xl font-bold uppercase">Заявка</h2>
+        <h2
+          class="text-5xl font-bold leading-none tracking-[-0.045em] sm:text-6xl lg:text-7xl"
+        >
+          Заявка
+        </h2>
         <span class="text-moonless-night/40 text-sm hidden sm:inline"
           >ответим в течение дня</span
         >
@@ -291,6 +294,7 @@ import { useRoadmap } from "@/composables/useRoadmap";
 import { useLeads } from "@/composables/useLeads";
 import { useAuthStore } from "@/stores/authStore";
 import AISection from "@/components/AISection.vue";
+import ShipHeading from "@/components/ShipHeading.vue";
 
 const { roadmapItems, fetchRoadmap } = useRoadmap();
 const { createLead } = useLeads();
