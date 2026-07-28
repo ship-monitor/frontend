@@ -105,13 +105,13 @@
       </div>
       <p class="text-lg font-semibold text-ink-900 mb-1">Нет подключенных устройств</p>
       <p class="text-sm text-ink-500 mb-5">
-        Добавьте устройства через раздел «Организации»
+        Подключите устройство, чтобы начать мониторинг
       </p>
       <router-link
-        :to="route.organizations()"
+        :to="ROUTES.CONNECT_DEVICE"
         class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-semibold"
       >
-        Перейти к организациям
+        Подключить устройство
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
         </svg>
@@ -147,8 +147,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, onActivated } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { route, ROUTES } from "@/constants/routes";
-import { getUsersOrganizations, getOrganizationDevices } from "@/data";
+import { ROUTES } from "@/constants/routes";
+import { getUserDevices } from "@/data";
 import { isOnline, isAuthError } from "@/utils/utils";
 import { useAuthStore } from "@/stores/authStore";
 import DeviceCard from "@/components/DeviceCard.vue";
@@ -167,8 +167,6 @@ interface SensorDisplay {
   lastPingTime: number | null;
   pingHistory: boolean[];
   tags: string[];
-  organizationName: string;
-  organizationId: string;
 }
 
 const sensors = ref<SensorDisplay[]>([]);
@@ -207,8 +205,7 @@ const filteredSensors = computed(() => {
     result = result.filter(
       (s) =>
         s.displayName.toLowerCase().includes(query) ||
-        s.id.toLowerCase().includes(query) ||
-        s.organizationName.toLowerCase().includes(query)
+        s.id.toLowerCase().includes(query)
     );
   }
 
@@ -264,63 +261,54 @@ function savePingHistory(deviceId: string, history: boolean[]) {
 
 async function loadSensors() {
   try {
-    const orgs = (await getUsersOrganizations())
-      .inspectErr((err) => console.error("Failed load organizations: %s", err))
+    const devices = (await getUserDevices())
+      .inspectErr((err) => console.error("Failed load devices: %s", err))
       .unwrapOr([]);
+
+    const pingResults = await Promise.all(
+      devices.map(async (device) => {
+        const ok = await isOnline(device.id);
+        return { device, ok };
+      })
+    );
+
     const allSensors: SensorDisplay[] = [];
 
-    for (const org of orgs) {
-      const devices = (await getOrganizationDevices(org.id))
-        .inspectErr((err) =>
-          console.error("Failed get organization devices: %s", err)
-        )
-        .unwrapOr([]);
-
-      const pingResults = await Promise.all(
-        devices.map(async (device) => {
-          const ok = await isOnline(device.id);
-          return { device, ok };
-        })
-      );
-
-      for (const { device, ok } of pingResults) {
-        let temperature: number | null = null;
-        const stored = localStorage.getItem(`device_data_${device.id}`);
-        if (stored) {
-          try {
-            const data = JSON.parse(stored);
-            temperature = data.currentTemp ?? null;
-          } catch {
-            /* */
-          }
+    for (const { device, ok } of pingResults) {
+      let temperature: number | null = null;
+      const stored = localStorage.getItem(`device_data_${device.id}`);
+      if (stored) {
+        try {
+          const data = JSON.parse(stored);
+          temperature = data.currentTemp ?? null;
+        } catch {
+          /* */
         }
-
-        const pingHistory = loadPingHistory(device.id);
-        pingHistory.push(ok);
-        if (pingHistory.length > 10) pingHistory.shift();
-        savePingHistory(device.id, pingHistory);
-
-        const lastPings = pingHistory.slice(-5);
-        const allOffline = lastPings.length >= 3 && lastPings.every((p) => !p);
-        let status: "online" | "offline" | "error" = ok ? "online" : "offline";
-        if (allOffline && lastPings.length >= 3) {
-          status = "error";
-        }
-
-        allSensors.push({
-          id: device.id,
-          name: device.name,
-          displayName: getDisplayName(device.id, device.name),
-          status,
-          isConnected: ok,
-          temperature,
-          lastPingTime: ok ? Date.now() : null,
-          pingHistory,
-          tags: getTags(device.id),
-          organizationName: org.name,
-          organizationId: org.id,
-        });
       }
+
+      const pingHistory = loadPingHistory(device.id);
+      pingHistory.push(ok);
+      if (pingHistory.length > 10) pingHistory.shift();
+      savePingHistory(device.id, pingHistory);
+
+      const lastPings = pingHistory.slice(-5);
+      const allOffline = lastPings.length >= 3 && lastPings.every((p) => !p);
+      let status: "online" | "offline" | "error" = ok ? "online" : "offline";
+      if (allOffline && lastPings.length >= 3) {
+        status = "error";
+      }
+
+      allSensors.push({
+        id: device.id,
+        name: device.name,
+        displayName: getDisplayName(device.id, device.name),
+        status,
+        isConnected: ok,
+        temperature,
+        lastPingTime: ok ? Date.now() : null,
+        pingHistory,
+        tags: getTags(device.id),
+      });
     }
 
     sensors.value = allSensors;
