@@ -116,7 +116,7 @@ onUnmounted(() => {
           class="relative p-2 hover:bg-ink-800 rounded-lg touch-target transition-colors"
           aria-label="Уведомления"
         >
-          <span class="text-xl">🔔</span>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
           <span
             v-if="unreadNotifications > 0"
             class="absolute -top-0.5 -right-0.5 bg-brand-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold ring-2 ring-ink-900"
@@ -176,7 +176,7 @@ onUnmounted(() => {
             @click="showNotifications = !showNotifications"
             class="relative p-2.5 hover:bg-ink-100 rounded-xl transition-colors touch-target"
           >
-            <span class="text-xl">🔔</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
             <span
               v-if="unreadNotifications > 0"
               class="absolute -top-0.5 -right-0.5 bg-brand-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold ring-2 ring-white"
@@ -248,7 +248,7 @@ onUnmounted(() => {
               @click="showNotifications = false"
               class="text-ink-400 hover:text-ink-600 p-1 touch-target"
             >
-              ✕
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
           <div class="max-h-64 overflow-y-auto">
