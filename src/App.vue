@@ -5,7 +5,9 @@
   </div>
   <!-- Лендинг для неавторизованных -->
   <div v-else-if="isLandingPage">
-    <router-view />
+    <landing-layout>
+      <router-view />
+    </landing-layout>
   </div>
   <!-- Основной layout с адаптивным меню -->
   <application-layout v-else>
@@ -18,6 +20,7 @@ import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { ROUTES } from "@/constants/routes";
 import ApplicationLayout from "@/components/layout/ApplicationLayout.vue";
+import LandingLayout from "./components/layout/LandingLayout.vue";
 // import CookieBanner from "./components/CookieBanner.vue";
 
 const route = useRoute();
@@ -35,7 +38,7 @@ onMounted(() => {
   script.defer = true;
   script.setAttribute(
     "data-domain",
-    import.meta.env.VITE_PLAUSIBLE_DOMAIN || "ship-monitor.ru",
+    import.meta.env.VITE_PLAUSIBLE_DOMAIN || "ship-monitor.ru"
   );
   script.src = `${plausibleUrl}/js/script.js`;
   document.head.appendChild(script);
