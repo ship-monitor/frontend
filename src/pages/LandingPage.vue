@@ -54,7 +54,7 @@
       </div>
     </section>
 
-    <!-- ====== Дорожная карта ======
+    <!-- ====== Дорожная карта ====== -->
     <section class="py-16 sm:py-24 bg-white">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-baseline gap-4 mb-10">
@@ -72,17 +72,17 @@
           </div>
         </div>
       </div>
-    </section> -->
+    </section>
 
     <!-- ====== Технологии ====== -->
-    <section class="py-16 sm:py-24">
+    <!-- <section class="py-16 sm:py-24">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-baseline gap-4 mb-12">
           <h2 class="text-4xl sm:text-5xl font-bold uppercase">Железо и софт</h2>
         </div>
 
         <div class="grid lg:grid-cols-2 gap-12 lg:gap-20">
-          <!-- Аппаратная часть -->
+         
           <div>
             <p class="text-electric-blue font-semibold text-sm mb-4">Аппаратная часть</p>
             <h3 class="text-2xl font-bold mb-6">Контроллер «ШиП-01»</h3>
@@ -94,7 +94,7 @@
             </dl>
           </div>
 
-          <!-- Программная часть -->
+          
           <div>
             <p class="text-electric-blue font-semibold text-sm mb-4">Программная часть</p>
             <h3 class="text-2xl font-bold mb-6">Облачный сервис</h3>
@@ -107,96 +107,9 @@
           </div>
         </div>
       </div>
-    </section>
+    </section> -->
 
-    <!-- ====== Цены ====== -->
-    <section class="py-16 sm:py-24 bg-white">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-baseline gap-4 mb-12">
-          <h2 class="text-4xl sm:text-5xl font-bold uppercase">Цены</h2>
-          <span class="text-moonless-night/40 text-sm hidden sm:inline">SMS включены в подписку</span>
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-4">
-          <!-- Стартовый -->
-          <div class="border border-moonless-night/10 rounded-3xl p-6 sm:p-8 flex flex-col justify-between">
-            <h3 class="text-xl font-bold">Стартовый</h3>
-            <p class="text-sm text-moonless-night/50 mb-6">1–3 камеры</p>
-            <div class="flex items-baseline gap-1 mb-1">
-              <span class="text-4xl font-extrabold">25 000 ₽</span>
-              <span class="text-sm text-moonless-night/40">/ контроллер</span>
-            </div>
-            <div class="inline-flex items-baseline gap-1 px-3 py-1.5 bg-electric-blue/10 rounded-lg mb-6">
-              <span class="text-lg font-bold text-electric-blue">1 500 ₽</span>
-              <span class="text-xs text-electric-blue/70">/ мес подписка</span>
-            </div>
-            <ul class="space-y-2.5 mb-8">
-              <li v-for="feat in starterFeatures" :key="feat" class="flex items-start gap-2.5 text-sm">
-                <span class="text-electric-blue mt-0.5">·</span>
-                {{ feat }}
-              </li>
-            </ul>
-            <router-link
-              :to="isAuthenticated ? ROUTES.ORGANIZATIONS : ROUTES.REGISTER"
-              class="block w-full py-3 text-center font-semibold text-cotton bg-electric-blue rounded-full hover:bg-electric-blue/90 transition-colors"
-            >
-              Подключить
-            </router-link>
-          </div>
-
-          <!-- Корпоративный -->
-          <div class="bg-moonless-night text-cotton rounded-3xl p-6 sm:p-8 flex flex-col justify-between">
-            <h3 class="text-xl font-bold">Корпоративный</h3>
-            <p class="text-sm text-cotton/50 mb-6">4+ камеры</p>
-            <div class="flex items-baseline gap-1 mb-1">
-              <span class="text-4xl font-extrabold">23 000 ₽</span>
-              <span class="text-sm text-cotton/40">/ контроллер</span>
-            </div>
-            <p class="text-sm text-electric-blue mb-2">Экономия 2 000 ₽ с каждого</p>
-            <div class="inline-flex items-baseline gap-1 px-3 py-1.5 bg-electric-blue/15 rounded-lg mb-6">
-              <span class="text-lg font-bold text-electric-blue">1 200 ₽</span>
-              <span class="text-xs text-electric-blue/70">/ мес подписка</span>
-            </div>
-            <ul class="space-y-2.5 mb-8">
-              <li v-for="feat in corpFeatures" :key="feat" class="flex items-start gap-2.5 text-sm text-cotton/70">
-                <span class="text-electric-blue mt-0.5">·</span>
-                {{ feat }}
-              </li>
-            </ul>
-            <router-link
-              :to="isAuthenticated ? ROUTES.ORGANIZATIONS : ROUTES.REGISTER"
-              class="block w-full py-3 text-center font-semibold text-cotton bg-electric-blue rounded-full hover:bg-electric-blue/80 transition-colors"
-            >
-              Получить предложение
-            </router-link>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ====== О компании ====== -->
-    <section class="py-16 sm:py-24">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8">
-          <div>
-            <p class="text-3xl sm:text-4xl font-extrabold">24/7</p>
-            <p class="text-xs text-moonless-night/50 mt-1">Мониторинг</p>
-          </div>
-          <div>
-            <p class="text-3xl sm:text-4xl font-extrabold">±0.1°</p>
-            <p class="text-xs text-moonless-night/50 mt-1">Точность датчиков</p>
-          </div>
-          <div>
-            <p class="text-3xl sm:text-4xl font-extrabold">15 мин</p>
-            <p class="text-xs text-moonless-night/50 mt-1">На установку</p>
-          </div>
-          <div>
-            <p class="text-3xl sm:text-4xl font-extrabold">500+</p>
-            <p class="text-xs text-moonless-night/50 mt-1">Датчиков в системе</p>
-          </div>
-        </div>
-      </div>
-    </section>
+    <a-i-section />
 
     <!-- ====== Форма заявки ====== -->
     <section class="py-16 sm:py-24 bg-white">
@@ -286,13 +199,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import BIG_LOGO_D from "@/assets/big-logo-dark.png";
 import BIG_LOGO from "@/assets/big-logo.png";
 import { ROUTES } from "@/constants/routes";
 import { useRoadmap } from "@/composables/useRoadmap";
 import { useLeads } from "@/composables/useLeads";
-import { useAuthStore } from "@/stores/authStore";
+import AISection from "@/components/AISection.vue";
 
 const { roadmapItems, fetchRoadmap } = useRoadmap();
 const { createLead } = useLeads();
@@ -311,9 +224,6 @@ const NAV_LINKS = [
     to: "/#",
   },
 ];
-
-const authStore = useAuthStore();
-const isAuthenticated = computed(() => authStore.isAuthenticated);
 
 const leadForm = reactive({
   person_name: "",
@@ -342,19 +252,6 @@ const softwareSpecs = [
   { label: "Отчёты", value: "Автогенерация журналов для СЭС" },
   { label: "Доступ", value: "Мультипользовательский, роли: директор, менеджер" },
   { label: "Стек", value: "Vue 3, TypeScript, Node.js, PostgreSQL" },
-];
-
-const starterFeatures = [
-  "Контроллер «ШиП-01» + датчик",
-  "SMS-уведомления включены",
-  "Графики и история",
-];
-
-const corpFeatures = [
-  "Всё из «Стартового»",
-  "Мультипользовательский доступ",
-  "Приоритетная поддержка 24/7",
-  "Расширенная гарантия 18 мес",
 ];
 
 const leadInputClass = (field: string) => [
