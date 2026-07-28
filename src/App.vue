@@ -29,10 +29,15 @@ const isLandingPage = computed(() => route.path === ROUTES.LANDING);
 // ===== Plausible Analytics (только в production) =====
 onMounted(() => {
   if (!import.meta.env.PROD) return;
+  const plausibleUrl = import.meta.env.VITE_PLAUSIBLE_URL;
+  if (!plausibleUrl) return;
   const script = document.createElement("script");
   script.defer = true;
-  script.setAttribute("data-domain", "ship-monitor.ru");
-  script.src = "https://plausible.io/js/script.js";
+  script.setAttribute(
+    "data-domain",
+    import.meta.env.VITE_PLAUSIBLE_DOMAIN || "ship-monitor.ru",
+  );
+  script.src = `${plausibleUrl}/js/script.js`;
   document.head.appendChild(script);
 });
 </script>

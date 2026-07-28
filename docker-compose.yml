@@ -9,6 +9,8 @@ services:
       - NODE_ENV=production
       - VITE_API_URL=${CLOUD_BACKEND_URL}
       - VITE_CMS_URL="${CMS_URL}"
+      - VITE_PLAUSIBLE_URL=${PLAUSIBLE_BASE_URL}
+      - VITE_PLAUSIBLE_DOMAIN=${PLAUSIBLE_TRACKING_DOMAIN}
     restart: unless-stopped
     env_file:
       - .env
@@ -83,3 +85,60 @@ services:
       ADMIN_PASSWORD: "${CMS_ADMIN_PASSWORD}"
 
       PUBLIC_URL: "${CMS_URL}"
+
+  # ===== Plausible Analytics (self-hosted) =====
+  plausible_db:
+    image: postgres:16-alpine
+    volumes:
+      - ./data/plausible-db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: plausible
+      POSTGRES_USER: plausible
+      POSTGRES_PASSWORD: "${PLAUSIBLE_DB_PASSWORD}"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "plausible"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  plausible_events_db:
+    image: clickhouse/clickhouse-server:24.3.3-alpine
+    volumes:
+      - ./data/plausible-events-db:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  plausible:
+    image: ghcr.io/plausible/community-edition:v2.1.4
+    command: sh -c "/entrypoint.sh db createdb && /entrypoint.sh db migrate && /entrypoint.sh run"
+    ports:
+      - "8000:8000"
+    depends_on:
+      plausible_db:
+        condition: service_healthy
+      plausible_events_db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    environment:
+      BASE_URL: "${PLAUSIBLE_BASE_URL}"
+      SECRET_KEY_BASE: "${PLAUSIBLE_SECRET_KEY}"
+      DISABLE_REGISTRATION: "invite_only"
+
+      DATABASE_URL: "postgres://plausible:plausible@plausible_db:5432/plausible"
+      CLICKHOUSE_DATABASE_URL: "http://plausible_events_db:8122/plausible_events_db"
+
+      GEOIP_DATABASE_PATH: "/geoip/GeoLite2-City.mmdb"
