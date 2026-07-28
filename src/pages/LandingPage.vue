@@ -44,10 +44,10 @@
             class="mt-40 flex flex-col sm:flex-row gap-3 sm:gap-4 px-4 justify-center"
           >
             <router-link
-              :to="ROUTES.REGISTER"
+              :to="isAuthenticated ? ROUTES.DASHBOARD : ROUTES.REGISTER"
               class="text-xl items-center bg-electric-blue text-cotton rounded-full px-5 py-3 hover:bg-electric-blue/90"
             >
-              Подключить мониторинг
+              {{ isAuthenticated ? 'Открыть дашборд' : 'Подключить мониторинг' }}
             </router-link>
           </div>
         </div>
@@ -74,45 +74,12 @@
       </div>
     </section>
 
-    <!-- ====== Технологии ====== -->
-    <!-- <section class="py-16 sm:py-24">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-baseline gap-4 mb-12">
-          <h2 class="text-4xl sm:text-5xl font-bold uppercase">Железо и софт</h2>
-        </div>
-
-        <div class="grid lg:grid-cols-2 gap-12 lg:gap-20">
-         
-          <div>
-            <p class="text-electric-blue font-semibold text-sm mb-4">Аппаратная часть</p>
-            <h3 class="text-2xl font-bold mb-6">Контроллер «ШиП-01»</h3>
-            <dl class="space-y-0">
-              <div v-for="spec in hardwareSpecs" :key="spec.label" class="flex gap-4 sm:gap-6 py-3 border-t border-moonless-night/10 first:border-t-0">
-                <dt class="w-28 sm:w-32 shrink-0 text-sm text-moonless-night/50">{{ spec.label }}</dt>
-                <dd class="text-sm flex-1">{{ spec.value }}</dd>
-              </div>
-            </dl>
-          </div>
-
-          
-          <div>
-            <p class="text-electric-blue font-semibold text-sm mb-4">Программная часть</p>
-            <h3 class="text-2xl font-bold mb-6">Облачный сервис</h3>
-            <dl class="space-y-0">
-              <div v-for="spec in softwareSpecs" :key="spec.label" class="flex gap-4 sm:gap-6 py-3 border-t border-moonless-night/10 first:border-t-0">
-                <dt class="w-28 sm:w-32 shrink-0 text-sm text-moonless-night/50">{{ spec.label }}</dt>
-                <dd class="text-sm flex-1">{{ spec.value }}</dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-      </div>
-    </section> -->
+    
 
     <a-i-section />
 
     <!-- ====== Форма заявки ====== -->
-    <section class="py-16 sm:py-24 bg-white">
+    <section id="lead-form" class="py-16 sm:py-24 bg-white">
       <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-baseline gap-4 mb-10">
           <h2 class="text-4xl sm:text-5xl font-bold uppercase">Заявка</h2>
@@ -199,30 +166,24 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import BIG_LOGO_D from "@/assets/big-logo-dark.png";
 import BIG_LOGO from "@/assets/big-logo.png";
 import { ROUTES } from "@/constants/routes";
 import { useRoadmap } from "@/composables/useRoadmap";
 import { useLeads } from "@/composables/useLeads";
+import { useAuthStore } from "@/stores/authStore";
 import AISection from "@/components/AISection.vue";
 
 const { roadmapItems, fetchRoadmap } = useRoadmap();
 const { createLead } = useLeads();
+const authStore = useAuthStore();
+const isAuthenticated = computed(() => authStore.isAuthenticated);
 
 const NAV_LINKS = [
-  {
-    label: "Дорожная карта",
-    to: "/#",
-  },
-  {
-    label: "Документация",
-    to: "/#",
-  },
-  {
-    label: "Цены",
-    to: "/#",
-  },
+  { label: "Оборудование", to: "/#devices" },
+  { label: "Тарифы", to: "/#pricing" },
+  { label: "FAQ", to: "/#faq" },
 ];
 
 const leadForm = reactive({

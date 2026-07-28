@@ -14,7 +14,7 @@
   <cookie-banner></cookie-banner>
 </template>
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { ROUTES } from "@/constants/routes";
 import ApplicationLayout from "@/components/layout/ApplicationLayout.vue";
@@ -25,4 +25,14 @@ const route = useRoute();
 // ===== Вычисляемые =====
 const isAuthPage = computed(() => route.path.startsWith("/auth"));
 const isLandingPage = computed(() => route.path === ROUTES.LANDING);
+
+// ===== Plausible Analytics (только в production) =====
+onMounted(() => {
+  if (!import.meta.env.PROD) return;
+  const script = document.createElement("script");
+  script.defer = true;
+  script.setAttribute("data-domain", "ship-monitor.ru");
+  script.src = "https://plausible.io/js/script.js";
+  document.head.appendChild(script);
+});
 </script>
