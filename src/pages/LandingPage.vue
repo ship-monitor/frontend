@@ -1,10 +1,10 @@
 <template>
   <div class="bg-cotton text-moonless-night">
     <!-- ====== Хедер с логотипом ====== -->
-    <header class="">
+    <header>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center py-3 sm:py-4">
-          <!-- Логотип — только картинка, без текста -->
+          <!-- Логотип -->
           <div class="flex items-center">
             <div class="w-24 h-24 sm:w-32 sm:h-12 shrink-0">
               <img
@@ -14,17 +14,51 @@
               />
             </div>
           </div>
-          <div class="flex gap-10">
+
+          <!-- Десктоп-меню -->
+          <nav class="hidden md:flex gap-10">
             <router-link
               v-for="link in NAV_LINKS"
+              :key="link.to"
               :to="link.to"
               class="hover:text-electric-blue text-center transition-all duration-300 text-lg"
             >
               {{ link.label }}
             </router-link>
-          </div>
+          </nav>
+
+          <!-- Бургер (мобильное) -->
+          <button
+            @click="mobileMenuOpen = !mobileMenuOpen"
+            class="md:hidden p-2 -mr-2 text-moonless-night"
+            aria-label="Меню"
+          >
+            <svg v-if="!mobileMenuOpen" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <svg v-else class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
       </div>
+
+      <!-- Мобильное меню -->
+      <Transition name="mobile-menu">
+        <nav v-if="mobileMenuOpen" class="md:hidden bg-white border-t border-moonless-night/10">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 space-y-1">
+            <router-link
+              v-for="link in NAV_LINKS"
+              :key="link.to"
+              :to="link.to"
+              @click="mobileMenuOpen = false"
+              class="block px-4 py-3 rounded-xl text-lg hover:bg-cotton hover:text-electric-blue transition-colors"
+            >
+              {{ link.label }}
+            </router-link>
+          </div>
+        </nav>
+      </Transition>
     </header>
 
     <!-- ====== Hero Section ====== -->
@@ -74,7 +108,36 @@
       </div>
     </section>
 
-    
+    <!-- ====== Технологии ====== -->
+    <section class="py-16 sm:py-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-baseline gap-4 mb-12">
+          <h2 class="text-4xl sm:text-5xl font-bold uppercase">Железо и софт</h2>
+        </div>
+        <div class="grid lg:grid-cols-2 gap-12 lg:gap-20">
+          <div>
+            <p class="text-electric-blue font-semibold text-sm mb-4">Аппаратная часть</p>
+            <h3 class="text-2xl font-bold mb-6">Контроллер «ШиП-01»</h3>
+            <dl class="space-y-0">
+              <div v-for="spec in hardwareSpecs" :key="spec.label" class="flex gap-4 sm:gap-6 py-3 border-t border-moonless-night/10 first:border-t-0">
+                <dt class="w-28 sm:w-32 shrink-0 text-sm text-moonless-night/50">{{ spec.label }}</dt>
+                <dd class="text-sm flex-1">{{ spec.value }}</dd>
+              </div>
+            </dl>
+          </div>
+          <div>
+            <p class="text-electric-blue font-semibold text-sm mb-4">Программная часть</p>
+            <h3 class="text-2xl font-bold mb-6">Облачный сервис</h3>
+            <dl class="space-y-0">
+              <div v-for="spec in softwareSpecs" :key="spec.label" class="flex gap-4 sm:gap-6 py-3 border-t border-moonless-night/10 first:border-t-0">
+                <dt class="w-28 sm:w-32 shrink-0 text-sm text-moonless-night/50">{{ spec.label }}</dt>
+                <dd class="text-sm flex-1">{{ spec.value }}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <a-i-section />
 
@@ -179,6 +242,7 @@ const { roadmapItems, fetchRoadmap } = useRoadmap();
 const { createLead } = useLeads();
 const authStore = useAuthStore();
 const isAuthenticated = computed(() => authStore.isAuthenticated);
+const mobileMenuOpen = ref(false);
 
 const NAV_LINKS = [
   { label: "Оборудование", to: "/#devices" },
@@ -290,6 +354,16 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.mobile-menu-enter-active,
+.mobile-menu-leave-active {
+  transition: all 0.2s ease;
+}
+.mobile-menu-enter-from,
+.mobile-menu-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
