@@ -1,7 +1,7 @@
 <template>
   <!-- ====== Hero Section ====== -->
-  <section class="relative overflow-hidden">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
+  <section ref="heroSection" class="relative overflow-hidden flex items-center">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
       <hgroup class="flex flex-col gap-5">
         <div class="text-xl">Температура холодильного оборудования под контролем 24/7</div>
         <h1 class="text-9xl font-extrabold font-accent uppercase">
@@ -201,7 +201,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, onBeforeUnmount, reactive, ref } from "vue";
 import { useRoadmap } from "@/composables/useRoadmap";
 import { useLeads } from "@/composables/useLeads";
 import { useAuthStore } from "@/stores/authStore";
@@ -225,6 +225,19 @@ const leadForm = reactive({
 
 const formStatus = ref<"idle" | "loading" | "success" | "error">("idle");
 const formErrors = ref<Record<string, string>>({});
+
+// ====== Новая логика для высоты hero-секции ======
+const heroSection = ref<HTMLElement | null>(null);
+const headerHeight = ref(0);
+
+const updateHeroHeight = () => {
+  const header = document.querySelector('header');
+  const headerH = header ? header.offsetHeight : 0;
+  headerHeight.value = headerH;
+  if (heroSection.value) {
+    heroSection.value.style.minHeight = `calc(100vh - ${headerH}px)`;
+  }
+};
 
 // Аппаратные спецификации – датчик
 const sensorSpecs = [
@@ -328,6 +341,12 @@ const scrollToForm = () => {
 
 onMounted(() => {
   fetchRoadmap();
+  updateHeroHeight();
+  window.addEventListener('resize', updateHeroHeight);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateHeroHeight);
 });
 </script>
 
