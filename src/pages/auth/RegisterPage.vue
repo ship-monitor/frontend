@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<!-- <script setup lang="ts">
 import { ref } from "vue";
 import { ROUTES } from "@/constants/routes";
 import { register } from "@/data/auth";
@@ -25,11 +25,11 @@ const handleRegister = async () => {
     },
   });
 };
-</script>
+</script> -->
 
-<template>
+<!--<template>
   <div class="min-h-screen flex">
-    <!-- ====== Левая бренд-панель (десктоп) ====== -->
+  
     <div
       class="hidden lg:flex lg:w-1/2 bg-ink-900 text-white relative overflow-hidden flex-col justify-between p-12"
     >
@@ -76,7 +76,7 @@ const handleRegister = async () => {
       </p>
     </div>
 
-    <!-- ====== Правая форма ====== -->
+
     <div class="flex-1 flex items-center justify-center p-6 sm:p-12 bg-ink-50">
       <div class="w-full max-w-sm animate-fade-in-up">
         <div class="lg:hidden flex items-center justify-center gap-2.5 mb-8">
@@ -167,4 +167,4 @@ const handleRegister = async () => {
       </div>
     </div>
   </div>
-</template>
+</template> -->
