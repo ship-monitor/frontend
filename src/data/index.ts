@@ -2,34 +2,10 @@ import api from "@/api";
 import type { AxiosResponse } from "axios";
 import { Result, Unit } from "true-myth";
 
-export type Organization = {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type Member = {
-  userId: string;
-  email?: string;
-  name?: string;
-  role?: string;
-  joinedAt?: string;
-};
-
-export type Invitation = {
-  id: string;
-  organizationId: string;
-  organizationName?: string;
-  inviteeEmail?: string;
-  status?: string;
-  creationDate: string;
-};
-
 export type Device = {
   id: string;
   name: string;
-  organizationId?: string;
+  owner?: string;
   isConnected: boolean;
   createdAt?: string;
   temperature?: number | null;
@@ -49,101 +25,32 @@ const responseToResult = <TResponse>(
   return Result.ok(response.data);
 };
 
-// ============= Организации =============
-export const getUsersOrganizations = async (): Promise<
-  Result<Organization[], APIError>
-> => {
-  const response = await api.get("/api/organizations/my");
-  return responseToResult<{ organizations: Organization[] }>(response).map(
-    (r) => r.organizations
-  );
-};
-
-export const getOrganizationById = async (
-  id: string
-): Promise<Result<Organization, APIError>> => {
-  const response = await api.get(`/api/organizations/${id}`);
-  return responseToResult<Organization>(response);
-};
-
-export const createOrganization = async (
-  name: string
-): Promise<Result<Organization, APIError>> => {
-  const result = await api.post("/api/organizations/", { name });
-  return responseToResult<Organization>(result);
-};
-
-export const updateOrganization = async (
-  id: string,
-  name: string
-): Promise<Result<Organization, APIError>> => {
-  const result = await api.patch(`/api/organizations/${id}`, { name });
-  return responseToResult<Organization>(result);
-};
-
-export const deleteOrganization = async (id: string): Promise<void> => {
-  await api.delete(`/api/organizations/${id}`);
-};
-
-// ============= Участники =============
-export const getOrganizationMembers = async (
-  id: string
-): Promise<Result<Member[], APIError>> => {
-  const response = await api.get(`/api/organizations/${id}/members`);
-  return responseToResult<{ members: Member[] }>(response).map(
-    (r) => r.members
-  );
-};
-
-export const inviteMembers = async (
-  orgId: string,
-  emails: string | string[]
-): Promise<void> => {
-  const emailsArray =
-    typeof emails === "string"
-      ? emails
-          .split(",")
-          .map((e) => e.trim())
-          .filter(Boolean)
-      : emails;
-  if (emailsArray.length === 0) throw new Error("No valid emails provided");
-  await api.post(`/api/organizations/${orgId}/invitations`, {
-    inviteeEmails: emailsArray,
-  });
-};
-
-export const removeMembers = async (
-  id: string,
-  userIds: string[]
-): Promise<void> => {
-  for (const userId of userIds) {
-    await api.delete(`/api/organizations/${id}/members/${userId}`);
-  }
-};
-
-// ============= Приглашения =============
-export const getInvitations = async (): Promise<
-  Result<Invitation[], APIError>
-> => {
-  const response = await api.get("/api/invitations");
-  return responseToResult<{ invitations: Invitation[] }>(response).map(
-    (r) => r.invitations
-  );
-};
-
-export const acceptInvitation = async (invitationId: string): Promise<void> => {
-  await api.post(`/api/invitations/${invitationId}/accept`);
-};
-
-export const rejectInvitation = async (invitationId: string): Promise<void> => {
-  await api.post(`/api/invitations/${invitationId}/decline`);
-};
-
 // ============= Устройства =============
+// NOTE: GET /api/devices/my ещё не реализован на бэке
+export const getUserDevices = async (): Promise<Result<Device[], APIError>> => {
+  const result = await api.get(`/api/devices/my`);
+  return responseToResult<{ devices: Device[] }>(result).map((r) => r.devices);
+};
+
+// NOTE: GET /api/devices/:id ещё не реализован на бэке
 export const getDeviceById = async (
   deviceId: string
 ): Promise<Result<Device, APIError>> => {
   const result = await api.get(`/api/devices/${deviceId}`);
+  return responseToResult<Device>(result);
+};
+
+// NOTE: DELETE /api/devices/:id ещё не реализован на бэке
+export const disconnectDevice = async (deviceId: string): Promise<void> => {
+  await api.delete(`/api/devices/${deviceId}`);
+};
+
+// NOTE: PATCH /api/devices/:id ещё не реализован на бэке
+export const updateDevice = async (
+  deviceId: string,
+  name: string
+): Promise<Result<Device, APIError>> => {
+  const result = await api.patch(`/api/devices/${deviceId}`, { name });
   return responseToResult<Device>(result);
 };
 
@@ -181,35 +88,31 @@ export const confirmEmail = async (
   return Result.ok();
 };
 
-export const getOrganizationDevices = async (
-  orgId: string
-): Promise<Result<Device[], APIError>> => {
-  const result = await api.get(`/api/organizations/${orgId}/devices`);
-  return responseToResult<{ devices: Device[] }>(result).map((r) => r.devices);
-};
-
 export const connectDevice = async (
-  orgId: string,
-  deviceId?: string,
-  name?: string
-): Promise<Result<Device, APIError>> => {
-  const result = await api.post(`/api/organizations/${orgId}/devices`, {
-    deviceId,
-    name,
-  });
-  return responseToResult<Device>(result);
-};
-
-export const updateDevice = async (
   deviceId: string,
+  password: string,
   name: string
-): Promise<Result<Device, APIError>> => {
-  const result = await api.patch(`/api/devices/${deviceId}`, { name });
-  return responseToResult<Device>(result);
-};
+): Promise<Result<Unit, APIError>> => {
+  const response = await api.post(
+    `/api/v2/devices/connect`,
+    { deviceId, password, name },
+    { validateStatus: () => true }
+  );
 
-export const disconnectDevice = async (deviceId: string): Promise<void> => {
-  await api.delete(`/api/devices/${deviceId}`);
+  switch (response.status) {
+    case 201:
+      return Result.ok();
+    case 404:
+      return Result.err("Устройство не найдено");
+    case 403:
+      return Result.err("Неверный пароль устройства");
+    case 409:
+      return Result.err("Устройство уже подключено");
+    default:
+      return Result.err(
+        response.data?.details || "Не удалось подключить устройство"
+      );
+  }
 };
 
 type State = "online" | "temperature";

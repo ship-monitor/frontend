@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<!-- <script setup lang="ts">
 import { ref } from "vue";
 import { ROUTES } from "@/constants/routes";
 import { register } from "@/data/auth";
@@ -25,17 +25,15 @@ const handleRegister = async () => {
     },
   });
 };
-</script>
+</script> -->
 
-<template>
+<!--<template>
   <div class="min-h-screen flex">
-    <!-- ====== Левая бренд-панель (десктоп) ====== -->
+  
     <div
       class="hidden lg:flex lg:w-1/2 bg-ink-900 text-white relative overflow-hidden flex-col justify-between p-12"
     >
       <div class="absolute inset-0 bg-grid opacity-30"></div>
-      <div class="absolute -top-24 -right-24 w-96 h-96 bg-brand-500/20 rounded-full blur-3xl"></div>
-      <div class="absolute -bottom-32 -left-20 w-96 h-96 bg-brand-600/10 rounded-full blur-3xl"></div>
 
       <div class="relative flex items-center gap-3">
         <span class="w-11 h-11 rounded-xl bg-brand-500 flex items-center justify-center font-bold text-lg shadow-lg shadow-brand-500/30">Ш</span>
@@ -45,7 +43,7 @@ const handleRegister = async () => {
       <div class="relative space-y-6">
         <h1 class="text-4xl font-bold leading-tight tracking-tight">
           Начните мониторинг<br />
-          <span class="text-gradient-brand">за пару минут</span>
+          <span class="text-brand-400">за пару минут</span>
         </h1>
         <p class="text-ink-300 text-lg leading-relaxed max-w-md">
           Создайте аккаунт и подключите холодильное оборудование.
@@ -78,7 +76,7 @@ const handleRegister = async () => {
       </p>
     </div>
 
-    <!-- ====== Правая форма ====== -->
+
     <div class="flex-1 flex items-center justify-center p-6 sm:p-12 bg-ink-50">
       <div class="w-full max-w-sm animate-fade-in-up">
         <div class="lg:hidden flex items-center justify-center gap-2.5 mb-8">
@@ -169,4 +167,4 @@ const handleRegister = async () => {
       </div>
     </div>
   </div>
-</template>
+</template> -->

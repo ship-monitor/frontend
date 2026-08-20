@@ -9,7 +9,7 @@
     </div>
 
     <!-- Информация о пользователе -->
-    <div class="ship-card p-5 sm:p-6 animate-fade-in-up" v-if="user">
+    <div class="ship-card p-5 sm:p-6" v-if="user">
       <h2 class="text-base font-semibold text-ink-900 mb-4">Информация</h2>
       <div class="space-y-4">
         <div>
@@ -55,7 +55,7 @@
     </div>
 
     <!-- Изменение email -->
-    <div class="ship-card p-5 sm:p-6 animate-fade-in-up delay-100">
+    <div class="ship-card p-5 sm:p-6">
       <h2 class="text-base font-semibold text-ink-900 mb-4">Изменить email</h2>
       <div class="space-y-3">
         <ShipTextbox
@@ -82,7 +82,7 @@
     </div>
 
     <!-- Изменение пароля -->
-    <div class="ship-card p-5 sm:p-6 animate-fade-in-up delay-200">
+    <div class="ship-card p-5 sm:p-6">
       <h2 class="text-base font-semibold text-ink-900 mb-4">
         Изменить пароль
       </h2>

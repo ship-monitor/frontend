@@ -53,27 +53,21 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requireAuth: true } as CustomRouteMeta,
   },
   {
-    path: ROUTES.ORGANIZATIONS,
-    name: "Organizations",
-    component: () => import("../pages/organizations/ListPage.vue"),
-    meta: { requireAuth: true } as CustomRouteMeta,
-  },
-  {
     path: ROUTES.SENSOR_DETAILS,
     name: "sensor-details",
     component: SensorDetailsPage,
     meta: { requireAuth: true } as CustomRouteMeta,
   },
   {
-    path: ROUTES.ORGANIZATION_DETAILS,
-    name: "Organization details",
-    component: () => import("../pages/organizations/DetailsPage.vue"),
-    meta: { requireAuth: true } as CustomRouteMeta,
-  },
-  {
     path: ROUTES.PROFILE,
     name: "Profile",
     component: Profile,
+    meta: { requireAuth: true } as CustomRouteMeta,
+  },
+  {
+    path: ROUTES.CONNECT_DEVICE,
+    name: "ConnectDevice",
+    component: () => import("../pages/ConnectDevicePage.vue"),
     meta: { requireAuth: true } as CustomRouteMeta,
   },
   {

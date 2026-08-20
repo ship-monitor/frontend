@@ -1,0 +1,9 @@
+---
+description: Ship Cloud frontend conventions for AI agents (canonical copy in AGENTS.md)
+alwaysApply: true
+---
+
+@AGENTS.md
+
+This project's canonical agent instructions live in `AGENTS.md` at the
+repository root (imported above). Read and follow it for all work in this repo.

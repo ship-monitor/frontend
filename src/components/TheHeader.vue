@@ -12,26 +12,6 @@
         class="w-40 cursor-pointer"
         @click="router.push(ROUTES.LANDING)"
       />
-      <nav class="flex gap-4">
-        <router-link
-          :to="ROUTES.ORGANIZATIONS"
-          class="text-gray-600 hover:text-blue-600 transition-colors font-medium"
-        >
-          Организации
-        </router-link>
-        <router-link
-          :to="ROUTES.INVITATIONS"
-          class="text-gray-600 hover:text-blue-600 transition-colors font-medium flex items-center gap-1"
-        >
-          Приглашения
-          <span
-            v-if="invitationCount > 0"
-            class="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-          >
-            {{ invitationCount }}
-          </span>
-        </router-link>
-      </nav>
     </div>
 
     <!-- Кнопка выхода -->
@@ -61,26 +41,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
 import BIG_LOGO from "@/assets/big-logo.png";
 import { useRouter } from "vue-router";
-import { getInvitations } from "@/data";
 import { logout } from "@/data/auth";
 import { ROUTES } from "@/constants/routes";
 
 const COMPANY_NAME = "ШиП Монитор";
 const router = useRouter();
-const invitationCount = ref(0);
-
-const loadInvitationCount = async () => {
-  const invitations = await getInvitations();
-  invitationCount.value = invitations
-    .map((r) => r.length)
-    .inspectErr((err) => console.error("failed load invitations: %s", err))
-    .unwrapOr(0);
-};
-
-onMounted(loadInvitationCount);
 
 const handleLogout = async () => {
   await logout();
