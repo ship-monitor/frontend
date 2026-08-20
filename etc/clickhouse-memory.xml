@@ -1,0 +1,5 @@
+<clickhouse>
+    <max_server_memory_usage>1500000000</max_server_memory_usage>
+    <mark_cache_size>268435456</mark_cache_size>
+    <index_mark_cache_size>134217728</index_mark_cache_size>
+</clickhouse>

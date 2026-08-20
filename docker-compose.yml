@@ -104,8 +104,10 @@ services:
 
   plausible_events_db:
     image: clickhouse/clickhouse-server:24.3.3-alpine
+    mem_limit: 2g
     volumes:
       - ./data/plausible-events-db:/var/lib/clickhouse
+      - ./etc/clickhouse-memory.xml:/etc/clickhouse-server/config.d/memory-limit.xml:ro
     ulimits:
       nofile:
         soft: 262144
