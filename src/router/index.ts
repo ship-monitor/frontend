@@ -34,12 +34,12 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("../pages/auth/LoginPage.vue"),
     meta: { onlyAnonymous: true } as CustomRouteMeta,
   },
-  {
-    path: ROUTES.REGISTER,
-    name: "Register",
-    component: () => import("../pages/auth/RegisterPage.vue"),
-    meta: { onlyAnonymous: true } as CustomRouteMeta,
-  },
+  // {
+  //   path: ROUTES.REGISTER,
+  //   name: "Register",
+  //   component: () => import("../pages/auth/RegisterPage.vue"),
+  //   meta: { onlyAnonymous: true } as CustomRouteMeta,
+  // },
   {
     path: ROUTES.CONFIRM_EMAIL,
     name: "ConfirmEmail",
