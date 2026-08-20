@@ -4,7 +4,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
       <hgroup class="flex flex-col gap-5">
         <div class="text-xl">Температура холодильного оборудования под контролем 24/7</div>
-        <h1 class="text-9xl font-extrabold font-accent uppercase">
+        <h1 class="text-4xl sm:text-7xl  md:text-9xl  font-extrabold font-accent uppercase">
           ШИП-монитор
         </h1>
         <p class="mt-6 max-w-2xl text-lg text-moonless-night/70">
