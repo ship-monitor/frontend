@@ -22,17 +22,14 @@ const api = createApi();
 const UNAUTHORIZED = 401;
 
 // Публичные маршруты, с которых не нужно принудительно уводить на логин.
-const PUBLIC_PATHS: string[] = [
-  ROUTES.LANDING,
-  ROUTES.LOGIN,
-  ROUTES.REGISTER,
-];
+const PUBLIC_PATHS: string[] = [ROUTES.LANDING, ROUTES.LOGIN, ROUTES.REGISTER];
 
 // С validateStatus: () => true axios не отклоняет ответы по статусу,
 // поэтому 401 обрабатываем здесь, в success-перехватчике.
 api.interceptors.response.use(
   (response) => {
     if (response.status === UNAUTHORIZED) {
+      // TODO(auth): Invalidate the Pinia session before redirecting; otherwise the anonymous-only login guard sends users with expired sessions back to the dashboard.
       const router = getAppRouter();
       const currentPath = router?.currentRoute.value.path;
 

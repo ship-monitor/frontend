@@ -1,7 +1,9 @@
 <template>
   <Transition name="banner">
-    <div v-if="isVisible"
-      class="fixed bottom-0 left-0 right-0 z-100 bg-ink-900/95 backdrop-blur-md border-t border-ink-800 p-4 sm:p-6">
+    <div
+      v-if="isVisible"
+      class="fixed bottom-0 left-0 right-0 z-100 bg-ink-900/95 backdrop-blur-md border-t border-ink-800 p-4 sm:p-6"
+    >
       <div class="max-w-7xl mx-auto">
         <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
           <div class="flex-1 text-center sm:text-left">
@@ -10,14 +12,20 @@
             </h3>
             <p class="text-ink-300 text-sm sm:text-base leading-relaxed">
               Продолжая использовать сайт, вы соглашаетесь с нашей
-              <a href="/privacy-policy" class="underline hover:text-white transition-colors">
-                политикой конфиденциальности
-              </a>.
+              <!-- TODO(router): Link to a registered privacy-policy route; this path currently falls through to the landing page. -->
+              <a
+                href="/privacy-policy"
+                class="underline hover:text-white transition-colors"
+              >
+                политикой конфиденциальности </a
+              >.
             </p>
           </div>
-          <button @click="closeBanner"
+          <button
+            @click="closeBanner"
             class="flex items-center justify-center w-10 h-10 bg-ink-800 hover:bg-brand-500 text-white rounded-lg transition-colors duration-200 shrink-0"
-            aria-label="Закрыть уведомление о куки">
+            aria-label="Закрыть уведомление о куки"
+          >
             <IconCross class="size-5" />
           </button>
         </div>
@@ -32,6 +40,7 @@ import IconCross from "./icons/IconCross.vue";
 
 const isVisible = ref(false);
 
+// TODO(storage): Guard localStorage reads/writes and fall back to in-memory visibility when browser storage is unavailable.
 const closeBanner = () => {
   isVisible.value = false;
   localStorage.setItem("cookiesBannerClosed", "true");

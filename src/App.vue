@@ -13,6 +13,7 @@
   <application-layout v-else>
     <router-view />
   </application-layout>
+  <!-- TODO: Import and register CookieBanner, or remove this unresolved custom element while the feature is disabled. -->
   <cookie-banner></cookie-banner>
 </template>
 <script setup lang="ts">
@@ -26,6 +27,7 @@ import LandingLayout from "./components/layout/LandingLayout.vue";
 const route = useRoute();
 
 // ===== Вычисляемые =====
+// TODO(router): Select layouts from typed route metadata instead of coupling layout behavior to a hard-coded URL prefix.
 const isAuthPage = computed(() => route.path.startsWith("/auth"));
 const isLandingPage = computed(() => route.path === ROUTES.LANDING);
 

@@ -38,6 +38,7 @@
     <div class="ship-card p-6">
       <h2 class="text-lg font-bold text-ink-900 mb-4">График температуры</h2>
       <transition name="chart-empty-fade" mode="out-in">
+        <!-- TODO: Base this empty state on filteredHistory.length so periods containing no samples do not render an empty chart. -->
         <div
           v-if="history.length === 0"
           key="empty"
@@ -45,10 +46,7 @@
         >
           Нет данных за выбранный период
         </div>
-        <div
-          v-else key="chart"
-          class="space-y-2"
-        >
+        <div v-else key="chart" class="space-y-2">
           <TemperatureChart :history="filteredHistory" />
         </div>
       </transition>
@@ -107,6 +105,7 @@ const filteredHistory = computed(() => {
   return props.history.filter((item) => item.timestamp >= cutoff);
 });
 
+// TODO(dead-code): Remove these no-op watcher/mount hooks or implement the chart synchronization they were intended to perform.
 watch(
   filteredHistory,
   async () => {

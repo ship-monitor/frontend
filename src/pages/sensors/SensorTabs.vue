@@ -1,4 +1,5 @@
 <template>
+  <!-- TODO(a11y): Add tablist/tab semantics, aria-selected/panel linkage, and keyboard arrow navigation. -->
   <div class="border-b border-ink-200 mb-6 overflow-x-auto">
     <div class="flex gap-2 sm:gap-4 min-w-max">
       <button

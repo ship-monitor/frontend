@@ -1,4 +1,5 @@
 FROM node:26-alpine AS build-stage
+# TODO(deploy): Accept VITE_API_URL as a required build argument instead of compiling every image against this hard-coded HTTP endpoint.
 ENV VITE_API_URL=http://157.22.206.199:8080
 
 WORKDIR /app

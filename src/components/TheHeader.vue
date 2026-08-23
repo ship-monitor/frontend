@@ -49,6 +49,7 @@ import { ROUTES } from "@/constants/routes";
 const COMPANY_NAME = "ШиП Монитор";
 const router = useRouter();
 
+// TODO(auth): Remove this unused duplicate header or delegate logout to authStore so server and Pinia session state stay synchronized.
 const handleLogout = async () => {
   await logout();
   router.push(ROUTES.LOGIN);

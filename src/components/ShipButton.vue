@@ -1,4 +1,5 @@
 <template>
+  <!-- TODO: Default the shared button to type="button" while allowing callers to explicitly request type="submit". -->
   <button
     v-bind="$attrs"
     :class="[

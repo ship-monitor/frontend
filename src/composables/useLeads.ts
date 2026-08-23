@@ -6,6 +6,7 @@ const isLoading = ref(false);
 const error = ref<string | null>(null);
 
 export const useLeads = () => {
+  // TODO: Update the exposed loading/error refs (or remove them) and return an actionable failure reason instead of only false.
   const createLead = async (leadData: LeadRequest): Promise<boolean> => {
     try {
       const response = await cmsApi.post("/items/leads", leadData);

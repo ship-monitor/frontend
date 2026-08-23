@@ -1,3 +1,4 @@
+<!-- TODO(dead-code): Remove this archived component or restore registration as executable, validated, tested code behind an explicit feature decision. -->
 <!-- <script setup lang="ts">
 import { ref } from "vue";
 import { ROUTES } from "@/constants/routes";
@@ -29,7 +30,7 @@ const handleRegister = async () => {
 
 <!--<template>
   <div class="min-h-screen flex">
-  
+
     <div
       class="hidden lg:flex lg:w-1/2 bg-ink-900 text-white relative overflow-hidden flex-col justify-between p-12"
     >

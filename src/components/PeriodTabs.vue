@@ -1,11 +1,16 @@
 <template>
+  <!-- TODO(a11y): Give this selector an accessible group label and expose the active period with aria-pressed. -->
   <div class="flex flex-wrap gap-2">
     <transition-group name="period-tabs" tag="div" class="flex flex-wrap gap-2">
       <ShipButton
         v-for="period in periods"
         :key="period.value"
         variant="secondary"
-        :class="selectedPeriod === period.value ? 'bg-brand-600 text-white border-brand-600' : ''"
+        :class="
+          selectedPeriod === period.value
+            ? 'bg-brand-600 text-white border-brand-600'
+            : ''
+        "
         @click="$emit('update:selectedPeriod', period.value)"
       >
         {{ period.label }}

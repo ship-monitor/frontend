@@ -1,4 +1,5 @@
 <script setup lang="ts">
+// TODO: Make description optional and support a constrained heading level so callers can preserve document hierarchy without empty paragraphs.
 defineProps<{
   heading: string;
   headingAlt: string;
@@ -6,6 +7,7 @@ defineProps<{
 }>();
 </script>
 <template>
+  <!-- TODO(a11y): Replace this invalid hgroup/div structure with a semantic header containing the eyebrow, heading, and optional description. -->
   <hgroup
     class="mb-12 grid gap-6 md:mb-16 md:grid-cols-[0.8fr_1fr] md:items-end"
   >

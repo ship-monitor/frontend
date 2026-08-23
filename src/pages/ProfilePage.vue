@@ -1,7 +1,9 @@
 <template>
   <div class="max-w-lg mx-auto space-y-5 animate-fade-in">
     <div>
-      <h1 class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">Профиль</h1>
+      <h1 class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">
+        Профиль
+      </h1>
       <p class="text-sm text-ink-500 mt-0.5">Управление аккаунтом</p>
     </div>
     <div>
@@ -28,10 +30,7 @@
             >
               Подтверждён
             </span>
-            <span
-              v-else
-              class="ship-badge ship-badge-danger"
-            >
+            <span v-else class="ship-badge ship-badge-danger">
               Не подтверждён
             </span>
           </div>
@@ -55,6 +54,7 @@
     </div>
 
     <!-- Изменение email -->
+    <!-- TODO(a11y): Give account inputs associated labels/IDs, announce mutation status, and use new-password autocomplete for the password field. -->
     <div class="ship-card p-5 sm:p-6">
       <h2 class="text-base font-semibold text-ink-900 mb-4">Изменить email</h2>
       <div class="space-y-3">
@@ -83,9 +83,7 @@
 
     <!-- Изменение пароля -->
     <div class="ship-card p-5 sm:p-6">
-      <h2 class="text-base font-semibold text-ink-900 mb-4">
-        Изменить пароль
-      </h2>
+      <h2 class="text-base font-semibold text-ink-900 mb-4">Изменить пароль</h2>
       <div class="space-y-3">
         <ShipTextbox
           v-model="newPassword"
@@ -118,6 +116,7 @@ import { getCurrentUser, startEmailConfirmation } from "@/data";
 import ShipTextbox from "@/components/ShipTextbox.vue";
 import { useAsyncState } from "@vueuse/core";
 
+// TODO: Preserve getCurrentUser Err in a visible load-error state; unwrapping it to null prevents useAsyncState.error from being populated.
 const { state: user, error } = useAsyncState(
   async () =>
     (await getCurrentUser())
@@ -146,6 +145,7 @@ const confirmEmailError = ref("");
 /**
  * @deprecated Move this to data
  */
+// TODO(data): Move this mutation into src/data, normalize/validate the email, inspect the resolved HTTP status, and update local state only for Result.Ok.
 async function handleUpdateEmail() {
   if (!newEmail.value.trim() || !user.value) return;
   updatingEmail.value = true;
@@ -162,6 +162,7 @@ async function handleUpdateEmail() {
     user.value.email = newEmail.value;
     newEmail.value = "";
   } catch (error) {
+    // TODO: Narrow transport errors safely; response/data can be absent and this handler currently throws while handling that case.
     emailError.value =
       ((error as AxiosError).response?.data as { details: string }).details ||
       "Ошибка при обновлении email";
@@ -170,6 +171,7 @@ async function handleUpdateEmail() {
   }
 }
 
+// TODO(data): Move this mutation into src/data and report success only after an explicit successful HTTP status.
 async function handleUpdatePassword() {
   if (!newPassword.value.trim() || !user.value) return;
   updatingPassword.value = true;
@@ -191,6 +193,7 @@ async function handleUpdatePassword() {
   }
 }
 
+// TODO: Match the startEmailConfirmation Result and show success only for Ok; ordinary HTTP failures do not throw.
 async function handleConfirmEmail() {
   sendingConfirmation.value = true;
   confirmEmailSuccess.value = "";

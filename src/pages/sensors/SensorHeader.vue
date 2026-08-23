@@ -4,16 +4,31 @@
       @click="$router.back()"
       class="text-sm text-ink-500 hover:text-ink-700 mb-3 flex items-center gap-1 touch-target transition-colors"
     >
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      <svg
+        class="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 19l-7-7m0 0l7-7m-7 7h18"
+        />
       </svg>
       Назад
     </button>
     <div class="flex flex-wrap justify-between items-start gap-3">
       <div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">{{ name }}</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">
+          {{ name }}
+        </h1>
         <p class="text-xs text-ink-400 font-mono mt-0.5">ID: {{ deviceId }}</p>
-        <div v-if="tags && tags.length > 0" class="flex flex-wrap gap-1.5 mt-2.5">
+        <div
+          v-if="tags && tags.length > 0"
+          class="flex flex-wrap gap-1.5 mt-2.5"
+        >
           <span
             v-for="tag in tags"
             :key="tag"
@@ -37,21 +52,36 @@
         >
           {{ statusLoading ? "Проверка..." : "Связь" }}
         </button>
-        <span :class="['ship-badge', isConnected ? 'ship-badge-success' : 'ship-badge-danger']">
-          <span :class="['w-1.5 h-1.5 rounded-full', isConnected ? 'bg-brand-500' : 'bg-red-400']"></span>
+        <span
+          :class="[
+            'ship-badge',
+            isConnected ? 'ship-badge-success' : 'ship-badge-danger',
+          ]"
+        >
+          <span
+            :class="[
+              'w-1.5 h-1.5 rounded-full',
+              isConnected ? 'bg-brand-500' : 'bg-red-400',
+            ]"
+          ></span>
           {{ isConnected ? "В сети" : "Не в сети" }}
         </span>
       </div>
     </div>
 
     <!-- Модалка команды -->
+    <!-- TODO(a11y): Implement dialog semantics, focus trap/restoration, Escape handling, associated field labels, and an announced error region. -->
     <Teleport to="body">
       <Transition name="modal">
+        <!-- TODO: Move @click.self to this backdrop; attaching it to the panel makes outside clicks ineffective and panel padding close the dialog. -->
         <div
           v-if="showCommandModal"
           class="fixed inset-0 bg-ink-950/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4"
         >
-          <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-md p-6" @click.self="closeModal">
+          <div
+            class="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-md p-6"
+            @click.self="closeModal"
+          >
             <h2 class="text-lg font-bold text-ink-900 mb-4">
               Отправить команду
             </h2>
@@ -174,6 +204,7 @@ const closeModal = () => {
   error.value = "";
 };
 
+// TODO: Match a Result from sendDeviceCommand and close the modal only after a successful HTTP response.
 const submitCommand = async () => {
   sending.value = true;
   error.value = "";
@@ -190,9 +221,9 @@ const submitCommand = async () => {
     closeModal();
   } catch (e) {
     if (e instanceof Error) {
-    error.value = e.message;
+      error.value = e.message;
     } else {
-    error.value = "Ошибка отправки команды";
+      error.value = "Ошибка отправки команды";
     }
   } finally {
     sending.value = false;

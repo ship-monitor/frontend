@@ -13,11 +13,13 @@ export default defineConfig([
     languageOptions: { globals: globals.browser },
   },
   tseslint.configs.recommended,
+  // TODO(lint): Enable eslint-plugin-vue's essential or recommended rules; the base preset only configures parsing.
   ...pluginVue.configs["flat/base"],
   {
     files: ["**/*.vue"],
     languageOptions: { parserOptions: { parser: tseslint.parser } },
   },
+  // TODO(lint): Ignore generated lockfiles here; json/no-empty-keys currently rejects npm's valid package-lock.json structure.
   {
     files: ["**/*.json"],
     plugins: { json },

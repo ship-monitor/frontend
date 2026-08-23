@@ -14,6 +14,8 @@ export type Device = {
 
 export type APIError = string;
 
+// TODO(data): Require a 2xx status and validate the expected payload before returning Ok; body shape alone cannot establish HTTP success.
+// TODO(data): Route requests through a shared wrapper that converts transport failures into Result errors so callers never need both Result and try/catch handling.
 const responseToResult = <TResponse>(
   response: AxiosResponse
 ): Result<TResponse, APIError> => {
@@ -42,6 +44,7 @@ export const getDeviceById = async (
 
 // NOTE: DELETE /api/devices/:id ещё не реализован на бэке
 export const disconnectDevice = async (deviceId: string): Promise<void> => {
+  // TODO(data): Check the HTTP status and return a Result so failed device mutations are not reported as success.
   await api.delete(`/api/devices/${deviceId}`);
 };
 
@@ -55,6 +58,7 @@ export const updateDevice = async (
 };
 
 const STATUS_OK = 200;
+// TODO(api-contract): Verify this idempotency response with the backend; HTTP Conflict is 409, while 304 has cache semantics.
 const STATUS_CONFLICT = 304;
 
 // ============= Подтверждение почты =============
@@ -77,6 +81,7 @@ export const startEmailConfirmation = async (): Promise<
 export const confirmEmail = async (
   token: string
 ): Promise<Result<Unit, APIError>> => {
+  // TODO(security): Encode the token as a URL path segment after the page validates that exactly one non-empty query token was supplied.
   const response = await api.post(`/api/users/confirm-email/${token}`, null, {
     validateStatus: () => true,
   });
@@ -160,6 +165,7 @@ export const getDeviceState = async <TValue>(
     .mapErr((e) => `no states provided in response ${e}`);
 };
 
+// TODO(dead-code): Remove this unused API or request a real history length; history=1 duplicates the latest-state operation despite the function name.
 export const getDeviceStateWithHistory = async <TValue>(
   deviceId: string,
   state: State
@@ -172,6 +178,7 @@ export const getDeviceStateWithHistory = async <TValue>(
   ).map((r) => r.result);
 };
 
+// TODO(models): Replace this duplicate private User shape with the canonical authenticated-user model shared by the data layer and Pinia.
 type User = {
   id: string;
   name: string;
@@ -180,6 +187,7 @@ type User = {
   blocked: boolean;
 };
 
+// TODO(data): Return a Result after checking the response status so callers do not close the command dialog on HTTP 4xx/5xx responses.
 export const sendDeviceCommand = async (
   deviceId: string,
   command: string,

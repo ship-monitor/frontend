@@ -3,6 +3,7 @@ import { ref } from "vue";
 import BIG_LOGO_D from "@/assets/big-logo-dark.png";
 import BIG_LOGO from "@/assets/big-logo.png";
 
+// TODO(navigation): Give every item a unique ID and a real distinct route, anchor, or contact destination; duplicate '/#' keys are broken placeholders.
 const NAV_LINKS = [
   { label: "Документация", to: "/#" },
   { label: "Тарифы", to: "/#pricing" },
@@ -41,6 +42,7 @@ const mobileMenuOpen = ref(false);
           </nav>
 
           <!-- Бургер (мобильное) -->
+          <!-- TODO(a11y): Bind aria-expanded/aria-controls and provide distinct open/close labels for this disclosure button. -->
           <button
             @click="mobileMenuOpen = !mobileMenuOpen"
             class="md:hidden p-2 -mr-2 text-moonless-night"
@@ -98,6 +100,7 @@ const mobileMenuOpen = ref(false);
         </nav>
       </Transition>
     </header>
+    <!-- TODO(a11y): Wrap the page slot in a main landmark. -->
     <slot></slot>
     <footer class="bg-moonless-night text-cotton/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

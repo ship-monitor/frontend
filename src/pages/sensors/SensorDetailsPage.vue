@@ -1,9 +1,24 @@
 <template>
   <div class="max-w-7xl mx-auto p-4 sm:p-6">
     <div v-if="loading" class="text-center py-12">
-      <svg class="w-8 h-8 mx-auto text-brand-500 animate-spin mb-3" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      <svg
+        class="w-8 h-8 mx-auto text-brand-500 animate-spin mb-3"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          class="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="4"
+        ></circle>
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        ></path>
       </svg>
       <p class="text-ink-400">Загрузка...</p>
     </div>
@@ -24,6 +39,8 @@
         @select="activeTab = $event"
       />
 
+      <!-- TODO: Handle update:period and assign the emitted value to selectedPeriod so period controls affect the chart. -->
+      <!-- TODO: Align SensorInfoTab events: handle cancel and remove or implement the update event that the child never emits. -->
       <transition name="fade" mode="out-in">
         <SensorTemperatureTab
           v-if="activeTab === 'temperature'"
@@ -70,6 +87,7 @@ import SensorInfoTab, { type SensorSettings } from "./SensorInfoTab.vue";
 import { isOnline } from "@/utils/utils";
 
 const route = useRoute();
+// TODO(router): Validate and watch the route id, then stop/reset/reload state when Vue Router reuses this component for another sensor.
 const deviceId = route.params.id as string;
 
 const loading = ref(true);
@@ -90,6 +108,7 @@ const selectedPeriod = ref("24h");
 
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 
+// TODO(models): Load/persist every SensorSettings field or reduce this model to the name field actually supported by this flow.
 const settings = ref<SensorSettings>({
   id: deviceId,
   name: "",
@@ -119,6 +138,7 @@ async function loadDeviceFromApi(): Promise<string | undefined> {
     .unwrapOr(undefined);
 }
 
+// TODO: Reset saving in finally, update local state only for Result.Ok, and surface Err; success and failure control flow is currently reversed.
 async function saveSettings(s: SensorSettings) {
   saving.value = true;
 
@@ -144,6 +164,7 @@ function handleDeviceUpdate(device: { id: string; name: string }) {
   settings.value.name = device.name;
 }
 
+// TODO: Set statusLoading in try/finally, prevent overlapping checks, and represent failed checks as stale/unknown rather than retaining a misleading status.
 async function pingAndUpdateStatus() {
   deviceIsConnected.value = await isOnline(deviceId);
 }
@@ -169,6 +190,7 @@ async function loadTemperatureHistory() {
   }
 }
 
+// TODO: Serialize/cancel overlapping manual and interval refreshes, and surface Result.Err while marking retained readings as stale.
 async function refreshTemperature() {
   tempLoading.value = true;
   tempError.value = "";
@@ -189,6 +211,7 @@ async function refreshTemperature() {
   }
 }
 
+// TODO: Wrap initial loading in try/catch/finally, always clear loading, and expose a retryable page-level transport error.
 async function loadDeviceData() {
   const apiName = await loadDeviceFromApi();
   sensorName.value = getDisplayName(apiName);

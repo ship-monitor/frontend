@@ -19,6 +19,7 @@ export function isAuthError(error: unknown): boolean {
 }
 
 export async function isOnline(deviceId: string): Promise<boolean> {
+  // TODO: Treat a device as online only when the record value is true and its timestamp is newer than the freshness cutoff; this predicate is currently reversed.
   return (await getDeviceState<boolean>(deviceId, "online"))
     .map((r) => new Date(r.timestamp).getTime() < Date.now() - PING_INTERVAL)
     .inspectErr((err) => console.error("Faild load online state: %s", err))
@@ -34,6 +35,7 @@ export const getLastTemperature = async (
     .unwrapOr(null);
 };
 
+// TODO: Use date.getTime() rather than the 0-999 millisecond component, handle invalid/future dates, and cover time boundaries with tests.
 export const formatTimeAgo = (timestamp: string): string => {
   const date = new Date(timestamp);
   const diff = Date.now() - date.getMilliseconds();

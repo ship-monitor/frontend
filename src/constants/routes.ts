@@ -12,6 +12,7 @@ export const ROUTES = {
 
 export type RouteKey = keyof typeof ROUTES;
 
+// TODO(router): Remove builders for disabled or unregistered routes and make confirmEmail produce the query token expected by its page.
 export const route = {
   landing: () => ROUTES.LANDING,
   login: () => ROUTES.LOGIN,

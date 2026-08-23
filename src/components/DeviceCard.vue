@@ -30,14 +30,20 @@
         </p>
       </div>
       <span :class="['ship-badge', badgeClass(online)]">
-        <span v-if="online?.value" class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>
+        <span
+          v-if="online?.value"
+          class="w-1.5 h-1.5 rounded-full bg-brand-500"
+        ></span>
         <span v-else class="w-1.5 h-1.5 rounded-full bg-red-400"></span>
         {{ statusLabel(online) }}
       </span>
     </div>
 
     <div class="text-center py-2">
-      <div class="text-3xl sm:text-4xl font-bold tracking-tight" :class="tempColor(temp)">
+      <div
+        class="text-3xl sm:text-4xl font-bold tracking-tight"
+        :class="tempColor(temp)"
+      >
         {{
           temp?.value !== null && temp?.value !== undefined
             ? Number(temp.value).toFixed(1) + "°C"
@@ -54,9 +60,21 @@
   <!-- Ошибка -->
   <div v-else class="ship-card p-4 sm:p-5">
     <div class="text-center py-3">
-      <div class="w-10 h-10 mx-auto mb-2 rounded-full bg-red-50 flex items-center justify-center">
-        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      <div
+        class="w-10 h-10 mx-auto mb-2 rounded-full bg-red-50 flex items-center justify-center"
+      >
+        <svg
+          class="w-5 h-5 text-red-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
         </svg>
       </div>
       <p class="text-sm text-red-500 font-medium">Ошибка загрузки</p>
@@ -84,6 +102,8 @@ const error = ref<string | null>(null);
 const loading = ref(true);
 let timer: ReturnType<typeof setInterval> | null = null;
 
+// TODO: Centralize polling in the dashboard/store; current parent plus per-card polling duplicates requests and can display inconsistent snapshots.
+// TODO: Make refresh non-reentrant, handle all request failures, and reset initial loading in finally without replacing existing data with a skeleton.
 async function loadAll() {
   loading.value = true;
   error.value = null;
@@ -130,6 +150,7 @@ const tempColor = (temp: DeviceStateRecord<number> | null) => {
   return "text-orange-500";
 };
 
+// TODO: Represent online, offline, unknown, and request-error states separately instead of reporting missing data as offline.
 function statusLabel(record: DeviceStateRecord<boolean> | null) {
   if (!record) return "Не в сети";
   return record.value ? "В сети" : "Не в сети";

@@ -1,6 +1,7 @@
 <template>
   <div class="relative">
     <transition name="chart-fade" mode="out-in">
+      <!-- TODO(a11y): Give the canvas an accessible label and provide a keyboard/screen-reader-readable data summary or table. -->
       <canvas
         ref="chartCanvas"
         class="chart-canvas"
@@ -104,7 +105,8 @@ function drawChart(highlightIndex: number | null = null) {
   const history = props.history;
   if (history.length < 2) {
     ctx.fillStyle = "#64748b";
-    ctx.font = "14px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif";
+    ctx.font =
+      "14px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("Недостаточно данных", width / 2, height / 2);
@@ -117,6 +119,7 @@ function drawChart(highlightIndex: number | null = null) {
   const range = maxVal - minVal || 1;
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
+  // TODO: Scale X positions and hit testing from timestamps rather than indexes so telemetry gaps are represented truthfully.
   const stepX = chartWidth / (history.length - 1);
 
   function x(i: number) {
@@ -183,7 +186,11 @@ function drawChart(highlightIndex: number | null = null) {
   ctx.textBaseline = "top";
   const labelEvery = Math.max(1, Math.ceil(history.length / 6));
   for (let i = 0; i < history.length; i += labelEvery) {
-    ctx.fillText(formatTime(history[i]!.timestamp), x(i), height - padding.bottom + 6);
+    ctx.fillText(
+      formatTime(history[i]!.timestamp),
+      x(i),
+      height - padding.bottom + 6
+    );
   }
 }
 
@@ -308,6 +315,7 @@ watch(
   { deep: true }
 );
 
+// TODO: Disconnect the ResizeObserver on unmount so detached charts and component closures are released.
 let resizeObserver: ResizeObserver | null = null;
 onMounted(async () => {
   await nextTick();
@@ -334,7 +342,9 @@ onMounted(async () => {
   padding: 0.5rem 0.75rem;
   font-size: 0.75rem;
   line-height: 1.25;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transform: translate(0, 0);
   will-change: left, top;
 }

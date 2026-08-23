@@ -1,3 +1,4 @@
+// TODO(dead-code): Remove these unused parallel sensor types or adopt them as the canonical tested domain model to prevent schema drift.
 export interface SensorConfig {
   id: string;
   deviceId: string;

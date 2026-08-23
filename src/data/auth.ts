@@ -23,14 +23,17 @@ export const login = async (
   password: string
 ): Promise<LoginResult> => {
   try {
-    const response: AxiosResponse<
-      { user: AuthUser } | { details: string }
-    > = await api.post("/api/auth/login", {
-      email,
-      password,
-    });
+    const response: AxiosResponse<{ user: AuthUser } | { details: string }> =
+      await api.post("/api/auth/login", {
+        email,
+        password,
+      });
 
-    if (response.status >= 200 && response.status < 300 && "user" in response.data) {
+    if (
+      response.status >= 200 &&
+      response.status < 300 &&
+      "user" in response.data
+    ) {
       return Result.ok({ user: response.data.user });
     }
 
@@ -58,7 +61,9 @@ export const register = async (
       return Result.ok(undefined);
     }
 
-    return Result.err(errorDetails(response.data, "Не удалось зарегистрироваться"));
+    return Result.err(
+      errorDetails(response.data, "Не удалось зарегистрироваться")
+    );
   } catch (e) {
     return Result.err("Не удалось выполнить регистрацию: " + e);
   }
@@ -66,6 +71,7 @@ export const register = async (
 
 export const logout = async (): Promise<Result<void, string>> => {
   try {
+    // TODO(data): Check the resolved response status; validateStatus means HTTP logout failures do not throw.
     await api.post("/api/auth/logout");
     return Result.ok(undefined);
   } catch (e) {

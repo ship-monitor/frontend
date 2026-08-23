@@ -23,6 +23,7 @@ export const useAuthStore = defineStore("auth-store", {
     },
 
     async checkLogin() {
+      // TODO(auth): Clear stale user state on Err and return an explicit authentication result so callers can verify login before navigating.
       (await getCurrentUser())
         .map((u) => {
           this.user = u;
@@ -31,6 +32,7 @@ export const useAuthStore = defineStore("auth-store", {
     },
 
     async logout() {
+      // TODO(auth): Match the logout Result and define retry/forced-local-logout behavior instead of ignoring server-side logout failures.
       await apiLogout();
       this.user = null;
     },

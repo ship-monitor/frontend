@@ -30,6 +30,7 @@
 </template>
 
 <script setup lang="ts">
+// TODO: Disable inheritAttrs and forward attributes only to the select so IDs and bubbling listeners are not duplicated on the wrapper.
 defineProps<{
   options: Array<{ value: string; label: string }>;
 }>();

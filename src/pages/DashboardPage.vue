@@ -20,7 +20,9 @@
           <span
             class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"
           ></span>
-          <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+          <span
+            class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"
+          ></span>
         </span>
         Автообновление активно
       </div>
@@ -34,13 +36,17 @@
         </p>
         <p class="text-xs text-ink-500 mt-0.5">Всего</p>
       </div>
-      <div class="ship-card p-4 sm:p-5 text-center animate-fade-in-up delay-100">
+      <div
+        class="ship-card p-4 sm:p-5 text-center animate-fade-in-up delay-100"
+      >
         <p class="text-2xl sm:text-3xl font-bold text-brand-600">
           {{ stats.online }}
         </p>
         <p class="text-xs text-ink-500 mt-0.5">В сети</p>
       </div>
-      <div class="ship-card p-4 sm:p-5 text-center animate-fade-in-up delay-200">
+      <div
+        class="ship-card p-4 sm:p-5 text-center animate-fade-in-up delay-200"
+      >
         <p class="text-2xl sm:text-3xl font-bold text-ink-400">
           {{ stats.offline }}
         </p>
@@ -49,6 +55,7 @@
     </div>
 
     <!-- Поиск и фильтры -->
+    <!-- TODO(a11y): Add programmatically associated labels for the search and status filter controls. -->
     <div class="flex flex-col sm:flex-row gap-3">
       <div class="relative flex-1">
         <input
@@ -71,10 +78,7 @@
           />
         </svg>
       </div>
-      <select
-        v-model="statusFilter"
-        class="ship-field sm:w-44 cursor-pointer"
-      >
+      <select v-model="statusFilter" class="ship-field sm:w-44 cursor-pointer">
         <option value="all">Все статусы</option>
         <option value="online">В сети</option>
         <option value="offline">Не в сети</option>
@@ -83,7 +87,10 @@
     </div>
 
     <!-- Загрузка (skeleton) -->
-    <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+    <div
+      v-if="loading"
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+    >
       <div v-for="i in 6" :key="i" class="ship-card p-5">
         <div class="skeleton h-5 w-32 mb-3"></div>
         <div class="skeleton h-3 w-20 mb-6"></div>
@@ -98,12 +105,26 @@
       "
       class="ship-card p-8 sm:p-12 text-center animate-scale-in"
     >
-      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-ink-100 flex items-center justify-center">
-        <svg class="w-8 h-8 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+      <div
+        class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-ink-100 flex items-center justify-center"
+      >
+        <svg
+          class="w-8 h-8 text-ink-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
+          />
         </svg>
       </div>
-      <p class="text-lg font-semibold text-ink-900 mb-1">Нет подключенных устройств</p>
+      <p class="text-lg font-semibold text-ink-900 mb-1">
+        Нет подключенных устройств
+      </p>
       <p class="text-sm text-ink-500 mb-5">
         Подключите устройство, чтобы начать мониторинг
       </p>
@@ -112,8 +133,18 @@
         class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-semibold"
       >
         Подключить устройство
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M14 5l7 7m0 0l-7 7m7-7H3"
+          />
         </svg>
       </router-link>
     </div>
@@ -140,7 +171,12 @@
       v-else
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
     >
-      <device-card v-for="device in sensors" :key="device.id" :device-id="device.id" />
+      <!-- TODO: Render filteredSensors so search and status filters actually constrain the displayed cards. -->
+      <device-card
+        v-for="device in sensors"
+        :key="device.id"
+        :device-id="device.id"
+      />
     </div>
   </div>
 </template>
@@ -240,6 +276,7 @@ function getTags(deviceId: string): string[] {
   return [];
 }
 
+// TODO(storage): Validate persisted JSON as boolean[] before mutating it; valid JSON such as null or an object currently breaks refresh.
 function loadPingHistory(deviceId: string): boolean[] {
   const stored = localStorage.getItem(`device_pings_${deviceId}`);
   if (stored) {
@@ -260,6 +297,7 @@ function savePingHistory(deviceId: string, history: boolean[]) {
 }
 
 async function loadSensors() {
+  // TODO: Preserve device-list and status request failures as visible unknown/error states instead of converting them into an empty dashboard or offline devices.
   try {
     const devices = (await getUserDevices())
       .inspectErr((err) => console.error("Failed load devices: %s", err))
@@ -325,6 +363,7 @@ async function loadSensors() {
   }
 }
 
+// TODO(storage): Schema-check persisted settings and clamp the interval to a finite safe range before passing it to setInterval.
 function startAutoRefresh() {
   stopAutoRefresh();
   if (!authStore.isAuthenticated) {
