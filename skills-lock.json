@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "frontend-design": {
+      "source": "iliaal/ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "computedHash": "14aedb1b7057caaa8fbd4f54aa6f3414d46a35d372db2d985a6912f31baab474"
+    },
+    "md-docs": {
+      "source": "iliaal/ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/md-docs/SKILL.md",
+      "computedHash": "94eae0ed2321bd6286f05eddaf30cd224cc4efb49915d30b34106066271c231a"
+    },
+    "tailwind-css": {
+      "source": "iliaal/ai-skills",
+      "sourceType": "github",
+      "skillPath": "skills/tailwind-css/SKILL.md",
+      "computedHash": "4d3b74cd3302c71a35ba82acd5d04494b3eac2f3355a456648e2244f8f22d933"
+    }
+  }
+}
