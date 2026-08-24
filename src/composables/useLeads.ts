@@ -6,18 +6,25 @@ const isLoading = ref(false);
 const error = ref<string | null>(null);
 
 export const useLeads = () => {
-  // TODO: Update the exposed loading/error refs (or remove them) and return an actionable failure reason instead of only false.
-  const createLead = async (leadData: LeadRequest): Promise<boolean> => {
+  /**
+   * Отправляет лид. Возвращает null при успехе или строку с причиной ошибки.
+   */
+  const createLead = async (leadData: LeadRequest): Promise<string | null> => {
+    isLoading.value = true;
+    error.value = null;
     try {
       const response = await cmsApi.post("/items/leads", leadData);
-
       if (response.status === 200 || response.status === 201) {
-        return true;
+        return null;
       }
-      return false;
-    } catch (err) {
-      console.error("Error creating lead:", err);
-      return false;
+      error.value = `Не удалось отправить заявку (код ${response.status}). Попробуйте ещё раз или напишите нам.`;
+      return error.value;
+    } catch {
+      error.value =
+        "Не удалось отправить заявку: проверьте соединение и попробуйте ещё раз.";
+      return error.value;
+    } finally {
+      isLoading.value = false;
     }
   };
 

@@ -1,32 +1,59 @@
 <template>
   <div class="relative">
-    <transition name="chart-fade" mode="out-in">
-      <!-- TODO(a11y): Give the canvas an accessible label and provide a keyboard/screen-reader-readable data summary or table. -->
-      <canvas
-        ref="chartCanvas"
-        class="chart-canvas"
-        @mousemove="onMouseMove"
-        @mouseleave="onMouseLeave"
-        @touchmove="onTouchMove"
-        @touchend="onMouseLeave"
-      />
-    </transition>
+    <canvas
+      ref="chartCanvas"
+      class="chart-canvas"
+      role="img"
+      :aria-label="summaryLabel"
+      @mousemove="onMouseMove"
+      @mouseleave="onMouseLeave"
+      @touchmove="onTouchMove"
+      @touchend="onMouseLeave"
+    />
     <div
       v-if="tooltip.visible"
       class="chart-tooltip"
       :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }"
     >
-      <p class="font-semibold text-ink-900">{{ tooltip.value.toFixed(1) }}°C</p>
-      <p class="text-ink-500">{{ tooltip.time }}</p>
+      <p class="font-semibold text-ink-900">
+        {{ tooltip.value.toFixed(1) }}°C
+      </p>
+      <p class="text-ink-500">
+        {{ tooltip.time }}
+      </p>
     </div>
+    <!-- Текстовая альтернатива для скринридеров -->
+    <table class="sr-only">
+      <caption>История температуры</caption>
+      <thead>
+        <tr>
+          <th scope="col">
+            Время
+          </th>
+          <th scope="col">
+            Температура
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="(item, index) in recentHistory"
+          :key="`${item.timestamp}-${index}`"
+        >
+          <td>{{ new Date(item.timestamp).toLocaleString("ru") }}</td>
+          <td>{{ item.value.toFixed(1) }} °C</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, nextTick } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from "vue";
 
 const props = defineProps<{
   history: Array<{ time: string; value: number; timestamp: number }>;
+  thresholds?: { min: number; max: number };
 }>();
 
 const chartCanvas = ref<HTMLCanvasElement | null>(null);
@@ -40,6 +67,17 @@ const tooltip = ref({
 });
 
 const points = ref<Array<{ x: number; y: number }>>([]);
+
+const recentHistory = computed(() => props.history.slice(-12));
+
+const summaryLabel = computed(() => {
+  if (props.history.length === 0) return "График температуры: нет данных";
+  const values = props.history.map((d) => d.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const last = props.history[props.history.length - 1];
+  return `График температуры за период: минимум ${min.toFixed(1)} градуса, максимум ${max.toFixed(1)} градуса, последнее значение ${last?.value.toFixed(1)} градуса в ${new Date(last?.timestamp ?? Date.now()).toLocaleString("ru")}. Всего точек: ${props.history.length}.`;
+});
 
 function formatTime(timestamp: number): string {
   const date = new Date(timestamp);
@@ -80,20 +118,16 @@ function drawChart(highlightIndex: number | null = null) {
   const ctx = chartCanvas.value.getContext("2d");
   if (!ctx) return;
 
-  const container = chartCanvas.value.parentElement;
-  if (container) {
-    const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
-    const a = getAdaptive();
-    chartCanvas.value.width = a.width * dpr;
-    chartCanvas.value.height = a.height * dpr;
-    chartCanvas.value.style.width = `${a.width}px`;
-    chartCanvas.value.style.height = `${a.height}px`;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-
-  const width = chartCanvas.value.clientWidth;
-  const height = chartCanvas.value.clientHeight;
+  const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
   const a = getAdaptive();
+  chartCanvas.value.width = a.width * dpr;
+  chartCanvas.value.height = a.height * dpr;
+  chartCanvas.value.style.width = `${a.width}px`;
+  chartCanvas.value.style.height = `${a.height}px`;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const width = a.width;
+  const height = a.height;
   const padding = {
     top: a.paddingTop,
     right: a.paddingRight,
@@ -119,11 +153,15 @@ function drawChart(highlightIndex: number | null = null) {
   const range = maxVal - minVal || 1;
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
-  // TODO: Scale X positions and hit testing from timestamps rather than indexes so telemetry gaps are represented truthfully.
-  const stepX = chartWidth / (history.length - 1);
 
-  function x(i: number) {
-    return padding.left + i * stepX;
+  // X масштабируется по времени, а не по индексу:
+  // пропуски в телеметрии отображаются честно.
+  const tFirst = history[0]!.timestamp;
+  const tLast = history[history.length - 1]!.timestamp;
+  const timeRange = tLast - tFirst || 1;
+
+  function x(timestamp: number) {
+    return padding.left + (chartWidth * (timestamp - tFirst)) / timeRange;
   }
   function y(value: number) {
     return padding.top + chartHeight * ((maxVal - value) / range);
@@ -144,29 +182,51 @@ function drawChart(highlightIndex: number | null = null) {
     ctx.fillText(value.toFixed(1) + "°", padding.left - 6, yy);
   }
 
+  // Пороговые линии, если заданы
+  if (props.thresholds) {
+    ctx.save();
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = "#f59e0b";
+    ctx.lineWidth = 1;
+    for (const threshold of [props.thresholds.min, props.thresholds.max]) {
+      if (threshold < minVal || threshold > maxVal) continue;
+      const ty = y(threshold);
+      ctx.beginPath();
+      ctx.moveTo(padding.left, ty);
+      ctx.lineTo(width - padding.right, ty);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   ctx.beginPath();
   ctx.strokeStyle = "#10b981";
   ctx.lineWidth = a.lineWidth;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   if (history.length === 2) {
-    ctx.moveTo(x(0), y(history[0]!.value));
-    ctx.lineTo(x(1), y(history[1]!.value));
+    ctx.moveTo(x(history[0]!.timestamp), y(history[0]!.value));
+    ctx.lineTo(x(history[1]!.timestamp), y(history[1]!.value));
   } else {
-    ctx.moveTo(x(0), y(history[0]!.value));
+    ctx.moveTo(x(history[0]!.timestamp), y(history[0]!.value));
     for (let i = 1; i < history.length - 1; i++) {
-      const xMid = (x(i) + x(i + 1)) / 2;
+      const xMid = (x(history[i]!.timestamp) + x(history[i + 1]!.timestamp)) / 2;
       const yMid = (y(history[i]!.value) + y(history[i + 1]!.value)) / 2;
-      ctx.quadraticCurveTo(x(i), y(history[i]!.value), xMid, yMid);
+      ctx.quadraticCurveTo(
+        x(history[i]!.timestamp),
+        y(history[i]!.value),
+        xMid,
+        yMid
+      );
     }
     const last = history.length - 1;
-    ctx.lineTo(x(last), y(history[last]!.value));
+    ctx.lineTo(x(history[last]!.timestamp), y(history[last]!.value));
   }
   ctx.stroke();
 
   if (highlightIndex !== null && history[highlightIndex]) {
     const item = history[highlightIndex]!;
-    const px = x(highlightIndex);
+    const px = x(item.timestamp);
     const py = y(item.value);
     ctx.fillStyle = "#059669";
     ctx.beginPath();
@@ -178,7 +238,10 @@ function drawChart(highlightIndex: number | null = null) {
     ctx.fill();
   }
 
-  points.value = history.map((_, i) => ({ x: x(i), y: y(history[i]!.value) }));
+  points.value = history.map((item) => ({
+    x: x(item.timestamp),
+    y: y(item.value),
+  }));
 
   ctx.fillStyle = "#64748b";
   ctx.font = `${a.fontSizeX}px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif`;
@@ -188,7 +251,7 @@ function drawChart(highlightIndex: number | null = null) {
   for (let i = 0; i < history.length; i += labelEvery) {
     ctx.fillText(
       formatTime(history[i]!.timestamp),
-      x(i),
+      x(history[i]!.timestamp),
       height - padding.bottom + 6
     );
   }
@@ -196,28 +259,22 @@ function drawChart(highlightIndex: number | null = null) {
 
 function getClosestIndex(clientX: number): number | null {
   if (!chartCanvas.value || props.history.length === 0) return null;
-  const history = props.history;
   const rect = chartCanvas.value.getBoundingClientRect();
-  const x = clientX - rect.left;
-  const width = rect.width;
-  const a = getAdaptive();
-  const paddingLeft = a.paddingLeft;
-  const paddingRight = a.paddingRight;
-  const chartWidth = width - paddingLeft - paddingRight;
-  const stepX = chartWidth / (history.length - 1);
+  const targetX = clientX - rect.left;
 
   let closestIndex = 0;
   let closestDist = Infinity;
-  history.forEach((_, i) => {
-    const px = paddingLeft + i * stepX;
-    const dist = Math.abs(x - px);
+  points.value.forEach((point, i) => {
+    const dist = Math.abs(targetX - point.x);
     if (dist < closestDist) {
       closestDist = dist;
       closestIndex = i;
     }
   });
 
-  return closestDist < stepX * 1.5 ? closestIndex : null;
+  const a = getAdaptive();
+  const minSpacing = a.paddingLeft;
+  return closestDist < minSpacing ? closestIndex : null;
 }
 
 function positionTooltip(index: number) {
@@ -228,23 +285,16 @@ function positionTooltip(index: number) {
   const tooltipWidth = 110;
   const tooltipHeight = 48;
 
-  // Центрируем по X относительно точки
   let left = point.x - tooltipWidth / 2;
-  // По умолчанию сверху от точки
   let top = point.y - tooltipHeight - 8;
 
-  // Если не влезает сверху — показываем снизу
   if (top < 0) {
     top = point.y + 8;
   }
-
-  // Clamping по ширине canvas
   if (left < 4) left = 4;
   if (left + tooltipWidth > rect.width - 4) {
     left = rect.width - tooltipWidth - 4;
   }
-
-  // Clamping по высоте canvas
   if (top < 4) top = 4;
   if (top + tooltipHeight > rect.height - 4) {
     top = rect.height - tooltipHeight - 4;
@@ -259,13 +309,7 @@ function positionTooltip(index: number) {
   };
 }
 
-function onMouseMove(event: MouseEvent) {
-  const index = getClosestIndex(event.clientX);
-  if (index === null) {
-    tooltip.value.visible = false;
-    drawChart(null);
-    return;
-  }
+function showTooltipAt(index: number) {
   const item = props.history[index];
   if (!item) return;
   tooltip.value = {
@@ -279,6 +323,16 @@ function onMouseMove(event: MouseEvent) {
   positionTooltip(index);
 }
 
+function onMouseMove(event: MouseEvent) {
+  const index = getClosestIndex(event.clientX);
+  if (index === null) {
+    tooltip.value.visible = false;
+    drawChart(null);
+    return;
+  }
+  showTooltipAt(index);
+}
+
 function onTouchMove(event: TouchEvent) {
   const touch = event.touches?.[0];
   if (!touch) return;
@@ -288,17 +342,7 @@ function onTouchMove(event: TouchEvent) {
     drawChart(null);
     return;
   }
-  const item = props.history[index];
-  if (!item) return;
-  tooltip.value = {
-    visible: true,
-    value: item.value,
-    time: item.time,
-    x: 0,
-    y: 0,
-  };
-  drawChart(index);
-  positionTooltip(index);
+  showTooltipAt(index);
 }
 
 function onMouseLeave() {
@@ -315,7 +359,6 @@ watch(
   { deep: true }
 );
 
-// TODO: Disconnect the ResizeObserver on unmount so detached charts and component closures are released.
 let resizeObserver: ResizeObserver | null = null;
 onMounted(async () => {
   await nextTick();
@@ -324,6 +367,11 @@ onMounted(async () => {
     resizeObserver = new ResizeObserver(() => drawChart());
     if (chartCanvas.value) resizeObserver.observe(chartCanvas.value);
   }
+});
+
+onUnmounted(() => {
+  resizeObserver?.disconnect();
+  resizeObserver = null;
 });
 </script>
 
@@ -347,14 +395,5 @@ onMounted(async () => {
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transform: translate(0, 0);
   will-change: left, top;
-}
-
-.chart-fade-enter-active,
-.chart-fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.chart-fade-enter-from,
-.chart-fade-leave-to {
-  opacity: 0;
 }
 </style>

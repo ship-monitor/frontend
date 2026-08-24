@@ -18,6 +18,7 @@
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
+      aria-hidden="true"
     >
       <path
         stroke-linecap="round"
@@ -30,7 +31,8 @@
 </template>
 
 <script setup lang="ts">
-// TODO: Disable inheritAttrs and forward attributes only to the select so IDs and bubbling listeners are not duplicated on the wrapper.
+defineOptions({ inheritAttrs: false });
+
 defineProps<{
   options: Array<{ value: string; label: string }>;
 }>();

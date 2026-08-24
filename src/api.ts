@@ -22,7 +22,7 @@ const api = createApi();
 const UNAUTHORIZED = 401;
 
 // Публичные маршруты, с которых не нужно принудительно уводить на логин.
-const PUBLIC_PATHS: string[] = [ROUTES.LANDING, ROUTES.LOGIN, ROUTES.REGISTER];
+const PUBLIC_PATHS: string[] = [ROUTES.LANDING, ROUTES.LOGIN];
 
 // С validateStatus: () => true axios не отклоняет ответы по статусу,
 // поэтому 401 обрабатываем здесь, в success-перехватчике.

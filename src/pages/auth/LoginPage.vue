@@ -5,7 +5,8 @@ import { login } from "@/data/auth";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
 
-import ShipTextbox from "@/components/ShipTextbox.vue";
+import ShipInput from "@/components/ShipInput.vue";
+import { isValidEmail } from "@/utils/validators";
 
 const email = ref("");
 const password = ref("");
@@ -13,18 +14,37 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const errorMessage = ref<string | null>(null);
+const submitting = ref(false);
 
 const justRegistered = computed(() => route.query.registered === "1");
 const showPassword = ref(false);
 
-// TODO: Validate required/email fields, guard concurrent submissions, and expose a disabled/busy state while authentication is in flight.
+const emailError = computed(() => {
+  if (!email.value) return null;
+  return isValidEmail(email.value) ? null : "Некорректный email";
+});
+
+const canSubmit = computed(
+  () =>
+    !submitting.value &&
+    email.value.trim().length > 0 &&
+    !emailError.value &&
+    password.value.length > 0
+);
+
 const handleLogin = async () => {
+  if (!canSubmit.value) return;
+  submitting.value = true;
   errorMessage.value = null;
   const result = await login(email.value.trim(), password.value);
   await result.match({
     Ok: async () => {
-      // TODO(auth): Verify checkLogin established an authenticated user before navigating, and show an actionable error if session verification fails.
       await authStore.checkLogin();
+      if (!authStore.isAuthenticated) {
+        errorMessage.value =
+          "Не удалось подтвердить сессию. Попробуйте войти ещё раз.";
+        return;
+      }
       const redirect = route.query.redirect;
       const target =
         typeof redirect === "string" &&
@@ -38,6 +58,7 @@ const handleLogin = async () => {
       errorMessage.value = err;
     },
   });
+  submitting.value = false;
 };
 </script>
 
@@ -47,21 +68,20 @@ const handleLogin = async () => {
     <div
       class="hidden lg:flex lg:w-1/2 bg-ink-900 text-white relative overflow-hidden flex-col justify-between p-12"
     >
-      <div class="absolute inset-0 bg-grid opacity-30"></div>
+      <div class="absolute inset-0 bg-grid opacity-30" />
 
       <!-- Логотип -->
       <div class="relative flex items-center gap-3">
         <span
           class="w-11 h-11 rounded-xl bg-brand-500 flex items-center justify-center font-bold text-lg shadow-lg shadow-brand-500/30"
-          >Ш</span
-        >
+        >Ш</span>
         <span class="text-xl font-bold tracking-tight">ШиП-монитор</span>
       </div>
 
       <!-- Контент -->
       <div class="relative space-y-6">
         <h1 class="text-4xl font-bold leading-tight tracking-tight">
-          Контроль температуры<br />
+          Контроль температуры<br>
           <span class="text-brand-400">24 часа в сутки</span>
         </h1>
         <p class="text-ink-300 text-lg leading-relaxed max-w-md">
@@ -70,18 +90,30 @@ const handleLogin = async () => {
         </p>
         <div class="flex items-center gap-6 pt-4">
           <div>
-            <p class="text-2xl font-bold text-brand-400">24/7</p>
-            <p class="text-xs text-ink-400">Мониторинг</p>
+            <p class="text-2xl font-bold text-brand-400">
+              24/7
+            </p>
+            <p class="text-xs text-ink-400">
+              Мониторинг
+            </p>
           </div>
-          <div class="w-px h-10 bg-ink-700"></div>
+          <div class="w-px h-10 bg-ink-700" />
           <div>
-            <p class="text-2xl font-bold text-brand-400">SMS</p>
-            <p class="text-xs text-ink-400">Уведомления</p>
+            <p class="text-2xl font-bold text-brand-400">
+              SMS
+            </p>
+            <p class="text-xs text-ink-400">
+              Уведомления
+            </p>
           </div>
-          <div class="w-px h-10 bg-ink-700"></div>
+          <div class="w-px h-10 bg-ink-700" />
           <div>
-            <p class="text-2xl font-bold text-brand-400">GSM</p>
-            <p class="text-xs text-ink-400">Без интернета</p>
+            <p class="text-2xl font-bold text-brand-400">
+              GSM
+            </p>
+            <p class="text-xs text-ink-400">
+              Без интернета
+            </p>
           </div>
         </div>
       </div>
@@ -98,12 +130,13 @@ const handleLogin = async () => {
         <div class="lg:hidden flex items-center justify-center gap-2.5 mb-8">
           <span
             class="w-10 h-10 rounded-xl bg-brand-500 flex items-center justify-center font-bold text-base"
-            >Ш</span
-          >
+          >Ш</span>
           <span class="text-lg font-bold text-ink-900">ШиП-монитор</span>
         </div>
 
-        <h2 class="text-2xl font-bold text-ink-900 tracking-tight">Вход</h2>
+        <h2 class="text-2xl font-bold text-ink-900 tracking-tight">
+          Вход
+        </h2>
         <p class="text-sm text-ink-500 mt-1.5 mb-6">
           Войдите в систему мониторинга
         </p>
@@ -130,6 +163,7 @@ const handleLogin = async () => {
         </div>
         <div
           v-if="errorMessage"
+          role="alert"
           class="mb-4 p-3.5 rounded-xl bg-red-50 text-red-700 text-sm ring-1 ring-inset ring-red-200 flex items-center gap-2.5 animate-scale-in"
         >
           <svg
@@ -148,26 +182,43 @@ const handleLogin = async () => {
           {{ errorMessage }}
         </div>
 
-        <!-- TODO(a11y): Associate labels with IDs, label the visibility toggle, expose aria-pressed, and announce login errors. -->
-        <form @submit.prevent="handleLogin" class="space-y-4">
+        <form
+          class="space-y-4"
+          novalidate
+          @submit.prevent="handleLogin"
+        >
           <div>
-            <label class="block text-sm font-medium text-ink-700 mb-1.5"
-              >Email</label
-            >
-            <ship-textbox
+            <label
+              class="block text-sm font-medium text-ink-700 mb-1.5"
+              for="login-email"
+            >Email</label>
+            <ship-input
+              id="login-email"
               v-model="email"
               placeholder="you@example.com"
               name="email"
               autocomplete="email"
+              type="email"
+              :aria-invalid="emailError ? 'true' : undefined"
+              aria-describedby="login-email-error"
             />
+            <p
+              v-if="emailError"
+              id="login-email-error"
+              class="text-xs text-red-600 mt-1"
+            >
+              {{ emailError }}
+            </p>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-ink-700 mb-1.5"
-              >Пароль</label
-            >
+            <label
+              class="block text-sm font-medium text-ink-700 mb-1.5"
+              for="login-password"
+            >Пароль</label>
             <div class="relative">
-              <ship-textbox
+              <ship-input
+                id="login-password"
                 v-model="password"
                 placeholder="••••••••"
                 name="password"
@@ -177,8 +228,12 @@ const handleLogin = async () => {
               />
               <button
                 type="button"
-                @click="showPassword = !showPassword"
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600 transition-colors p-1"
+                :aria-label="
+                  showPassword ? 'Скрыть пароль' : 'Показать пароль'
+                "
+                :aria-pressed="showPassword"
+                @click="showPassword = !showPassword"
               >
                 <svg
                   v-if="!showPassword"
@@ -220,9 +275,10 @@ const handleLogin = async () => {
 
           <button
             type="submit"
-            class="w-full py-3 bg-brand-600 text-white rounded-xl font-semibold hover:bg-brand-700 transition-all duration-150 active:scale-[0.98] hover:shadow-md hover:shadow-brand-500/20"
+            :disabled="!canSubmit"
+            class="w-full py-3 bg-brand-600 text-white rounded-xl font-semibold hover:bg-brand-700 transition-all duration-150 active:scale-[0.98] hover:shadow-md hover:shadow-brand-500/20 disabled:opacity-50 disabled:pointer-events-none"
           >
-            Войти
+            {{ submitting ? "Вход..." : "Войти" }}
           </button>
         </form>
 
@@ -235,12 +291,6 @@ const handleLogin = async () => {
           >
             Вернуться на лендинг
           </router-link>
-          <!-- <router-link
-            :to="ROUTES.REGISTER"
-            class="text-brand-600 hover:text-brand-700 font-semibold"
-          >
-            Зарегистрироваться
-          </router-link> -->
         </p>
       </div>
     </div>

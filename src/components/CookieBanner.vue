@@ -11,20 +11,19 @@
               Мы используем куки
             </h3>
             <p class="text-ink-300 text-sm sm:text-base leading-relaxed">
-              Продолжая использовать сайт, вы соглашаетесь с нашей
-              <!-- TODO(router): Link to a registered privacy-policy route; this path currently falls through to the landing page. -->
+              Мы используем cookie-файлы для корректной работы сайта. Продолжая
+              пользоваться сайтом, вы соглашаетесь с их использованием. По
+              вопросам обработки персональных данных:
               <a
-                href="/privacy-policy"
+                href="mailto:support@ship-monitor.ru"
                 class="underline hover:text-white transition-colors"
-              >
-                политикой конфиденциальности </a
-              >.
+              >support@ship-monitor.ru</a>
             </p>
           </div>
           <button
-            @click="closeBanner"
             class="flex items-center justify-center w-10 h-10 bg-ink-800 hover:bg-brand-500 text-white rounded-lg transition-colors duration-200 shrink-0"
             aria-label="Закрыть уведомление о куки"
+            @click="closeBanner"
           >
             <IconCross class="size-5" />
           </button>
@@ -37,18 +36,17 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import IconCross from "./icons/IconCross.vue";
+import safeStorage from "@/utils/storage";
 
 const isVisible = ref(false);
 
-// TODO(storage): Guard localStorage reads/writes and fall back to in-memory visibility when browser storage is unavailable.
 const closeBanner = () => {
   isVisible.value = false;
-  localStorage.setItem("cookiesBannerClosed", "true");
+  safeStorage.setItem("cookiesBannerClosed", "true");
 };
 
 onMounted(() => {
-  const closed = localStorage.getItem("cookiesBannerClosed");
-  if (!closed) {
+  if (!safeStorage.getJson("cookiesBannerClosed")) {
     isVisible.value = true;
   }
 });

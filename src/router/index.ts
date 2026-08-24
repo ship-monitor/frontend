@@ -17,9 +17,12 @@ let appRouter: Router | null = null;
 
 export const getAppRouter = (): Router | null => appRouter;
 
+export type RouteLayout = "landing" | "auth" | "app";
+
 export type CustomRouteMeta = {
   requireAuth: boolean;
   onlyAnonymous: boolean;
+  layout: RouteLayout;
 };
 
 const routes: Array<RouteRecordRaw> = [
@@ -27,48 +30,50 @@ const routes: Array<RouteRecordRaw> = [
     path: ROUTES.LANDING,
     name: "Landing",
     component: () => import("../pages/LandingPage.vue"),
+    meta: { layout: "landing" } as CustomRouteMeta,
   },
   {
     path: ROUTES.LOGIN,
     name: "Login",
     component: () => import("../pages/auth/LoginPage.vue"),
-    meta: { onlyAnonymous: true } as CustomRouteMeta,
+    meta: { onlyAnonymous: true, layout: "auth" } as CustomRouteMeta,
   },
+  // Регистрация временно отключена (RegisterPage закомментирован).
   // {
-  //   path: ROUTES.REGISTER,
+  //   path: "/auth/register",
   //   name: "Register",
   //   component: () => import("../pages/auth/RegisterPage.vue"),
-  //   meta: { onlyAnonymous: true } as CustomRouteMeta,
+  //   meta: { onlyAnonymous: true, layout: "auth" },
   // },
   {
     path: ROUTES.CONFIRM_EMAIL,
     name: "ConfirmEmail",
     component: () => import("../pages/auth/ConfirmEmailPage.vue"),
-    meta: { requireAuth: true } as CustomRouteMeta,
+    meta: { requireAuth: true, layout: "auth" } as CustomRouteMeta,
   },
   {
     path: ROUTES.DASHBOARD,
     name: "Dashboard",
     component: Dashboard,
-    meta: { requireAuth: true } as CustomRouteMeta,
+    meta: { requireAuth: true, layout: "app" } as CustomRouteMeta,
   },
   {
     path: ROUTES.SENSOR_DETAILS,
     name: "sensor-details",
     component: SensorDetailsPage,
-    meta: { requireAuth: true } as CustomRouteMeta,
+    meta: { requireAuth: true, layout: "app" } as CustomRouteMeta,
   },
   {
     path: ROUTES.PROFILE,
     name: "Profile",
     component: Profile,
-    meta: { requireAuth: true } as CustomRouteMeta,
+    meta: { requireAuth: true, layout: "app" } as CustomRouteMeta,
   },
   {
     path: ROUTES.CONNECT_DEVICE,
     name: "ConnectDevice",
     component: () => import("../pages/ConnectDevicePage.vue"),
-    meta: { requireAuth: true } as CustomRouteMeta,
+    meta: { requireAuth: true, layout: "app" } as CustomRouteMeta,
   },
   {
     path: "/:pathMatch(.*)*",

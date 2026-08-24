@@ -13,14 +13,15 @@ services:
     restart: unless-stopped
 
   database:
-    # TODO(deps): Migrate from EOL PostgreSQL 13 and pin PostGIS, Redis, and Directus to tested immutable versions instead of broad or mutable tags.
-    image: postgis/postgis:13-master
+    # PostgreSQL 13 EOL: мажорный апгрейд требует dump/restore (см. README).
+    image: postgis/postgis:13-3.4
     volumes:
       - ./data/database:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: "directus"
-      # TODO(security): Load a required database password from a secret and reuse it in the Directus configuration instead of committing a predictable credential.
-      POSTGRES_PASSWORD: "directus"
+      # Внимание: пароль применяется только при инициализации кластера.
+      # Для существующего ./data/database смените пароль через ALTER USER (см. README).
+      POSTGRES_PASSWORD: "${DIRECTUS_DB_PASSWORD:?DIRECTUS_DB_PASSWORD is required}"
       POSTGRES_DB: "directus"
     healthcheck:
       test: ["CMD", "pg_isready", "--host=localhost", "--username=directus"]
@@ -31,7 +32,7 @@ services:
       start_period: 30s
 
   cache:
-    image: redis:6
+    image: redis:7.4-alpine
     healthcheck:
       test: ["CMD-SHELL", "[ $$(redis-cli ping) = 'PONG' ]"]
       interval: 10s
@@ -41,7 +42,10 @@ services:
       start_period: 30s
 
   directus:
-    image: directus/directus:latest
+    # Версия задаётся явно: пинуйте ту, что уже запущена на сервере
+    # (docker exec <directus> node -e "console.log(require('./package.json').version)"),
+    # затем обновляйте осознанно — миграции Directus необратимы.
+    image: directus/directus:${DIRECTUS_VERSION:?DIRECTUS_VERSION is required}
     ports:
       - 8055:8055
     volumes:
@@ -66,25 +70,24 @@ services:
     env_file:
       - .env
     environment:
-      # TODO(config): Use required Compose interpolation (${VAR:?message}) for secrets, admin credentials, and public URLs so missing production configuration fails fast.
-      SECRET: "${SECRET_KEY}"
+      SECRET: "${SECRET_KEY:?SECRET_KEY is required}"
 
       DB_CLIENT: "pg"
       DB_HOST: "database"
       DB_PORT: "5432"
       DB_DATABASE: "directus"
       DB_USER: "directus"
-      DB_PASSWORD: "directus"
+      DB_PASSWORD: "${DIRECTUS_DB_PASSWORD:?DIRECTUS_DB_PASSWORD is required}"
 
       CACHE_ENABLED: "true"
       CACHE_AUTO_PURGE: "true"
       CACHE_STORE: "redis"
       REDIS: "redis://cache:6379"
 
-      ADMIN_EMAIL: "${CMS_ADMIN_EMAIL}"
-      ADMIN_PASSWORD: "${CMS_ADMIN_PASSWORD}"
+      ADMIN_EMAIL: "${CMS_ADMIN_EMAIL:?CMS_ADMIN_EMAIL is required}"
+      ADMIN_PASSWORD: "${CMS_ADMIN_PASSWORD:?CMS_ADMIN_PASSWORD is required}"
 
-      PUBLIC_URL: "${CMS_URL}"
+      PUBLIC_URL: "${CMS_URL:?CMS_URL is required}"
 
 # ===== Plausible Analytics (self-hosted) =====
 # Временно отключено: не помещается на 2-ГБ сервер (ClickHouse + Postgres + BE).

@@ -1,6 +1,9 @@
 <template>
   <!-- ====== Hero Section ====== -->
-  <section ref="heroSection" class="relative overflow-hidden flex items-center">
+  <section
+    ref="heroSection"
+    class="relative overflow-hidden flex items-center"
+  >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
       <hgroup class="flex flex-col gap-5">
         <div class="text-xl">
@@ -22,8 +25,8 @@
         class="mt-40 flex flex-col sm:flex-row gap-3 sm:gap-4 px-4 justify-center"
       >
         <button
-          @click="scrollToForm"
           class="text-xl items-center bg-electric-blue text-cotton rounded-full px-5 py-3 hover:bg-electric-blue/90"
+          @click="scrollToForm"
         >
           Подключить мониторинг
         </button>
@@ -36,12 +39,55 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <ShipHeading
         heading="Дорожная карта"
-        headingAlt="что сделано и что в работе"
+        heading-alt="что сделано и что в работе"
         description=""
       />
 
-      <!-- TODO: Render distinct roadmap loading, error, and empty states and provide a retry path. -->
-      <div class="border-t border-moonless-night/10">
+      <div
+        v-if="roadmapLoading"
+        class="border-t border-moonless-night/10"
+        role="status"
+      >
+        <div
+          v-for="i in 3"
+          :key="i"
+          class="grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-2 sm:gap-8 py-6 border-b border-moonless-night/10 animate-pulse"
+        >
+          <div class="h-4 bg-moonless-night/10 rounded" />
+          <div class="space-y-2">
+            <div class="h-5 bg-moonless-night/10 rounded w-1/3" />
+            <div class="h-3 bg-moonless-night/10 rounded w-2/3" />
+          </div>
+        </div>
+      </div>
+
+      <div
+        v-else-if="roadmapError"
+        class="py-10 text-center"
+        role="alert"
+      >
+        <p class="text-moonless-night/60 mb-3">
+          Дорожная карта временно недоступна
+        </p>
+        <button
+          class="px-5 py-2.5 bg-electric-blue text-cotton rounded-full text-sm font-semibold hover:bg-electric-blue/90"
+          @click="fetchRoadmap"
+        >
+          Повторить
+        </button>
+      </div>
+
+      <p
+        v-else-if="roadmapItems.length === 0"
+        class="py-10 text-center text-moonless-night/50"
+      >
+        Дорожная карта пока не заполнена
+      </p>
+
+      <div
+        v-else
+        class="border-t border-moonless-night/10"
+      >
         <div
           v-for="item in roadmapItems"
           :key="item.id"
@@ -51,7 +97,9 @@
             {{ item.stage_date }}
           </span>
           <div>
-            <h3 class="text-lg font-bold mb-1">{{ item.stage_name }}</h3>
+            <h3 class="text-lg font-bold mb-1">
+              {{ item.stage_name }}
+            </h3>
             <p class="text-moonless-night/60 text-sm leading-relaxed">
               {{ item.stage_description }}
             </p>
@@ -65,7 +113,9 @@
   <section class="py-16 sm:py-24">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-baseline gap-4 mb-12">
-        <h2 class="text-4xl sm:text-5xl font-bold uppercase">Железо и софт</h2>
+        <h2 class="text-4xl sm:text-5xl font-bold uppercase">
+          Железо и софт
+        </h2>
       </div>
       <div class="grid lg:grid-cols-2 gap-12 lg:gap-20">
         <!-- Аппаратная часть -->
@@ -87,7 +137,9 @@
               <dt class="w-28 sm:w-32 shrink-0 text-sm text-moonless-night/50">
                 {{ spec.label }}
               </dt>
-              <dd class="text-sm flex-1">{{ spec.value }}</dd>
+              <dd class="text-sm flex-1">
+                {{ spec.value }}
+              </dd>
             </div>
           </dl>
 
@@ -104,7 +156,9 @@
               <dt class="w-28 sm:w-32 shrink-0 text-sm text-moonless-night/50">
                 {{ spec.label }}
               </dt>
-              <dd class="text-sm flex-1">{{ spec.value }}</dd>
+              <dd class="text-sm flex-1">
+                {{ spec.value }}
+              </dd>
             </div>
           </dl>
         </div>
@@ -114,7 +168,9 @@
           <p class="text-electric-blue font-semibold text-sm mb-4">
             Программная часть
           </p>
-          <h3 class="text-2xl font-bold mb-6">Облачный сервис мониторинга</h3>
+          <h3 class="text-2xl font-bold mb-6">
+            Облачный сервис мониторинга
+          </h3>
           <dl class="space-y-0">
             <div
               v-for="spec in softwareSpecs"
@@ -124,7 +180,9 @@
               <dt class="w-28 sm:w-32 shrink-0 text-sm text-moonless-night/50">
                 {{ spec.label }}
               </dt>
-              <dd class="text-sm flex-1">{{ spec.value }}</dd>
+              <dd class="text-sm flex-1">
+                {{ spec.value }}
+              </dd>
             </div>
           </dl>
         </div>
@@ -135,7 +193,10 @@
   <AISection />
 
   <!-- ====== Форма заявки ====== -->
-  <section id="lead-form" class="py-16 sm:py-24 bg-white">
+  <section
+    id="lead-form"
+    class="py-16 sm:py-24 bg-white"
+  >
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-baseline gap-4 mb-10">
         <h2
@@ -148,24 +209,34 @@
         </span>
       </div>
 
-      <!-- TODO(a11y): Mark required fields, associate errors via aria-describedby/aria-invalid, and announce form success or failure through a live region. -->
-      <form @submit.prevent="handleSubmit" class="space-y-4">
+      <form
+        class="space-y-4"
+        novalidate
+        @submit.prevent="handleSubmit"
+      >
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
             <label
               for="person_name"
               class="block text-sm font-medium text-moonless-night/60 mb-1.5"
-              >Имя *</label
-            >
+            >Имя *</label>
             <input
               id="person_name"
               v-model="leadForm.person_name"
               type="text"
               placeholder="Иван"
+              required
+              autocomplete="name"
               :class="leadInputClass('person_name')"
               :disabled="formStatus === 'loading'"
-            />
-            <p v-if="formErrors.person_name" class="mt-1 text-xs text-red-500">
+              :aria-invalid="formErrors.person_name ? 'true' : undefined"
+              :aria-describedby="formErrors.person_name ? 'person_name-error' : undefined"
+            >
+            <p
+              v-if="formErrors.person_name"
+              id="person_name-error"
+              class="mt-1 text-xs text-red-500"
+            >
               {{ formErrors.person_name }}
             </p>
           </div>
@@ -173,17 +244,23 @@
             <label
               for="phone"
               class="block text-sm font-medium text-moonless-night/60 mb-1.5"
-              >Телефон</label
-            >
+            >Телефон</label>
             <input
               id="phone"
               v-model="leadForm.phone"
               type="tel"
               placeholder="+7 (999) 000-00-00"
+              autocomplete="tel"
               :class="leadInputClass('phone')"
               :disabled="formStatus === 'loading'"
-            />
-            <p v-if="formErrors.phone" class="mt-1 text-xs text-red-500">
+              :aria-invalid="formErrors.phone ? 'true' : undefined"
+              :aria-describedby="formErrors.phone ? 'phone-error' : undefined"
+            >
+            <p
+              v-if="formErrors.phone"
+              id="phone-error"
+              class="mt-1 text-xs text-red-500"
+            >
               {{ formErrors.phone }}
             </p>
           </div>
@@ -192,17 +269,24 @@
           <label
             for="email"
             class="block text-sm font-medium text-moonless-night/60 mb-1.5"
-            >Email *</label
-          >
+          >Email *</label>
           <input
             id="email"
             v-model="leadForm.email"
             type="email"
             placeholder="you@company.ru"
+            required
+            autocomplete="email"
             :class="leadInputClass('email')"
             :disabled="formStatus === 'loading'"
-          />
-          <p v-if="formErrors.email" class="mt-1 text-xs text-red-500">
+            :aria-invalid="formErrors.email ? 'true' : undefined"
+            :aria-describedby="formErrors.email ? 'email-error' : undefined"
+          >
+          <p
+            v-if="formErrors.email"
+            id="email-error"
+            class="mt-1 text-xs text-red-500"
+          >
             {{ formErrors.email }}
           </p>
         </div>
@@ -211,17 +295,24 @@
             <label
               for="company_name"
               class="block text-sm font-medium text-moonless-night/60 mb-1.5"
-              >Компания *</label
-            >
+            >Компания *</label>
             <input
               id="company_name"
               v-model="leadForm.company_name"
               type="text"
               placeholder="ООО Пример"
+              required
+              autocomplete="organization"
               :class="leadInputClass('company_name')"
               :disabled="formStatus === 'loading'"
-            />
-            <p v-if="formErrors.company_name" class="mt-1 text-xs text-red-500">
+              :aria-invalid="formErrors.company_name ? 'true' : undefined"
+              :aria-describedby="formErrors.company_name ? 'company_name-error' : undefined"
+            >
+            <p
+              v-if="formErrors.company_name"
+              id="company_name-error"
+              class="mt-1 text-xs text-red-500"
+            >
               {{ formErrors.company_name }}
             </p>
           </div>
@@ -229,19 +320,22 @@
             <label
               for="refrigerators_count"
               class="block text-sm font-medium text-moonless-night/60 mb-1.5"
-              >Камер *</label
-            >
+            >Камер *</label>
             <input
               id="refrigerators_count"
               v-model.number="leadForm.refrigerators_count"
               type="number"
               min="1"
               placeholder="1"
+              required
               :class="leadInputClass('refrigerators_count')"
               :disabled="formStatus === 'loading'"
-            />
+              :aria-invalid="formErrors.refrigerators_count ? 'true' : undefined"
+              :aria-describedby="formErrors.refrigerators_count ? 'refrigerators_count-error' : undefined"
+            >
             <p
               v-if="formErrors.refrigerators_count"
+              id="refrigerators_count-error"
               class="mt-1 text-xs text-red-500"
             >
               {{ formErrors.refrigerators_count }}
@@ -252,8 +346,7 @@
           <label
             for="comment"
             class="block text-sm font-medium text-moonless-night/60 mb-1.5"
-            >Комментарий</label
-          >
+          >Комментарий</label>
           <textarea
             id="comment"
             v-model="leadForm.comment"
@@ -261,15 +354,15 @@
             placeholder="Вопросы, пожелания…"
             :class="[leadInputClass('comment'), 'resize-none']"
             :disabled="formStatus === 'loading'"
-          ></textarea>
+          />
         </div>
         <label class="flex items-start gap-3 cursor-pointer">
           <input
-            type="checkbox"
             v-model="leadForm.personal_data_agreement"
+            type="checkbox"
             class="mt-0.5 w-4 h-4 rounded border-moonless-night/30 text-electric-blue focus:ring-electric-blue focus:ring-offset-0"
             :disabled="formStatus === 'loading'"
-          />
+          >
           <span class="text-sm text-moonless-night/60">
             Согласен на обработку персональных данных *
           </span>
@@ -281,21 +374,36 @@
           {{ formErrors.personal_data_agreement }}
         </p>
 
-        <!-- TODO: Render a retryable error message when formStatus is error; failures currently have no visible feedback. -->
         <div
           v-if="formStatus === 'success'"
+          role="status"
           class="p-4 rounded-2xl bg-electric-blue/10 text-electric-blue text-sm border border-electric-blue/20"
         >
           Заявка отправлена. Мы свяжемся с вами в ближайшее время.
         </div>
 
+        <div
+          v-else-if="formStatus === 'error'"
+          role="alert"
+          class="p-4 rounded-2xl bg-red-50 text-red-700 text-sm border border-red-200"
+        >
+          {{ formError }}
+        </div>
+
         <button
           type="submit"
-          :disabled="formStatus === 'loading'"
+          :disabled="formStatus === 'loading' || formStatus === 'success'"
           class="px-8 py-3.5 bg-electric-blue text-cotton rounded-full font-semibold hover:bg-electric-blue/90 disabled:opacity-50 disabled:pointer-events-none transition-colors"
         >
-          <span v-if="formStatus === 'loading'" class="flex items-center gap-2">
-            <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+          <span
+            v-if="formStatus === 'loading'"
+            class="flex items-center gap-2"
+          >
+            <svg
+              class="w-5 h-5 animate-spin"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
               <circle
                 class="opacity-25"
                 cx="12"
@@ -323,11 +431,16 @@
 import { onMounted, onBeforeUnmount, reactive, ref } from "vue";
 import { useRoadmap } from "@/composables/useRoadmap";
 import { useLeads } from "@/composables/useLeads";
+import { isValidEmail } from "@/utils/validators";
 import AISection from "@/components/AISection.vue";
 import ShipHeading from "@/components/ShipHeading.vue";
 
-// TODO: Consume the composable's loading/error state instead of making an outage indistinguishable from an empty roadmap.
-const { roadmapItems, fetchRoadmap } = useRoadmap();
+const {
+  roadmapItems,
+  isLoading: roadmapLoading,
+  error: roadmapError,
+  fetchRoadmap,
+} = useRoadmap();
 const { createLead } = useLeads();
 
 const leadForm = reactive({
@@ -342,15 +455,15 @@ const leadForm = reactive({
 
 const formStatus = ref<"idle" | "loading" | "success" | "error">("idle");
 const formErrors = ref<Record<string, string>>({});
+const formError = ref("");
+let resetTimer: ReturnType<typeof setTimeout> | null = null;
 
 // ====== Новая логика для высоты hero-секции ======
 const heroSection = ref<HTMLElement | null>(null);
-const headerHeight = ref(0);
 
 const updateHeroHeight = () => {
   const header = document.querySelector("header");
   const headerH = header ? header.offsetHeight : 0;
-  headerHeight.value = headerH;
   if (heroSection.value) {
     heroSection.value.style.minHeight = `calc(100vh - ${headerH}px)`;
   }
@@ -407,7 +520,7 @@ const validateForm = (): boolean => {
   }
   if (!leadForm.email.trim()) {
     errors.email = "Введите email";
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(leadForm.email)) {
+  } else if (!isValidEmail(leadForm.email)) {
     errors.email = "Некорректный email";
   }
   if (!leadForm.company_name.trim()) {
@@ -426,10 +539,15 @@ const validateForm = (): boolean => {
 
 const handleSubmit = async (): Promise<void> => {
   if (!validateForm()) return;
+  if (formStatus.value === "loading" || formStatus.value === "success") return;
+  if (resetTimer) {
+    clearTimeout(resetTimer);
+    resetTimer = null;
+  }
 
   formStatus.value = "loading";
 
-  const success = await createLead({
+  const failure = await createLead({
     person_name: leadForm.person_name.trim(),
     email: leadForm.email.trim(),
     phone: leadForm.phone.trim(),
@@ -439,10 +557,9 @@ const handleSubmit = async (): Promise<void> => {
     personal_data_agreement: leadForm.personal_data_agreement,
   });
 
-  if (success) {
+  if (failure === null) {
     formStatus.value = "success";
-    // TODO: Disable duplicate submission while reset is pending and track/clear this timer on unmount or before another request.
-    setTimeout(() => {
+    resetTimer = setTimeout(() => {
       Object.assign(leadForm, {
         person_name: "",
         email: "",
@@ -453,8 +570,10 @@ const handleSubmit = async (): Promise<void> => {
         personal_data_agreement: false,
       });
       formStatus.value = "idle";
+      resetTimer = null;
     }, 3000);
   } else {
+    formError.value = failure;
     formStatus.value = "error";
   }
 };
@@ -474,21 +593,11 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", updateHeroHeight);
+  if (resetTimer) clearTimeout(resetTimer);
 });
 </script>
 
 <style scoped>
-.mobile-menu-enter-active,
-.mobile-menu-leave-active {
-  transition: all 0.2s ease;
-}
-
-.mobile-menu-enter-from,
-.mobile-menu-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;

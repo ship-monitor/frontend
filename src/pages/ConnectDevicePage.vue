@@ -6,8 +6,8 @@
       <!-- Заголовок -->
       <div class="mb-6">
         <button
-          @click="goBack"
           class="flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-700 transition-colors mb-4"
+          @click="goBack"
         >
           <svg
             class="w-4 h-4"
@@ -33,8 +33,11 @@
       </div>
 
       <!-- Форма -->
-      <!-- TODO(a11y): Associate field errors with inputs and announce dynamic submit status with aria-invalid, aria-describedby, and a live region. -->
-      <form @submit.prevent="handleSubmit" class="space-y-4">
+      <form
+        class="space-y-4"
+        novalidate
+        @submit.prevent="handleSubmit"
+      >
         <!-- ID устройства -->
         <div>
           <label
@@ -51,8 +54,14 @@
             class="ship-field font-mono text-sm"
             :class="{ '!border-red-400': errors.deviceId }"
             :disabled="submitting"
-          />
-          <p v-if="errors.deviceId" class="mt-1 text-xs text-red-500">
+            :aria-invalid="errors.deviceId ? 'true' : undefined"
+            aria-describedby="device-id-error"
+          >
+          <p
+            v-if="errors.deviceId"
+            id="device-id-error"
+            class="mt-1 text-xs text-red-500"
+          >
             {{ errors.deviceId }}
           </p>
         </div>
@@ -73,8 +82,15 @@
             class="ship-field"
             :class="{ '!border-red-400': errors.password }"
             :disabled="submitting"
-          />
-          <p v-if="errors.password" class="mt-1 text-xs text-red-500">
+            autocomplete="off"
+            :aria-invalid="errors.password ? 'true' : undefined"
+            aria-describedby="device-password-error"
+          >
+          <p
+            v-if="errors.password"
+            id="device-password-error"
+            class="mt-1 text-xs text-red-500"
+          >
             {{ errors.password }}
           </p>
         </div>
@@ -95,8 +111,14 @@
             class="ship-field"
             :class="{ '!border-red-400': errors.name }"
             :disabled="submitting"
-          />
-          <p v-if="errors.name" class="mt-1 text-xs text-red-500">
+            :aria-invalid="errors.name ? 'true' : undefined"
+            aria-describedby="device-name-error"
+          >
+          <p
+            v-if="errors.name"
+            id="device-name-error"
+            class="mt-1 text-xs text-red-500"
+          >
             {{ errors.name }}
           </p>
         </div>
@@ -104,6 +126,7 @@
         <!-- Успех -->
         <div
           v-if="submitStatus === 'success'"
+          role="status"
           class="p-4 rounded-xl bg-brand-50 text-brand-700 text-sm ring-1 ring-inset ring-brand-200 flex items-center gap-2.5"
         >
           <svg
@@ -120,14 +143,18 @@
             />
           </svg>
           Устройство подключено.
-          <router-link :to="ROUTES.DASHBOARD" class="font-semibold underline"
-            >На дашборд</router-link
+          <router-link
+            :to="ROUTES.DASHBOARD"
+            class="font-semibold underline"
           >
+            На дашборд
+          </router-link>
         </div>
 
         <!-- Ошибка -->
         <div
           v-if="submitStatus === 'error'"
+          role="alert"
           class="p-4 rounded-xl bg-red-50 text-red-700 text-sm ring-1 ring-inset ring-red-200 flex items-center gap-2.5"
         >
           <svg
@@ -156,7 +183,11 @@
             v-if="submitting"
             class="flex items-center justify-center gap-2"
           >
-            <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <svg
+              class="w-5 h-5 animate-spin"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
               <circle
                 class="opacity-25"
                 cx="12"
@@ -212,15 +243,22 @@ const goBack = () => {
   }
 };
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const HEX_ID_RE = /^[0-9a-f]{32}$/i;
+
 const validate = (): boolean => {
-  // TODO: Validate deviceId against the documented device identifier/UUID format instead of checking only for non-empty text.
-  errors.deviceId = form.deviceId.trim() ? undefined : "Введите ID устройства";
+  const id = form.deviceId.trim();
+  errors.deviceId = !id
+    ? "Введите ID устройства"
+    : UUID_RE.test(id) || HEX_ID_RE.test(id)
+      ? undefined
+      : "ID должен быть UUID (например 123e4567-e89b-12d3-a456-426614174000)";
   errors.password = form.password ? undefined : "Введите пароль устройства";
   errors.name = form.name.trim() ? undefined : "Введите название устройства";
   return !errors.deviceId && !errors.password && !errors.name;
 };
 
-// TODO: Catch rejected transport requests and reset submitting in finally so network failures cannot leave the form permanently disabled.
 const handleSubmit = async () => {
   if (!validate()) return;
 

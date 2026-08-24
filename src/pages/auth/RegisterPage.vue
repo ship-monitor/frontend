@@ -5,7 +5,7 @@ import { ROUTES } from "@/constants/routes";
 import { register } from "@/data/auth";
 import { useRouter } from "vue-router";
 
-import ShipTextbox from "@/components/ShipTextbox.vue";
+import ShipInput from "@/components/ShipInput.vue";
 
 const email = ref("");
 const password = ref("");
@@ -103,7 +103,7 @@ const handleRegister = async () => {
         <form @submit.prevent="handleRegister" class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-ink-700 mb-1.5">Имя</label>
-            <ship-textbox
+            <ship-input
               v-model="name"
               placeholder="Иван"
               name="name"
@@ -113,7 +113,7 @@ const handleRegister = async () => {
 
           <div>
             <label class="block text-sm font-medium text-ink-700 mb-1.5">Email</label>
-            <ship-textbox
+            <ship-input
               v-model="email"
               placeholder="you@example.com"
               name="email"
@@ -124,7 +124,7 @@ const handleRegister = async () => {
           <div>
             <label class="block text-sm font-medium text-ink-700 mb-1.5">Пароль</label>
             <div class="relative">
-              <ship-textbox
+              <ship-input
                 v-model="password"
                 placeholder="••••••••"
                 name="password"

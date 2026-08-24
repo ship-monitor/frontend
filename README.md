@@ -20,11 +20,13 @@
 
 | Переменная | Куда попадает | Описание |
 |---|---|---|
-| `SECRET_KEY` | `directus` → `SECRET` | Секрет Directus (подпись токенов). Сгенерировать: `openssl rand -hex 32` |
-| `CMS_ADMIN_EMAIL` | `directus` → `ADMIN_EMAIL` | Email администратора Directus |
-| `CMS_ADMIN_PASSWORD` | `directus` → `ADMIN_PASSWORD` | Пароль администратора Directus |
-| `CMS_URL` | `directus` → `PUBLIC_URL`, build-arg `VITE_CMS_URL` образа `frontend` | Публичный адрес CMS (например `https://cms.ship-monitor.ru`). Используется как baseURL CMS-клиента (`src/composables/api_cms.ts`); при отсутствии — захардкоженный `https://cms.ship-monitor.ru` |
+| `SECRET_KEY` | `directus` → `SECRET` | Секрет Directus (подпись токенов). Сгенерировать: `openssl rand -hex 32`. Обязателен |
+| `CMS_ADMIN_EMAIL` | `directus` → `ADMIN_EMAIL` | Email администратора Directus. Обязателен |
+| `CMS_ADMIN_PASSWORD` | `directus` → `ADMIN_PASSWORD` | Пароль администратора Directus. Обязателен |
+| `CMS_URL` | `directus` → `PUBLIC_URL`, build-arg `VITE_CMS_URL` образа `frontend` | Публичный адрес CMS (например `https://cms.ship-monitor.ru`). Используется как baseURL CMS-клиента (`src/composables/api_cms.ts`); при отсутствии — захардкоженный `https://cms.ship-monitor.ru`. Обязателен |
 | `CLOUD_BACKEND_URL` | build-arg `VITE_API_URL` образа `frontend` | URL Ship-бэкенда, запекается в SPA при сборке. Обязателен (`docker compose build` упадёт без него) |
+| `DIRECTUS_DB_PASSWORD` | `database` → `POSTGRES_PASSWORD`, `directus` → `DB_PASSWORD` | Пароль БД Directus/Postgres. Обязателен. Применяется только при инициализации кластера — для существующей БД см. заметку ниже |
+| `DIRECTUS_VERSION` | образ `directus` | Точный патч-пин версии Directus (например `11.17.4`). Обязателен — `latest` и мутабельные мажорные теги (`11`) запрещены: Directus запускает миграции БД автоматически, миграции необратимы, откат на меньшую версию ломает БД. Пин должен быть не ниже версии, работающей на сервере (узнать: `docker exec <directus> node -e "console.log(require('./package.json').version)"`) |
 
 ## Plausible Analytics (временно отключено)
 
@@ -39,3 +41,13 @@ Self-hosted Plausible (ClickHouse + Postgres + BE) не помещался на 
 После изменения `.env` контейнеры нужно пересоздать: `docker compose up -d` (простой restart не подхватывает переменные).
 
 **Деплой-заметка:** `CLOUD_BACKEND_URL` обязателен — без него `docker compose` падает на интерполяции с ошибкой `required variable CLOUD_BACKEND_URL is missing a value` ещё до сборки. Если на сервере деплой внезапно упал с этой ошибкой, добавьте в серверный `.env` строку `CLOUD_BACKEND_URL=https://api.ship-monitor.ru`.
+
+**Смена пароля БД на существующем сервере.** `DIRECTUS_DB_PASSWORD` применяется только при инициализации нового кластера Postgres. Для уже развёрнутой БД (пароль по умолчанию был `directus`):
+
+```bash
+docker compose exec database psql -U directus -c "ALTER USER directus PASSWORD '<новый-пароль>';"
+```
+
+затем обновите `DIRECTUS_DB_PASSWORD` в `.env` и `docker compose up -d`.
+
+**Обновление версий образов.** Postgis-образ пинится на PostgreSQL 13 (`postgis/postgis:13-3.4`) — 13-я ветка EOL, мажорный апгрейд требует `pg_dump`/`pg_restore` (остановите стек, сделайте дамп, поднимите с новым образом, восстановите). Directus обновляйте только на большую версию (`DIRECTUS_VERSION`) после бэкапа `./data/database` — миграции Directus необратимы.

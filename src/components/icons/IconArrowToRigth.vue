@@ -1,5 +1,9 @@
 <template>
-  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
     <path
       stroke-linecap="round"
       stroke-linejoin="round"

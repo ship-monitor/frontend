@@ -1,6 +1,7 @@
 import api from "@/api";
 import type { AxiosRequestConfig, AxiosResponse } from "axios";
 import { Result, Unit } from "true-myth";
+import { isValidEmail } from "@/utils/validators";
 
 export type Device = {
   id: string;
@@ -263,14 +264,12 @@ export const getCurrentUser = async (): Promise<Result<User, APIError>> =>
   );
 
 // ============= Профиль =============
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 export const setUserEmail = async (
   userId: string,
   email: string
 ): Promise<Result<Unit, APIError>> => {
   const trimmed = email.trim();
-  if (!EMAIL_RE.test(trimmed)) {
+  if (!isValidEmail(trimmed)) {
     return Result.err("Некорректный email");
   }
   return request(

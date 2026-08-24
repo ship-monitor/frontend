@@ -22,10 +22,9 @@ export default defineConfig([
     languageOptions: { globals: globals.browser },
   },
   tseslint.configs.recommended,
-  // TODO(lint): Enable eslint-plugin-vue's essential or recommended rules; the base preset only configures parsing.
-  ...pluginVue.configs["flat/base"],
   {
     files: ["**/*.vue"],
+    extends: [...pluginVue.configs["flat/recommended"]],
     languageOptions: { parserOptions: { parser: tseslint.parser } },
   },
   {

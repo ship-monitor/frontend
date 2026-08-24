@@ -4,7 +4,10 @@
       class="ship-card p-8 sm:p-10 max-w-md w-full text-center animate-scale-in"
     >
       <!-- Загрузка -->
-      <div v-if="loading" class="py-4">
+      <div
+        v-if="loading"
+        class="py-4"
+      >
         <svg
           class="w-7 h-7 text-brand-500 animate-spin mx-auto mb-4"
           fill="none"
@@ -17,19 +20,26 @@
             r="10"
             stroke="currentColor"
             stroke-width="4"
-          ></circle>
+          />
           <path
             class="opacity-75"
             fill="currentColor"
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
+          />
         </svg>
-        <p class="text-lg font-semibold text-ink-900">Подтверждение email...</p>
-        <p class="text-sm text-ink-500 mt-1">Пожалуйста, подождите</p>
+        <p class="text-lg font-semibold text-ink-900">
+          Подтверждение email...
+        </p>
+        <p class="text-sm text-ink-500 mt-1">
+          Пожалуйста, подождите
+        </p>
       </div>
 
       <!-- Успех -->
-      <div v-else-if="success" class="py-4">
+      <div
+        v-else-if="success"
+        class="py-4"
+      >
         <svg
           class="w-12 h-12 text-brand-500 mx-auto mb-4"
           fill="none"
@@ -43,17 +53,28 @@
             d="M5 13l4 4L19 7"
           />
         </svg>
-        <p class="text-xl font-bold text-ink-900">Email подтверждён</p>
-        <p class="text-sm text-ink-500 mt-1">Перенаправление на профиль...</p>
+        <p class="text-xl font-bold text-ink-900">
+          Email подтверждён
+        </p>
+        <p class="text-sm text-ink-500 mt-1">
+          Перенаправление на профиль...
+        </p>
       </div>
 
-        <!-- Ошибка -->
-      <div v-else class="py-4">
-        <p class="text-xl font-bold text-ink-900 mb-1">Ошибка подтверждения</p>
-        <p class="text-sm text-red-600 mt-1">{{ error }}</p>
+      <!-- Ошибка -->
+      <div
+        v-else
+        class="py-4"
+      >
+        <p class="text-xl font-bold text-ink-900 mb-1">
+          Ошибка подтверждения
+        </p>
+        <p class="text-sm text-red-600 mt-1">
+          {{ error }}
+        </p>
         <button
-          @click="$router.push(ROUTES.PROFILE)"
           class="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-semibold"
+          @click="$router.push(ROUTES.PROFILE)"
         >
           Вернуться в профиль
         </button>

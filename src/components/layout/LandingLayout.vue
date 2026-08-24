@@ -3,11 +3,13 @@ import { ref } from "vue";
 import BIG_LOGO_D from "@/assets/big-logo-dark.png";
 import BIG_LOGO from "@/assets/big-logo.png";
 
-// TODO(navigation): Give every item a unique ID and a real distinct route, anchor, or contact destination; duplicate '/#' keys are broken placeholders.
 const NAV_LINKS = [
-  { label: "Документация", to: "/#" },
-  { label: "Тарифы", to: "/#pricing" },
-  { label: "Поддержка", to: "/#" },
+  { label: "Тарифы", to: "/#lead-form", external: false },
+  {
+    label: "Поддержка",
+    to: "mailto:support@ship-monitor.ru",
+    external: true,
+  },
 ];
 const mobileMenuOpen = ref(false);
 </script>
@@ -25,28 +27,38 @@ const mobileMenuOpen = ref(false);
                 :src="BIG_LOGO"
                 alt="ШиП-монитор"
                 class="w-full h-full object-contain"
-              />
+              >
             </div>
           </div>
 
           <!-- Десктоп-меню -->
           <nav class="hidden md:flex gap-10">
-            <router-link
+            <template
               v-for="link in NAV_LINKS"
-              :key="link.to"
-              :to="link.to"
-              class="hover:text-electric-blue text-center transition-all duration-300 text-lg"
+              :key="link.label"
             >
-              {{ link.label }}
-            </router-link>
+              <a
+                v-if="link.external"
+                :href="link.to"
+                class="hover:text-electric-blue text-center transition-all duration-300 text-lg"
+              >{{ link.label }}</a>
+              <router-link
+                v-else
+                :to="link.to"
+                class="hover:text-electric-blue text-center transition-all duration-300 text-lg"
+              >
+                {{ link.label }}
+              </router-link>
+            </template>
           </nav>
 
           <!-- Бургер (мобильное) -->
-          <!-- TODO(a11y): Bind aria-expanded/aria-controls and provide distinct open/close labels for this disclosure button. -->
           <button
-            @click="mobileMenuOpen = !mobileMenuOpen"
             class="md:hidden p-2 -mr-2 text-moonless-night"
             aria-label="Меню"
+            :aria-expanded="mobileMenuOpen"
+            aria-controls="mobile-menu"
+            @click="mobileMenuOpen = !mobileMenuOpen"
           >
             <svg
               v-if="!mobileMenuOpen"
@@ -84,24 +96,36 @@ const mobileMenuOpen = ref(false);
       <Transition name="mobile-menu">
         <nav
           v-if="mobileMenuOpen"
+          id="mobile-menu"
           class="md:hidden bg-white border-t border-moonless-night/10"
         >
           <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 space-y-1">
-            <router-link
+            <template
               v-for="link in NAV_LINKS"
-              :key="link.to"
-              :to="link.to"
-              @click="mobileMenuOpen = false"
-              class="block px-4 py-3 rounded-xl text-lg hover:bg-cotton hover:text-electric-blue transition-colors"
+              :key="link.label"
             >
-              {{ link.label }}
-            </router-link>
+              <a
+                v-if="link.external"
+                :href="link.to"
+                class="block px-4 py-3 rounded-xl text-lg hover:bg-cotton hover:text-electric-blue transition-colors"
+                @click="mobileMenuOpen = false"
+              >{{ link.label }}</a>
+              <router-link
+                v-else
+                :to="link.to"
+                class="block px-4 py-3 rounded-xl text-lg hover:bg-cotton hover:text-electric-blue transition-colors"
+                @click="mobileMenuOpen = false"
+              >
+                {{ link.label }}
+              </router-link>
+            </template>
           </div>
         </nav>
       </Transition>
     </header>
-    <!-- TODO(a11y): Wrap the page slot in a main landmark. -->
-    <slot></slot>
+    <main>
+      <slot />
+    </main>
     <footer class="bg-moonless-night text-cotton/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div
@@ -112,7 +136,7 @@ const mobileMenuOpen = ref(false);
               :src="BIG_LOGO_D"
               alt="ШиП-монитор"
               class="w-full h-full object-contain"
-            />
+            >
           </div>
           <p class="text-xs sm:text-sm text-center">
             © {{ new Date().getFullYear() }} ШиП-монитор · Российское ПО
@@ -120,8 +144,7 @@ const mobileMenuOpen = ref(false);
           <a
             href="mailto:support@ship-monitor.ru"
             class="text-xs sm:text-sm text-electric-blue hover:text-electric-blue/80 transition-colors"
-            >support@ship-monitor.ru</a
-          >
+          >support@ship-monitor.ru</a>
         </div>
       </div>
     </footer>

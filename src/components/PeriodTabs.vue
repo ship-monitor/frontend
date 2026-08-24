@@ -1,11 +1,19 @@
 <template>
-  <!-- TODO(a11y): Give this selector an accessible group label and expose the active period with aria-pressed. -->
-  <div class="flex flex-wrap gap-2">
-    <transition-group name="period-tabs" tag="div" class="flex flex-wrap gap-2">
+  <div
+    class="flex flex-wrap gap-2"
+    role="group"
+    aria-label="Период графика температуры"
+  >
+    <transition-group
+      name="period-tabs"
+      tag="div"
+      class="flex flex-wrap gap-2"
+    >
       <ShipButton
         v-for="period in periods"
         :key="period.value"
         variant="secondary"
+        :aria-pressed="selectedPeriod === period.value"
         :class="
           selectedPeriod === period.value
             ? 'bg-brand-600 text-white border-brand-600'

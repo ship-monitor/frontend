@@ -1,22 +1,7 @@
-import axios from "axios";
-import { type DeviceStateRecord, getDeviceState } from "@/data";
+import { getDeviceState } from "@/data";
 
 const SECOND = 1000;
 const PING_INTERVAL = 10 * SECOND;
-
-const AUTH_ERROR_MARKS = [
-  "unauthorized",
-  "bad credentials",
-  "session expired",
-  "session is invalid",
-];
-
-export function isAuthError(error: unknown): boolean {
-  if (axios.isAxiosError(error) && error.response?.status === 401) return true;
-  const message = error instanceof Error ? error.message : String(error);
-  const normalized = message.toLowerCase();
-  return AUTH_ERROR_MARKS.some((mark) => normalized.includes(mark));
-}
 
 export async function fetchOnlineStatus(
   deviceId: string
@@ -34,15 +19,6 @@ export async function fetchOnlineStatus(
 export async function isOnline(deviceId: string): Promise<boolean> {
   return (await fetchOnlineStatus(deviceId)) ?? false;
 }
-
-// TODO: Move to Maybe
-export const getLastTemperature = async (
-  deviceId: string
-): Promise<DeviceStateRecord<number> | null> => {
-  return (await getDeviceState<number>(deviceId, "temperature"))
-    .inspectErr((err) => console.error("Failed load last temperature: %s", err))
-    .unwrapOr(null);
-};
 
 export const formatTimeAgo = (timestamp: string): string => {
   const date = new Date(timestamp);
