@@ -7,6 +7,15 @@ import { defineConfig } from "eslint/config";
 
 export default defineConfig([
   {
+    ignores: [
+      "dist/**",
+      "node_modules/**",
+      "package-lock.json",
+      ".kilo/**",
+      ".agents/**",
+    ],
+  },
+  {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts,vue}"],
     plugins: { js },
     extends: ["js/recommended"],
@@ -19,7 +28,6 @@ export default defineConfig([
     files: ["**/*.vue"],
     languageOptions: { parserOptions: { parser: tseslint.parser } },
   },
-  // TODO(lint): Ignore generated lockfiles here; json/no-empty-keys currently rejects npm's valid package-lock.json structure.
   {
     files: ["**/*.json"],
     plugins: { json },

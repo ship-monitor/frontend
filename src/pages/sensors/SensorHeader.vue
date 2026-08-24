@@ -204,30 +204,27 @@ const closeModal = () => {
   error.value = "";
 };
 
-// TODO: Match a Result from sendDeviceCommand and close the modal only after a successful HTTP response.
 const submitCommand = async () => {
   sending.value = true;
   error.value = "";
-  try {
-    const argsObj: Record<string, string | number> = {};
-    for (const arg of args.value) {
-      if (arg.key.trim()) {
-        const numVal = Number(arg.value);
-        argsObj[arg.key.trim()] =
-          !isNaN(numVal) && arg.value !== "" ? numVal : arg.value;
-      }
+  const argsObj: Record<string, string | number> = {};
+  for (const arg of args.value) {
+    if (arg.key.trim()) {
+      const numVal = Number(arg.value);
+      argsObj[arg.key.trim()] =
+        !isNaN(numVal) && arg.value !== "" ? numVal : arg.value;
     }
-    await sendDeviceCommand(props.deviceId, command.value.trim(), argsObj);
-    closeModal();
-  } catch (e) {
-    if (e instanceof Error) {
-      error.value = e.message;
-    } else {
-      error.value = "Ошибка отправки команды";
-    }
-  } finally {
-    sending.value = false;
   }
+
+  const result = await sendDeviceCommand(
+    props.deviceId,
+    command.value.trim(),
+    argsObj
+  );
+  result.map(closeModal).inspectErr((err) => {
+    error.value = err;
+  });
+  sending.value = false;
 };
 </script>
 

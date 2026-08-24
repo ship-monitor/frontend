@@ -6,7 +6,9 @@
 
 ### 1. Сборка фронтенда (Vite)
 
-Файл `.env` в корне проекта. Переменные **запекаются в бандл** на этапе `npm run build` / `docker build`. После сборки изменить их нельзя — переменные из `environment` в compose на готовый статический сайт не влияют (см. `Dockerfile`, где `VITE_API_URL` задаётся при сборке).
+Файл `.env` в корне проекта — для локальной разработки. Переменные **запекаются в бандл** на этапе `npm run build` / `docker build`. После сборки изменить их нельзя.
+
+При сборке Docker-образа значения передаются как build-args (см. `build.args` в `docker-compose.yml`): `VITE_API_URL` берётся из `CLOUD_BACKEND_URL` (обязателен — без него сборка упадёт), `VITE_CMS_URL` из `CMS_URL`, Plausible-переменные из соответствующих `PLAUSIBLE_*`.
 
 - `VITE_API_URL` — базовый URL Ship-бэкенда (используется в `src/api.ts`)
 - `VITE_PLAUSIBLE_URL` — URL сервера Plausible для трекинга (`src/App.vue`). Аналитика временно отключена, см. примечание ниже
@@ -21,8 +23,8 @@
 | `SECRET_KEY` | `directus` → `SECRET` | Секрет Directus (подпись токенов). Сгенерировать: `openssl rand -hex 32` |
 | `CMS_ADMIN_EMAIL` | `directus` → `ADMIN_EMAIL` | Email администратора Directus |
 | `CMS_ADMIN_PASSWORD` | `directus` → `ADMIN_PASSWORD` | Пароль администратора Directus |
-| `CMS_URL` | `directus` → `PUBLIC_URL`, `frontend` → `VITE_CMS_URL` | Публичный адрес CMS (например `https://cms.ship-monitor.ru`) |
-| `CLOUD_BACKEND_URL` | `frontend` → `VITE_API_URL` (рантайм-переменная контейнера) | URL Ship-бэкенда. Внимание: на собранный SPA не влияет — реальный URL задаётся `VITE_API_URL` при сборке |
+| `CMS_URL` | `directus` → `PUBLIC_URL`, build-arg `VITE_CMS_URL` образа `frontend` | Публичный адрес CMS (например `https://cms.ship-monitor.ru`) |
+| `CLOUD_BACKEND_URL` | build-arg `VITE_API_URL` образа `frontend` | URL Ship-бэкенда, запекается в SPA при сборке. Обязателен (`docker compose build` упадёт без него) |
 
 ## Plausible Analytics (временно отключено)
 

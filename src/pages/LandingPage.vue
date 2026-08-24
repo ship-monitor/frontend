@@ -320,19 +320,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onBeforeUnmount, reactive, ref } from "vue";
+import { onMounted, onBeforeUnmount, reactive, ref } from "vue";
 import { useRoadmap } from "@/composables/useRoadmap";
 import { useLeads } from "@/composables/useLeads";
-import { useAuthStore } from "@/stores/authStore";
 import AISection from "@/components/AISection.vue";
 import ShipHeading from "@/components/ShipHeading.vue";
 
 // TODO: Consume the composable's loading/error state instead of making an outage indistinguishable from an empty roadmap.
 const { roadmapItems, fetchRoadmap } = useRoadmap();
 const { createLead } = useLeads();
-// TODO(dead-code): Remove the unused auth/computed state and obsolete scoped animations, or connect them to rendered behavior.
-const authStore = useAuthStore();
-const isAuthenticated = computed(() => authStore.isAuthenticated);
 
 const leadForm = reactive({
   person_name: "",

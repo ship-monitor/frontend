@@ -47,13 +47,12 @@
         <p class="text-sm text-ink-500 mt-1">Перенаправление на профиль...</p>
       </div>
 
-      <!-- Ошибка -->
+        <!-- Ошибка -->
       <div v-else class="py-4">
         <p class="text-xl font-bold text-ink-900 mb-1">Ошибка подтверждения</p>
         <p class="text-sm text-red-600 mt-1">{{ error }}</p>
-        <!-- TODO(router): Navigate through ROUTES.PROFILE rather than hard-coding the path. -->
         <button
-          @click="$router.push('/profile')"
+          @click="$router.push(ROUTES.PROFILE)"
           class="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-semibold"
         >
           Вернуться в профиль
@@ -64,19 +63,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { confirmEmail } from "@/data";
+import { ROUTES } from "@/constants/routes";
 
 const route = useRoute();
 const router = useRouter();
 
-// TODO: Accept exactly one non-empty string token; query values may also be null or string arrays.
-const token = route.query.token as string;
+const rawToken = route.query.token;
+const token =
+  typeof rawToken === "string" && rawToken.trim().length > 0
+    ? rawToken.trim()
+    : null;
 
 const loading = ref(true);
 const success = ref(false);
 const error = ref("");
+
+let redirectTimer: ReturnType<typeof setTimeout> | null = null;
 
 onMounted(async () => {
   if (!token) {
@@ -85,19 +90,23 @@ onMounted(async () => {
     return;
   }
 
-  try {
-    // TODO: Match the confirmEmail Result and redirect only for Ok; HTTP errors resolve as Result.Err and are currently shown as success.
-    await confirmEmail(token);
-    success.value = true;
-    // TODO: Track and clear this delayed redirect on unmount, and use the typed profile route constant.
-    setTimeout(() => {
-      router.push("/profile");
-    }, 2000);
-  } catch (e) {
-    error.value =
-      e instanceof Error ? e.message : "Не удалось подтвердить email";
-  } finally {
-    loading.value = false;
-  }
+  const result = await confirmEmail(token);
+  result
+    .map(() => {
+      success.value = true;
+      redirectTimer = setTimeout(() => {
+        router.push(ROUTES.PROFILE);
+      }, 2000);
+    })
+    .inspectErr((err) => {
+      error.value = err;
+    })
+    .unwrapOr(undefined);
+
+  loading.value = false;
+});
+
+onUnmounted(() => {
+  if (redirectTimer) clearTimeout(redirectTimer);
 });
 </script>

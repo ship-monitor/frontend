@@ -71,9 +71,11 @@ export const register = async (
 
 export const logout = async (): Promise<Result<void, string>> => {
   try {
-    // TODO(data): Check the resolved response status; validateStatus means HTTP logout failures do not throw.
-    await api.post("/api/auth/logout");
-    return Result.ok(undefined);
+    const response = await api.post("/api/auth/logout");
+    if (response.status >= 200 && response.status < 300) {
+      return Result.ok(undefined);
+    }
+    return Result.err("logout request failed");
   } catch (e) {
     return Result.err("logout request failed: " + e);
   }

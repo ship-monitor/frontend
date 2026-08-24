@@ -171,9 +171,8 @@
       v-else
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
     >
-      <!-- TODO: Render filteredSensors so search and status filters actually constrain the displayed cards. -->
       <device-card
-        v-for="device in sensors"
+        v-for="device in filteredSensors"
         :key="device.id"
         :device-id="device.id"
       />
@@ -185,7 +184,7 @@ import { ref, computed, onMounted, onUnmounted, onActivated } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ROUTES } from "@/constants/routes";
 import { getUserDevices } from "@/data";
-import { isOnline, isAuthError } from "@/utils/utils";
+import { fetchOnlineStatus, isAuthError } from "@/utils/utils";
 import { useAuthStore } from "@/stores/authStore";
 import DeviceCard from "@/components/DeviceCard.vue";
 
@@ -305,7 +304,7 @@ async function loadSensors() {
 
     const pingResults = await Promise.all(
       devices.map(async (device) => {
-        const ok = await isOnline(device.id);
+        const ok = await fetchOnlineStatus(device.id);
         return { device, ok };
       })
     );
@@ -325,13 +324,18 @@ async function loadSensors() {
       }
 
       const pingHistory = loadPingHistory(device.id);
-      pingHistory.push(ok);
-      if (pingHistory.length > 10) pingHistory.shift();
-      savePingHistory(device.id, pingHistory);
+      if (ok !== null) {
+        pingHistory.push(ok);
+        if (pingHistory.length > 10) pingHistory.shift();
+        savePingHistory(device.id, pingHistory);
+      }
 
       const lastPings = pingHistory.slice(-5);
       const allOffline = lastPings.length >= 3 && lastPings.every((p) => !p);
-      let status: "online" | "offline" | "error" = ok ? "online" : "offline";
+      const effectiveOk = ok ?? false;
+      let status: "online" | "offline" | "error" = effectiveOk
+        ? "online"
+        : "offline";
       if (allOffline && lastPings.length >= 3) {
         status = "error";
       }
@@ -341,9 +345,9 @@ async function loadSensors() {
         name: device.name,
         displayName: getDisplayName(device.id, device.name),
         status,
-        isConnected: ok,
+        isConnected: effectiveOk,
         temperature,
-        lastPingTime: ok ? Date.now() : null,
+        lastPingTime: effectiveOk ? Date.now() : null,
         pingHistory,
         tags: getTags(device.id),
       });

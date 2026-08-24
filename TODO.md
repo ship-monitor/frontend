@@ -12,19 +12,19 @@ Priorities:
 
 ## P1 — High priority
 
-- [ ] **Remove the hard-coded backend endpoint from the image.** `Dockerfile` compiles every deployment against a fixed HTTP IP address. Vite values must be required build inputs, with matching `build.args` in `docker-compose.yml`; runtime container variables cannot reconfigure an already-built SPA. (`Dockerfile`, `docker-compose.yml`)
-- [ ] **Stop injecting all `.env` values into the frontend container.** The static Nginx service receives backend/CMS secrets it does not need. (`docker-compose.yml`)
-- [ ] **Invalidate Pinia authentication state on backend 401 responses.** The interceptor redirects without clearing the stale user, while the anonymous-only route guard redirects that user away from login again. (`src/api.ts`, `src/stores/authStore.ts`, `src/router/index.ts`)
-- [ ] **Make the data response adapter status-aware and schema-aware.** `responseToResult` treats many 4xx/5xx or malformed payloads as successful data because Axios resolves all HTTP statuses. (`src/data/index.ts`)
-- [ ] **Guarantee the documented `Result` contract for transport failures.** Most data functions still throw on timeout, CORS, and network failures, forcing callers to handle both `Result.Err` and exceptions. (`src/data/index.ts`)
-- [ ] **Check mutation response statuses.** Logout, disconnect, and device-command calls can report success for resolved 4xx/5xx responses. Callers must explicitly handle returned `Result` failures. (`src/data/auth.ts`, `src/data/index.ts`, `src/stores/authStore.ts`, `src/pages/sensors/SensorHeader.vue`)
-- [ ] **Fix online-state calculation.** `isOnline` currently returns true for stale timestamps and ignores the boolean record value, reversing status across the dashboard and sensor pages. Preserve an unknown/error state instead of mapping request failures to offline. (`src/utils/utils.ts`)
-- [ ] **Render the filtered dashboard collection.** Search and status filters currently affect only empty-state checks; cards still iterate over the unfiltered sensor list. (`src/pages/DashboardPage.vue`)
-- [ ] **Stop profile mutations from reporting failed HTTP responses as success.** Email/password changes bypass the data layer, do not inspect resolved statuses, and mutate UI state on 4xx/5xx responses. (`src/pages/ProfilePage.vue`)
-- [ ] **Handle account `Result` values.** Email-confirmation start and confirmation pages ignore `Result.Err` and display success/redirect after ordinary HTTP failures. (`src/pages/ProfilePage.vue`, `src/pages/auth/ConfirmEmailPage.vue`)
-- [ ] **Correct sensor-settings save control flow.** Unchanged and successful saves leave `saving` active; failed saves apply rejected state as though they succeeded. Use `try/finally`, update state only on `Ok`, and expose errors. (`src/pages/sensors/SensorDetailsPage.vue`)
-- [ ] **Make initial sensor loading failure-safe.** Transport failures can leave the details page on an infinite spinner with no retryable error. (`src/pages/sensors/SensorDetailsPage.vue`)
-- [ ] **Connect period selection to parent state.** `SensorTemperatureTab` emits a period update that the parent never handles, so the chart remains fixed at 24 hours. (`src/pages/sensors/SensorDetailsPage.vue`)
+- [x] **Remove the hard-coded backend endpoint from the image.** `Dockerfile` compiles every deployment against a fixed HTTP IP address. Vite values must be required build inputs, with matching `build.args` in `docker-compose.yml`; runtime container variables cannot reconfigure an already-built SPA. (`Dockerfile`, `docker-compose.yml`)
+- [x] **Stop injecting all `.env` values into the frontend container.** The static Nginx service receives backend/CMS secrets it does not need. (`docker-compose.yml`)
+- [x] **Invalidate Pinia authentication state on backend 401 responses.** The interceptor redirects without clearing the stale user, while the anonymous-only route guard redirects that user away from login again. (`src/api.ts`, `src/stores/authStore.ts`, `src/router/index.ts`)
+- [x] **Make the data response adapter status-aware and schema-aware.** `responseToResult` treats many 4xx/5xx or malformed payloads as successful data because Axios resolves all HTTP statuses. (`src/data/index.ts`)
+- [x] **Guarantee the documented `Result` contract for transport failures.** Most data functions still throw on timeout, CORS, and network failures, forcing callers to handle both `Result.Err` and exceptions. (`src/data/index.ts`)
+- [x] **Check mutation response statuses.** Logout, disconnect, and device-command calls can report success for resolved 4xx/5xx responses. Callers must explicitly handle returned `Result` failures. (`src/data/auth.ts`, `src/data/index.ts`, `src/stores/authStore.ts`, `src/pages/sensors/SensorHeader.vue`)
+- [x] **Fix online-state calculation.** `isOnline` currently returns true for stale timestamps and ignores the boolean record value, reversing status across the dashboard and sensor pages. Preserve an unknown/error state instead of mapping request failures to offline. (`src/utils/utils.ts`)
+- [x] **Render the filtered dashboard collection.** Search and status filters currently affect only empty-state checks; cards still iterate over the unfiltered sensor list. (`src/pages/DashboardPage.vue`)
+- [x] **Stop profile mutations from reporting failed HTTP responses as success.** Email/password changes bypass the data layer, do not inspect resolved statuses, and mutate UI state on 4xx/5xx responses. (`src/pages/ProfilePage.vue`)
+- [x] **Handle account `Result` values.** Email-confirmation start and confirmation pages ignore `Result.Err` and display success/redirect after ordinary HTTP failures. (`src/pages/ProfilePage.vue`, `src/pages/auth/ConfirmEmailPage.vue`)
+- [x] **Correct sensor-settings save control flow.** Unchanged and successful saves leave `saving` active; failed saves apply rejected state as though they succeeded. Use `try/finally`, update state only on `Ok`, and expose errors. (`src/pages/sensors/SensorDetailsPage.vue`)
+- [x] **Make initial sensor loading failure-safe.** Transport failures can leave the details page on an infinite spinner with no retryable error. (`src/pages/sensors/SensorDetailsPage.vue`)
+- [x] **Connect period selection to parent state.** `SensorTemperatureTab` emits a period update that the parent never handles, so the chart remains fixed at 24 hours. (`src/pages/sensors/SensorDetailsPage.vue`)
 
 ## P2 — Medium priority
 
@@ -107,11 +107,11 @@ Priorities:
 ## P3 — Low priority
 
 - [ ] **Verify the email-confirmation idempotency status.** The code calls HTTP 304 “Conflict”; standard Conflict is 409. Rename/document a backend-specific contract or migrate it. (`src/data/index.ts`)
-- [ ] **Fix latent relative-time formatting.** `formatTimeAgo` subtracts `getMilliseconds()` rather than epoch time and needs invalid/future timestamp handling. (`src/utils/utils.ts`)
+- [x] **Fix latent relative-time formatting.** `formatTimeAgo` subtracts `getMilliseconds()` rather than epoch time and needs invalid/future timestamp handling. (`src/utils/utils.ts`)
 - [ ] **Remove no-op sensor lifecycle code.** The deep watcher and mount callback only await `nextTick`. (`src/pages/sensors/SensorTemperatureTab.vue`)
 - [ ] **Remove the no-op global router hook.** Every application-layout mount registers another empty callback and drops its cleanup function. (`src/components/layout/ApplicationLayout.vue`)
 - [ ] **Decide the registration feature explicitly.** `RegisterPage.vue` is entirely archived in comments while route constants and auth APIs remain. Remove it or restore executable, validated, tested code. (`src/pages/auth/RegisterPage.vue`, `src/constants/routes.ts`, `src/data/auth.ts`)
-- [ ] **Remove or implement the misleading history API.** `getDeviceStateWithHistory` is unused and requests only one record. (`src/data/index.ts`)
+- [x] **Remove or implement the misleading history API.** `getDeviceStateWithHistory` is unused and requests only one record. (`src/data/index.ts`)
 - [ ] **Consolidate duplicate user models.** The data-layer user includes fields missing from the canonical store model. (`src/data/index.ts`, `src/models/models.ts`)
 - [ ] **Remove or adopt unused parallel sensor types.** Keeping a second domain shape encourages schema drift. (`src/types/sensor.ts`)
 - [ ] **Remove dead landing state/styles.** The unused auth computed currently fails ESLint; hero-height state and scoped animation rules also contain obsolete state/style paths. (`src/pages/LandingPage.vue`)

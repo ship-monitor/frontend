@@ -1,6 +1,18 @@
 FROM node:26-alpine AS build-stage
-# TODO(deploy): Accept VITE_API_URL as a required build argument instead of compiling every image against this hard-coded HTTP endpoint.
-ENV VITE_API_URL=http://157.22.206.199:8080
+
+ARG VITE_API_URL
+ARG VITE_CMS_URL
+ARG VITE_PLAUSIBLE_URL
+ARG VITE_PLAUSIBLE_DOMAIN
+
+RUN if [ -z "$VITE_API_URL" ]; then \
+      echo "ERROR: VITE_API_URL build arg is required" >&2; exit 1; \
+    fi
+
+ENV VITE_API_URL=$VITE_API_URL \
+    VITE_CMS_URL=$VITE_CMS_URL \
+    VITE_PLAUSIBLE_URL=$VITE_PLAUSIBLE_URL \
+    VITE_PLAUSIBLE_DOMAIN=$VITE_PLAUSIBLE_DOMAIN
 
 WORKDIR /app
 

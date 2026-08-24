@@ -18,9 +18,7 @@
           </div>
 
           <div class="flex justify-end gap-3 pt-4 border-t border-ink-100">
-            <ShipButton variant="secondary" @click="$emit('cancel')">
-              Отмена
-            </ShipButton>
+            <ShipButton variant="secondary" @click="cancel"> Отмена </ShipButton>
             <ShipButton
               variant="primary"
               @click="$emit('save', local)"
@@ -29,6 +27,10 @@
               {{ saving ? "Сохранение..." : "Сохранить" }}
             </ShipButton>
           </div>
+
+          <p v-if="error" class="text-sm text-red-600 text-right">
+            {{ error }}
+          </p>
         </div>
       </div>
     </div>
@@ -54,9 +56,18 @@ export interface SensorSettings {
 const props = defineProps<{
   settings: SensorSettings;
   saving: boolean;
+  error?: string;
+}>();
+
+defineEmits<{
+  save: [settings: SensorSettings];
 }>();
 
 const local = reactive<SensorSettings>({ ...props.settings });
+
+const cancel = () => {
+  Object.assign(local, props.settings);
+};
 
 watch(
   () => props.settings,

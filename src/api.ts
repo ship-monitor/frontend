@@ -29,7 +29,9 @@ const PUBLIC_PATHS: string[] = [ROUTES.LANDING, ROUTES.LOGIN, ROUTES.REGISTER];
 api.interceptors.response.use(
   (response) => {
     if (response.status === UNAUTHORIZED) {
-      // TODO(auth): Invalidate the Pinia session before redirecting; otherwise the anonymous-only login guard sends users with expired sessions back to the dashboard.
+      void import("@/stores/authStore").then(({ useAuthStore }) => {
+        useAuthStore().reset();
+      });
       const router = getAppRouter();
       const currentPath = router?.currentRoute.value.path;
 

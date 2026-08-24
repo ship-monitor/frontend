@@ -3,17 +3,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${CLOUD_BACKEND_URL:?CLOUD_BACKEND_URL is required}
+        VITE_CMS_URL: ${CMS_URL:-}
+        VITE_PLAUSIBLE_URL: ${PLAUSIBLE_BASE_URL:-}
+        VITE_PLAUSIBLE_DOMAIN: ${PLAUSIBLE_TRACKING_DOMAIN:-}
     ports:
       - "3000:80"
-    # TODO(deploy): Pass Vite variables as build args; runtime environment values cannot reconfigure the already-built SPA.
-    environment:
-      - NODE_ENV=production
-      - VITE_API_URL=${CLOUD_BACKEND_URL}
-      - VITE_CMS_URL="${CMS_URL}"
     restart: unless-stopped
-    # TODO(security): Remove this env_file so the static frontend container does not receive backend and CMS secrets.
-    env_file:
-      - .env
 
   database:
     # TODO(deps): Migrate from EOL PostgreSQL 13 and pin PostGIS, Redis, and Directus to tested immutable versions instead of broad or mutable tags.

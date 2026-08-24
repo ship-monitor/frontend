@@ -23,6 +23,17 @@
       <p class="text-ink-400">Загрузка...</p>
     </div>
 
+    <div v-else-if="loadError" class="ship-card p-8 text-center">
+      <p class="text-lg font-semibold text-ink-900 mb-1">{{ loadError }}</p>
+      <p class="text-sm text-ink-500 mb-4">Проверьте соединение и повторите</p>
+      <button
+        @click="loadDeviceData"
+        class="px-5 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-semibold"
+      >
+        Повторить
+      </button>
+    </div>
+
     <div v-else class="space-y-6">
       <SensorHeader
         :name="sensorName"
@@ -39,8 +50,6 @@
         @select="activeTab = $event"
       />
 
-      <!-- TODO: Handle update:period and assign the emitted value to selectedPeriod so period controls affect the chart. -->
-      <!-- TODO: Align SensorInfoTab events: handle cancel and remove or implement the update event that the child never emits. -->
       <transition name="fade" mode="out-in">
         <SensorTemperatureTab
           v-if="activeTab === 'temperature'"
@@ -56,14 +65,15 @@
           }"
           :is-connected="deviceIsConnected"
           @refresh="refreshTemperature"
+          @update:period="selectedPeriod = $event"
         />
 
         <SensorInfoTab
           v-else-if="activeTab === 'info'"
           :settings="settings"
           :saving="saving"
+          :error="saveError"
           @save="saveSettings"
-          @update="handleDeviceUpdate"
         />
       </transition>
     </div>
@@ -101,6 +111,8 @@ const sensorName = ref("");
 const currentTemp = ref<DeviceStateRecord<number> | null>(null);
 const lastTempTime = ref("");
 const tempError = ref("");
+const saveError = ref("");
+const loadError = ref("");
 const tempHistory = ref<
   Array<{ time: string; value: number; timestamp: number }>
 >([]);
@@ -138,30 +150,27 @@ async function loadDeviceFromApi(): Promise<string | undefined> {
     .unwrapOr(undefined);
 }
 
-// TODO: Reset saving in finally, update local state only for Result.Ok, and surface Err; success and failure control flow is currently reversed.
 async function saveSettings(s: SensorSettings) {
-  saving.value = true;
-
-  if (s.name === settings.value.name) return;
-
-  if (
-    (await updateDevice(deviceId, s.name))
-      .map(() => true)
-      .inspectErr((err) => console.error("Failed update device: %s", err))
-      .unwrapOr(false)
-  )
+  const name = s.name.trim();
+  if (name === settings.value.name.trim()) return;
+  if (!name) {
+    saveError.value = "Название не может быть пустым";
     return;
+  }
 
-  settings.value = s;
-  sensorName.value = getDisplayName();
-  setTimeout(() => {
-    saving.value = false;
-  }, 300);
-}
-
-function handleDeviceUpdate(device: { id: string; name: string }) {
-  sensorName.value = device.name;
-  settings.value.name = device.name;
+  saving.value = true;
+  saveError.value = "";
+  const result = await updateDevice(deviceId, name);
+  result
+    .map(() => {
+      settings.value = { ...s, name };
+      sensorName.value = getDisplayName();
+    })
+    .inspectErr((err) => {
+      saveError.value = err;
+    })
+    .unwrapOr(undefined);
+  saving.value = false;
 }
 
 // TODO: Set statusLoading in try/finally, prevent overlapping checks, and represent failed checks as stale/unknown rather than retaining a misleading status.
@@ -211,17 +220,23 @@ async function refreshTemperature() {
   }
 }
 
-// TODO: Wrap initial loading in try/catch/finally, always clear loading, and expose a retryable page-level transport error.
 async function loadDeviceData() {
-  const apiName = await loadDeviceFromApi();
-  sensorName.value = getDisplayName(apiName);
+  loading.value = true;
+  loadError.value = "";
+  try {
+    const apiName = await loadDeviceFromApi();
+    sensorName.value = getDisplayName(apiName);
 
-  await pingAndUpdateStatus();
+    await pingAndUpdateStatus();
+    await refreshTemperature();
 
-  await refreshTemperature();
-
-  loading.value = false;
-  startAutoRefresh();
+    startAutoRefresh();
+  } catch (error) {
+    console.error("Failed to load device data:", error);
+    loadError.value = "Не удалось загрузить данные устройства";
+  } finally {
+    loading.value = false;
+  }
 }
 
 function startAutoRefresh() {
