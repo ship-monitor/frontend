@@ -29,18 +29,21 @@ const PUBLIC_PATHS: string[] = [ROUTES.LANDING, ROUTES.LOGIN, ROUTES.REGISTER];
 api.interceptors.response.use(
   (response) => {
     if (response.status === UNAUTHORIZED) {
+      // Сброс сессии и редирект выполняются в одном микротаске,
+      // чтобы роутер-гард гарантированно видел уже сброшенное состояние.
       void import("@/stores/authStore").then(({ useAuthStore }) => {
-        useAuthStore().reset();
-      });
-      const router = getAppRouter();
-      const currentPath = router?.currentRoute.value.path;
+        useAuthStore().invalidateSession();
 
-      if (router && currentPath && !PUBLIC_PATHS.includes(currentPath)) {
-        router.push({
-          path: ROUTES.LOGIN,
-          query: { redirect: router.currentRoute.value.fullPath },
-        });
-      }
+        const router = getAppRouter();
+        const currentPath = router?.currentRoute.value.path;
+
+        if (router && currentPath && !PUBLIC_PATHS.includes(currentPath)) {
+          router.push({
+            path: ROUTES.LOGIN,
+            query: { redirect: router.currentRoute.value.fullPath },
+          });
+        }
+      });
     }
 
     return response;

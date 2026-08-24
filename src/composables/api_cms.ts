@@ -1,8 +1,10 @@
 import axios from "axios";
 
-// TODO(config): Read and validate VITE_CMS_URL and set a finite timeout instead of hard-coding production and allowing requests to hang indefinitely.
+const DEFAULT_CMS_URL = "https://cms.ship-monitor.ru";
+
 const cmsApi = axios.create({
-  baseURL: "https://cms.ship-monitor.ru",
+  baseURL: import.meta.env.VITE_CMS_URL || DEFAULT_CMS_URL,
+  timeout: 10000,
 });
 
 export default cmsApi;

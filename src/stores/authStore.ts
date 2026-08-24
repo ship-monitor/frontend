@@ -37,6 +37,12 @@ export const useAuthStore = defineStore("auth-store", {
       this.ready = null;
     },
 
+    // Сброс только сессии, без обнуления initialized/ready:
+    // используется 401-интерсептором, повторная инициализация не нужна.
+    invalidateSession() {
+      this.user = null;
+    },
+
     async logout() {
       const result = await apiLogout();
       if (result.isErr) {

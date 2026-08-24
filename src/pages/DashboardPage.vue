@@ -229,7 +229,10 @@ const filteredSensors = computed(() => {
   if (statusFilter.value === "online") {
     result = result.filter((s) => s.status === "online");
   } else if (statusFilter.value === "offline") {
-    result = result.filter((s) => s.status === "offline");
+    // Как и счётчик «Не в сети», фильтр включает error-устройства.
+    result = result.filter(
+      (s) => s.status === "offline" || s.status === "error"
+    );
   } else if (statusFilter.value === "error") {
     result = result.filter((s) => s.status === "error");
   }
@@ -310,6 +313,9 @@ async function loadSensors() {
     );
 
     const allSensors: SensorDisplay[] = [];
+    const previousById = new Map(
+      sensors.value.map((sensor) => [sensor.id, sensor])
+    );
 
     for (const { device, ok } of pingResults) {
       let temperature: number | null = null;
@@ -330,14 +336,26 @@ async function loadSensors() {
         savePingHistory(device.id, pingHistory);
       }
 
-      const lastPings = pingHistory.slice(-5);
-      const allOffline = lastPings.length >= 3 && lastPings.every((p) => !p);
-      const effectiveOk = ok ?? false;
-      let status: "online" | "offline" | "error" = effectiveOk
-        ? "online"
-        : "offline";
-      if (allOffline && lastPings.length >= 3) {
-        status = "error";
+      const previous = previousById.get(device.id);
+      let status: "online" | "offline" | "error";
+      let isConnected: boolean;
+      let lastPingTime: number | null;
+
+      if (ok === null) {
+        // Статус неизвестен (сбой запроса): сохраняем прежнее состояние,
+        // а не показываем устройство отключённым.
+        status = previous?.status ?? "offline";
+        isConnected = previous?.isConnected ?? false;
+        lastPingTime = previous?.lastPingTime ?? null;
+      } else {
+        const lastPings = pingHistory.slice(-5);
+        const allOffline = lastPings.length >= 3 && lastPings.every((p) => !p);
+        status = ok ? "online" : "offline";
+        if (allOffline && lastPings.length >= 3) {
+          status = "error";
+        }
+        isConnected = ok;
+        lastPingTime = ok ? Date.now() : null;
       }
 
       allSensors.push({
@@ -345,9 +363,9 @@ async function loadSensors() {
         name: device.name,
         displayName: getDisplayName(device.id, device.name),
         status,
-        isConnected: effectiveOk,
+        isConnected,
         temperature,
-        lastPingTime: effectiveOk ? Date.now() : null,
+        lastPingTime,
         pingHistory,
         tags: getTags(device.id),
       });

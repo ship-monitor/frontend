@@ -16,14 +16,14 @@
 
 ### 2. Docker Compose (рантайм)
 
-Файл `.env` рядом с `docker-compose.yml`. Значения подставляются в yml через `${...}` и/или пробрасываются в контейнеры целиком через `env_file` (у сервисов `frontend` и `directus`).
+Файл `.env` рядом с `docker-compose.yml`. Значения подставляются в yml через `${...}`; сервис `directus` дополнительно получает файл целиком через `env_file`. У `frontend` рантайм-переменных больше нет — только build-args при сборке образа.
 
 | Переменная | Куда попадает | Описание |
 |---|---|---|
 | `SECRET_KEY` | `directus` → `SECRET` | Секрет Directus (подпись токенов). Сгенерировать: `openssl rand -hex 32` |
 | `CMS_ADMIN_EMAIL` | `directus` → `ADMIN_EMAIL` | Email администратора Directus |
 | `CMS_ADMIN_PASSWORD` | `directus` → `ADMIN_PASSWORD` | Пароль администратора Directus |
-| `CMS_URL` | `directus` → `PUBLIC_URL`, build-arg `VITE_CMS_URL` образа `frontend` | Публичный адрес CMS (например `https://cms.ship-monitor.ru`) |
+| `CMS_URL` | `directus` → `PUBLIC_URL`, build-arg `VITE_CMS_URL` образа `frontend` | Публичный адрес CMS (например `https://cms.ship-monitor.ru`). Используется как baseURL CMS-клиента (`src/composables/api_cms.ts`); при отсутствии — захардкоженный `https://cms.ship-monitor.ru` |
 | `CLOUD_BACKEND_URL` | build-arg `VITE_API_URL` образа `frontend` | URL Ship-бэкенда, запекается в SPA при сборке. Обязателен (`docker compose build` упадёт без него) |
 
 ## Plausible Analytics (временно отключено)
@@ -37,3 +37,5 @@ Self-hosted Plausible (ClickHouse + Postgres + BE) не помещался на 
 - `CORS_CREDENTIALS` — разрешить запросы с куками (`true`/`false`)
 
 После изменения `.env` контейнеры нужно пересоздать: `docker compose up -d` (простой restart не подхватывает переменные).
+
+**Деплой-заметка:** `CLOUD_BACKEND_URL` обязателен — без него `docker compose` падает на интерполяции с ошибкой `required variable CLOUD_BACKEND_URL is missing a value` ещё до сборки. Если на сервере деплой внезапно упал с этой ошибкой, добавьте в серверный `.env` строку `CLOUD_BACKEND_URL=https://api.ship-monitor.ru`.

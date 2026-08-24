@@ -33,7 +33,7 @@ Priorities:
 - [ ] **Upgrade and pin service images.** PostgreSQL 13 is EOL, `postgis:13-master` and `directus:latest` are mutable, and `redis:6` is broadly pinned. Plan migrations and use tested immutable versions or digests. (`docker-compose.yml`)
 - [ ] **Replace predictable database credentials with a required secret.** The committed `directus` password is shared between PostgreSQL and Directus. (`docker-compose.yml`)
 - [ ] **Fail fast for missing deployment variables.** Use required Compose interpolation for secrets, admin credentials, and public URLs rather than silently substituting empty strings. (`docker-compose.yml`)
-- [ ] **Declare required Vite environment variables.** Add typed `VITE_API_URL` and `VITE_CMS_URL` declarations, then ensure the CMS variable is actually consumed. (`env.d.ts`)
+- [x] **Declare required Vite environment variables.** Add typed `VITE_API_URL` and `VITE_CMS_URL` declarations, then ensure the CMS variable is actually consumed. (`env.d.ts`)
 - [ ] **Make ESLint a reliable quality gate.** Exclude generated lockfiles from JSON content rules and enable the Vue essential/recommended rules rather than only the parser/base preset. (`eslint.config.ts`)
 - [ ] **Add automated tests.** Introduce Vitest and a test TypeScript configuration. Prioritize response conversion, auth guards/session expiry, route builders, online-state freshness, time formatting, and critical form flows. (`package.json`, `tsconfig.app.json`)
 
@@ -85,7 +85,7 @@ Priorities:
 
 ### Landing page and CMS
 
-- [ ] **Configure the CMS client from environment.** Remove the hard-coded production host, validate `VITE_CMS_URL`, and set a finite timeout. (`src/composables/api_cms.ts`)
+- [x] **Configure the CMS client from environment.** Remove the hard-coded production host, validate `VITE_CMS_URL`, and set a finite timeout. (`src/composables/api_cms.ts`)
 - [ ] **Make lead composable state truthful.** Its exported loading/error refs are never changed and failures collapse to `false`; return actionable error state. (`src/composables/useLeads.ts`)
 - [ ] **Render lead failures.** `formStatus = "error"` has no corresponding UI. Add a retryable message. (`src/pages/LandingPage.vue`)
 - [ ] **Prevent duplicate lead submissions.** Disable submission during the success/reset window and track/clear the reset timer. (`src/pages/LandingPage.vue`)

@@ -144,13 +144,8 @@ function getDisplayName(apiName?: string): string {
   return deviceId.substring(0, 8);
 }
 
-async function loadDeviceFromApi(): Promise<string | undefined> {
-  return (await getDeviceById(deviceId))
-    .map((dev) => dev.name)
-    .unwrapOr(undefined);
-}
-
 async function saveSettings(s: SensorSettings) {
+  saveError.value = "";
   const name = s.name.trim();
   if (name === settings.value.name.trim()) return;
   if (!name) {
@@ -223,13 +218,18 @@ async function refreshTemperature() {
 async function loadDeviceData() {
   loading.value = true;
   loadError.value = "";
-  try {
-    const apiName = await loadDeviceFromApi();
-    sensorName.value = getDisplayName(apiName);
 
+  const deviceResult = await getDeviceById(deviceId);
+  if (deviceResult.isErr) {
+    loadError.value = deviceResult.error;
+    loading.value = false;
+    return;
+  }
+
+  try {
+    sensorName.value = getDisplayName(deviceResult.value.name);
     await pingAndUpdateStatus();
     await refreshTemperature();
-
     startAutoRefresh();
   } catch (error) {
     console.error("Failed to load device data:", error);

@@ -115,7 +115,6 @@ export const updateDevice = async (
     "Не удалось обновить устройство"
   );
 
-const STATUS_OK = 200;
 // NOTE(api-contract): бэкенд использует 304 как «email уже подтверждён».
 const STATUS_ALREADY_CONFIRMED = 304;
 
@@ -129,7 +128,7 @@ export const startEmailConfirmation =
       return Result.err("Не удалось связаться с сервером");
     }
     if (response.status === STATUS_ALREADY_CONFIRMED) return Result.ok(Unit);
-    if (response.status !== STATUS_OK) {
+    if (!isOkStatus(response.status)) {
       return Result.err(
         errorDetails(response.data, "Failed to send confirmation email")
       );
@@ -149,10 +148,8 @@ export const confirmEmail = async (
     return Result.err("Не удалось связаться с сервером");
   }
   if (response.status === STATUS_ALREADY_CONFIRMED) return Result.ok(Unit);
-  if (response.status !== STATUS_OK) {
-    return Result.err(
-      errorDetails(response.data, "Failed to confirm email")
-    );
+  if (!isOkStatus(response.status)) {
+    return Result.err(errorDetails(response.data, "Failed to confirm email"));
   }
   return Result.ok(Unit);
 };
