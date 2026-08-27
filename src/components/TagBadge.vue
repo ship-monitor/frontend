@@ -1,50 +1,33 @@
 <template>
-  <transition name="tag-fade" mode="out-in">
-    <span
-      class="px-3 py-1.5 bg-brand-50 text-brand-700 rounded-lg text-sm flex items-center gap-1.5 ring-1 ring-inset ring-brand-200"
+  <span
+    class="px-3 py-1.5 bg-brand-50 text-brand-700 rounded-lg text-sm flex items-center gap-1.5 ring-1 ring-inset ring-brand-200"
+  >
+    {{ tag }}
+    <button
+      type="button"
+      class="text-brand-400 hover:text-red-500 transition-colors ml-0.5"
+      :aria-label="`Удалить тег ${tag}`"
+      @click="$emit('remove')"
     >
-      {{ tag }}
-      <button
-        type="button"
-        @click="$emit('remove')"
-        class="text-brand-400 hover:text-red-500 transition-colors ml-0.5"
+      <svg
+        class="w-3.5 h-3.5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
       >
-        <svg
-          class="w-3.5 h-3.5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
-    </span>
-  </transition>
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M6 18L18 6M6 6l12 12"
+        />
+      </svg>
+    </button>
+  </span>
 </template>
 
 <script setup lang="ts">
 defineProps<{ tag: string }>();
 defineEmits<{ remove: [] }>();
 </script>
-
-<style scoped>
-.tag-fade-enter-active,
-.tag-fade-leave-active {
-  transition: all 0.2s ease;
-}
-.tag-fade-enter-from,
-.tag-fade-leave-to {
-  opacity: 0;
-  transform: scale(0.8);
-}
-.tag-fade-enter-to,
-.tag-fade-leave-from {
-  opacity: 1;
-  transform: scale(1);
-}
-</style>

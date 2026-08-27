@@ -1,28 +1,52 @@
 <template>
   <div class="space-y-6">
     <div class="ship-card p-6 text-center">
-      <p class="text-sm text-ink-500 mb-2">Текущая температура</p>
-      <transition name="temp-fade" mode="out-in">
+      <p class="text-sm text-ink-500 mb-2">
+        Текущая температура
+      </p>
+      <transition
+        name="temp-fade"
+        mode="out-in"
+      >
         <div
           v-if="currentTemp"
+          key="value"
           class="text-6xl font-bold mb-2"
           :class="tempColor"
         >
           {{ (currentTemp.value as number).toFixed(1) + "°C" }}
         </div>
+        <div
+          v-else
+          key="empty"
+          class="text-6xl font-bold mb-2 text-ink-400"
+        >
+          --
+        </div>
       </transition>
       <p class="text-xs text-ink-400 mb-4">
         {{ lastTempTime || "Нет данных" }}
+        <span
+          v-if="stale"
+          class="text-amber-600"
+        >(данные могли устареть)</span>
       </p>
-      <ShipButton @click="$emit('refresh')" :disabled="loading" class="px-6">
+      <ShipButton
+        :disabled="loading"
+        class="px-6"
+        @click="$emit('refresh')"
+      >
         {{ loading ? "Запрос..." : "Запросить температуру" }}
       </ShipButton>
-      <transition name="error-fade" mode="out-in">
+      <transition
+        name="error-fade"
+        mode="out-in"
+      >
         <p
           v-if="error"
           :key="error"
-          class="text-xs mt-2"
-          :class="error.includes('Ошибка') ? 'text-red-500' : 'text-ink-500'"
+          role="alert"
+          class="text-xs mt-2 text-red-500"
         >
           {{ error }}
         </p>
@@ -36,20 +60,29 @@
     />
 
     <div class="ship-card p-6">
-      <h2 class="text-lg font-bold text-ink-900 mb-4">График температуры</h2>
-      <transition name="chart-empty-fade" mode="out-in">
+      <h2 class="text-lg font-bold text-ink-900 mb-4">
+        График температуры
+      </h2>
+      <transition
+        name="chart-empty-fade"
+        mode="out-in"
+      >
         <div
-          v-if="history.length === 0"
+          v-if="filteredHistory.length === 0"
           key="empty"
           class="text-center py-12 text-ink-500"
         >
           Нет данных за выбранный период
         </div>
         <div
-          v-else key="chart"
+          v-else
+          key="chart"
           class="space-y-2"
         >
-          <TemperatureChart :history="filteredHistory" />
+          <TemperatureChart
+            :history="filteredHistory"
+            :thresholds="thresholds"
+          />
         </div>
       </transition>
     </div>
@@ -57,7 +90,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch, onMounted, nextTick } from "vue";
+import { computed } from "vue";
 import { type DeviceStateRecord } from "@/data";
 
 import ShipButton from "@/components/ShipButton.vue";
@@ -68,6 +101,7 @@ const props = defineProps<{
   currentTemp: DeviceStateRecord<number> | null;
   lastTempTime: string;
   error: string;
+  stale?: boolean;
   loading: boolean;
   selectedPeriod: string;
   history: Array<{ time: string; value: number; timestamp: number }>;
@@ -105,17 +139,6 @@ const filteredHistory = computed(() => {
   if (!period) return props.history;
   const cutoff = Date.now() - period.ms;
   return props.history.filter((item) => item.timestamp >= cutoff);
-});
-
-watch(
-  filteredHistory,
-  async () => {
-    await nextTick();
-  },
-  { deep: true }
-);
-onMounted(async () => {
-  await nextTick();
 });
 </script>
 

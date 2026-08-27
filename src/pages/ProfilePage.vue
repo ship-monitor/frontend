@@ -1,16 +1,27 @@
 <template>
   <div class="max-w-lg mx-auto space-y-5 animate-fade-in">
     <div>
-      <h1 class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">Профиль</h1>
-      <p class="text-sm text-ink-500 mt-0.5">Управление аккаунтом</p>
+      <h1 class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">
+        Профиль
+      </h1>
+      <p class="text-sm text-ink-500 mt-0.5">
+        Управление аккаунтом
+      </p>
     </div>
-    <div>
-      <p v-if="error">{{ error }}</p>
+    <div v-if="!isLoading && !user">
+      <p class="ship-card p-4 text-sm text-red-600">
+        Не удалось загрузить профиль. Обновите страницу и попробуйте ещё раз.
+      </p>
     </div>
 
     <!-- Информация о пользователе -->
-    <div class="ship-card p-5 sm:p-6" v-if="user">
-      <h2 class="text-base font-semibold text-ink-900 mb-4">Информация</h2>
+    <div
+      v-if="user"
+      class="ship-card p-5 sm:p-6"
+    >
+      <h2 class="text-base font-semibold text-ink-900 mb-4">
+        Информация
+      </h2>
       <div class="space-y-4">
         <div>
           <label class="block text-xs text-ink-400 mb-0.5">Имя</label>
@@ -21,7 +32,9 @@
         <div>
           <label class="block text-xs text-ink-400 mb-0.5">Email</label>
           <div class="flex items-center gap-2">
-            <p class="text-sm font-medium text-ink-800">{{ user?.email }}</p>
+            <p class="text-sm font-medium text-ink-800">
+              {{ user?.email }}
+            </p>
             <span
               v-if="user?.emailVerified"
               class="ship-badge ship-badge-success"
@@ -38,16 +51,24 @@
         </div>
         <div v-if="!user?.emailVerified">
           <button
-            @click="handleConfirmEmail"
             :disabled="sendingConfirmation"
             class="inline-flex items-center gap-2 px-4 py-2.5 text-sm bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:opacity-50 touch-target transition-colors font-medium"
+            @click="handleConfirmEmail"
           >
             {{ sendingConfirmation ? "Отправка..." : "Подтвердить почту" }}
           </button>
-          <p v-if="confirmEmailSuccess" class="text-brand-600 text-xs mt-2">
+          <p
+            v-if="confirmEmailSuccess"
+            role="status"
+            class="text-brand-600 text-xs mt-2"
+          >
             {{ confirmEmailSuccess }}
           </p>
-          <p v-if="confirmEmailError" class="text-red-500 text-xs mt-2">
+          <p
+            v-if="confirmEmailError"
+            role="alert"
+            class="text-red-500 text-xs mt-2"
+          >
             {{ confirmEmailError }}
           </p>
         </div>
@@ -56,27 +77,47 @@
 
     <!-- Изменение email -->
     <div class="ship-card p-5 sm:p-6">
-      <h2 class="text-base font-semibold text-ink-900 mb-4">Изменить email</h2>
+      <h2 class="text-base font-semibold text-ink-900 mb-4">
+        Изменить email
+      </h2>
       <div class="space-y-3">
-        <ShipTextbox
+        <label
+          class="sr-only"
+          for="profile-email"
+        >Новый email</label>
+        <ShipInput
+          id="profile-email"
           v-model="newEmail"
           type="email"
           placeholder="Новый email"
           inputmode="email"
+          autocomplete="email"
+          :aria-invalid="emailError ? 'true' : undefined"
+          aria-describedby="profile-email-status"
           @keyup.enter="handleUpdateEmail"
         />
         <button
-          @click="handleUpdateEmail"
           class="w-full px-4 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:opacity-50 font-medium text-sm touch-target transition-colors"
           :disabled="!newEmail.trim() || updatingEmail"
+          @click="handleUpdateEmail"
         >
           {{ updatingEmail ? "Сохранение..." : "Обновить email" }}
         </button>
       </div>
-      <p v-if="emailError" class="text-red-500 text-xs mt-2">
+      <p
+        v-if="emailError"
+        id="profile-email-status"
+        role="alert"
+        class="text-red-500 text-xs mt-2"
+      >
         {{ emailError }}
       </p>
-      <p v-if="emailSuccess" class="text-brand-600 text-xs mt-2">
+      <p
+        v-if="emailSuccess"
+        id="profile-email-status"
+        role="status"
+        class="text-brand-600 text-xs mt-2"
+      >
         {{ emailSuccess }}
       </p>
     </div>
@@ -87,23 +128,41 @@
         Изменить пароль
       </h2>
       <div class="space-y-3">
-        <ShipTextbox
+        <label
+          class="sr-only"
+          for="profile-password"
+        >Новый пароль</label>
+        <ShipInput
+          id="profile-password"
           v-model="newPassword"
           type="password"
           placeholder="Новый пароль"
+          autocomplete="new-password"
+          :aria-invalid="passwordError ? 'true' : undefined"
+          aria-describedby="profile-password-status"
         />
         <button
-          @click="handleUpdatePassword"
           class="w-full px-4 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:opacity-50 font-medium text-sm touch-target transition-colors"
           :disabled="!newPassword.trim() || updatingPassword"
+          @click="handleUpdatePassword"
         >
           {{ updatingPassword ? "Сохранение..." : "Обновить пароль" }}
         </button>
       </div>
-      <p v-if="passwordError" class="text-red-500 text-xs mt-2">
+      <p
+        v-if="passwordError"
+        id="profile-password-status"
+        role="alert"
+        class="text-red-500 text-xs mt-2"
+      >
         {{ passwordError }}
       </p>
-      <p v-if="passwordSuccess" class="text-brand-600 text-xs mt-2">
+      <p
+        v-if="passwordSuccess"
+        id="profile-password-status"
+        role="status"
+        class="text-brand-600 text-xs mt-2"
+      >
         {{ passwordSuccess }}
       </p>
     </div>
@@ -112,13 +171,16 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import api from "@/api";
-import type { AxiosError } from "axios";
-import { getCurrentUser, startEmailConfirmation } from "@/data";
-import ShipTextbox from "@/components/ShipTextbox.vue";
+import {
+  getCurrentUser,
+  startEmailConfirmation,
+  setUserEmail,
+  setUserPassword,
+} from "@/data";
+import ShipInput from "@/components/ShipInput.vue";
 import { useAsyncState } from "@vueuse/core";
 
-const { state: user, error } = useAsyncState(
+const { state: user, isLoading } = useAsyncState(
   async () =>
     (await getCurrentUser())
       .inspectErr((err) => console.error("Failed get current user: %s", err))
@@ -143,52 +205,49 @@ const sendingConfirmation = ref(false);
 const confirmEmailSuccess = ref("");
 const confirmEmailError = ref("");
 
-/**
- * @deprecated Move this to data
- */
 async function handleUpdateEmail() {
-  if (!newEmail.value.trim() || !user.value) return;
+  const email = newEmail.value.trim();
+  const current = user.value;
+  if (!email || !current) return;
   updatingEmail.value = true;
   emailError.value = "";
   emailSuccess.value = "";
 
-  if (!user) return;
+  const result = await setUserEmail(current.id, email);
+  result
+    .map(() => {
+      emailSuccess.value = "Email обновлён";
+      current.email = email;
+      newEmail.value = "";
+    })
+    .inspectErr((err) => {
+      emailError.value = err;
+    })
+    .unwrapOr(undefined);
 
-  try {
-    await api.post(`/api/users/${user.value.id}/set-email`, {
-      email: newEmail.value,
-    });
-    emailSuccess.value = "Email обновлён";
-    user.value.email = newEmail.value;
-    newEmail.value = "";
-  } catch (error) {
-    emailError.value =
-      ((error as AxiosError).response?.data as { details: string }).details ||
-      "Ошибка при обновлении email";
-  } finally {
-    updatingEmail.value = false;
-  }
+  updatingEmail.value = false;
 }
 
 async function handleUpdatePassword() {
-  if (!newPassword.value.trim() || !user.value) return;
+  const password = newPassword.value;
+  const current = user.value;
+  if (!password || !current) return;
   updatingPassword.value = true;
   passwordError.value = "";
   passwordSuccess.value = "";
 
-  try {
-    await api.post(`/api/users/${user.value.id}/set-password`, {
-      password: newPassword.value,
-    });
-    passwordSuccess.value = "Пароль обновлён";
-    newPassword.value = "";
-  } catch (error) {
-    passwordError.value =
-      ((error as AxiosError).response?.data as { details: string }).details ||
-      "Ошибка при обновлении пароля";
-  } finally {
-    updatingPassword.value = false;
-  }
+  const result = await setUserPassword(current.id, password);
+  result
+    .map(() => {
+      passwordSuccess.value = "Пароль обновлён";
+      newPassword.value = "";
+    })
+    .inspectErr((err) => {
+      passwordError.value = err;
+    })
+    .unwrapOr(undefined);
+
+  updatingPassword.value = false;
 }
 
 async function handleConfirmEmail() {
@@ -196,15 +255,17 @@ async function handleConfirmEmail() {
   confirmEmailSuccess.value = "";
   confirmEmailError.value = "";
 
-  try {
-    await startEmailConfirmation();
-    confirmEmailSuccess.value =
-      "Письмо для подтверждения отправлено на вашу почту";
-  } catch (e) {
-    confirmEmailError.value =
-      e instanceof Error ? e.message : "Не удалось отправить письмо";
-  } finally {
-    sendingConfirmation.value = false;
-  }
+  const result = await startEmailConfirmation();
+  result
+    .map(() => {
+      confirmEmailSuccess.value =
+        "Письмо для подтверждения отправлено на вашу почту";
+    })
+    .inspectErr((err) => {
+      confirmEmailError.value = err;
+    })
+    .unwrapOr(undefined);
+
+  sendingConfirmation.value = false;
 }
 </script>

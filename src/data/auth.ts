@@ -8,7 +8,6 @@ type AuthUser = {
 };
 
 type LoginResult = Result<{ user: AuthUser }, string>;
-type RegisterResult = Result<void, string>;
 
 const errorDetails = (data: unknown, fallback: string): string => {
   if (data && typeof data === "object" && "details" in data) {
@@ -23,14 +22,17 @@ export const login = async (
   password: string
 ): Promise<LoginResult> => {
   try {
-    const response: AxiosResponse<
-      { user: AuthUser } | { details: string }
-    > = await api.post("/api/auth/login", {
-      email,
-      password,
-    });
+    const response: AxiosResponse<{ user: AuthUser } | { details: string }> =
+      await api.post("/api/auth/login", {
+        email,
+        password,
+      });
 
-    if (response.status >= 200 && response.status < 300 && "user" in response.data) {
+    if (
+      response.status >= 200 &&
+      response.status < 300 &&
+      "user" in response.data
+    ) {
       return Result.ok({ user: response.data.user });
     }
 
@@ -40,34 +42,13 @@ export const login = async (
   }
 };
 
-export const register = async (
-  email: string,
-  password: string,
-  name: string
-): Promise<RegisterResult> => {
+export const logout = async (): Promise<Result<void, string>> => {
   try {
-    // Бэкенд возвращает 201 Created без тела и НЕ авторизует пользователя.
-    const response: AxiosResponse<{ details?: string } | undefined> =
-      await api.post("/api/auth/register", {
-        email,
-        password,
-        name,
-      });
-
+    const response = await api.post("/api/auth/logout");
     if (response.status >= 200 && response.status < 300) {
       return Result.ok(undefined);
     }
-
-    return Result.err(errorDetails(response.data, "Не удалось зарегистрироваться"));
-  } catch (e) {
-    return Result.err("Не удалось выполнить регистрацию: " + e);
-  }
-};
-
-export const logout = async (): Promise<Result<void, string>> => {
-  try {
-    await api.post("/api/auth/logout");
-    return Result.ok(undefined);
+    return Result.err("logout request failed");
   } catch (e) {
     return Result.err("logout request failed: " + e);
   }

@@ -23,6 +23,7 @@ export const useAuthStore = defineStore("auth-store", {
     },
 
     async checkLogin() {
+      this.user = null;
       (await getCurrentUser())
         .map((u) => {
           this.user = u;
@@ -30,9 +31,24 @@ export const useAuthStore = defineStore("auth-store", {
         .inspectErr((err) => console.error("failed fetch user: %s", err));
     },
 
-    async logout() {
-      await apiLogout();
+    reset() {
       this.user = null;
+      this.initialized = false;
+      this.ready = null;
+    },
+
+    // Сброс только сессии, без обнуления initialized/ready:
+    // используется 401-интерсептором, повторная инициализация не нужна.
+    invalidateSession() {
+      this.user = null;
+    },
+
+    async logout() {
+      const result = await apiLogout();
+      if (result.isErr) {
+        console.warn("server logout failed, clearing local session: %s", result.error);
+      }
+      this.reset();
     },
   },
 });

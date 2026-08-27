@@ -7,15 +7,24 @@ import { defineConfig } from "eslint/config";
 
 export default defineConfig([
   {
+    ignores: [
+      "dist/**",
+      "node_modules/**",
+      "package-lock.json",
+      ".kilo/**",
+      ".agents/**",
+    ],
+  },
+  {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts,vue}"],
     plugins: { js },
     extends: ["js/recommended"],
     languageOptions: { globals: globals.browser },
   },
   tseslint.configs.recommended,
-  ...pluginVue.configs["flat/base"],
   {
     files: ["**/*.vue"],
+    extends: [...pluginVue.configs["flat/recommended"]],
     languageOptions: { parserOptions: { parser: tseslint.parser } },
   },
   {

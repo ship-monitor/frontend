@@ -1,33 +1,32 @@
 <template>
-  <!-- Страницы входа/регистрации без меню -->
-  <div v-if="isAuthPage">
+  <!-- Страницы входа/подтверждения без меню -->
+  <div v-if="layout === 'auth'">
     <router-view />
   </div>
-  <!-- Лендинг для неавторизованных -->
-  <div v-else-if="isLandingPage">
-    <landing-layout>
-      <router-view />
-    </landing-layout>
-  </div>
+  <!-- Лендинг -->
+  <landing-layout v-else-if="layout === 'landing'">
+    <router-view />
+  </landing-layout>
   <!-- Основной layout с адаптивным меню -->
   <application-layout v-else>
     <router-view />
   </application-layout>
-  <cookie-banner></cookie-banner>
+  <cookie-banner />
 </template>
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import { ROUTES } from "@/constants/routes";
+import type { CustomRouteMeta } from "@/router";
 import ApplicationLayout from "@/components/layout/ApplicationLayout.vue";
 import LandingLayout from "./components/layout/LandingLayout.vue";
-// import CookieBanner from "./components/CookieBanner.vue";
+import CookieBanner from "./components/CookieBanner.vue";
 
 const route = useRoute();
 
 // ===== Вычисляемые =====
-const isAuthPage = computed(() => route.path.startsWith("/auth"));
-const isLandingPage = computed(() => route.path === ROUTES.LANDING);
+const layout = computed(
+  () => (route.meta as CustomRouteMeta).layout ?? "app"
+);
 
 // ===== Plausible Analytics (только в production) =====
 // Отключено: self-hosted Plausible не помещается на 2-ГБ сервер.

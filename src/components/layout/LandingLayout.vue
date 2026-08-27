@@ -20,7 +20,7 @@ const scrollToSection = (anchor: string) => {
 
     window.scrollTo({
       top: offsetPosition,
-      behavior: "smooth"
+      behavior: "smooth",
     });
   }
 };
@@ -33,26 +33,62 @@ const scrollToSection = (anchor: string) => {
           <!-- Логотип -->
           <div class="flex items-center">
             <div class="w-24 h-24 sm:w-32 sm:h-12 shrink-0">
-              <img :src="BIG_LOGO" alt="ШиП-монитор" class="w-full h-full object-contain" />
+              <img
+                :src="BIG_LOGO"
+                alt="ШиП-монитор"
+                class="w-full h-full object-contain"
+              >
             </div>
           </div>
 
           <!-- Десктоп-меню -->
           <nav class="hidden md:flex gap-10">
-            <a v-for="link in NAV_LINKS" :key="link.to" :href="link.to" @click.prevent="scrollToSection(link.to)"
-              class="hover:text-electric-blue text-center transition-all duration-300 text-lg cursor-pointer">
+            <a
+              v-for="link in NAV_LINKS"
+              :key="link.label"
+              :href="link.to"
+              class="hover:text-electric-blue text-center transition-all duration-300 text-lg cursor-pointer"
+              @click.prevent="scrollToSection(link.to)"
+            >
               {{ link.label }}
             </a>
           </nav>
 
           <!-- Бургер (мобильное) -->
-          <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 -mr-2 text-moonless-night"
-            aria-label="Меню">
-            <svg v-if="!mobileMenuOpen" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          <button
+            class="md:hidden p-2 -mr-2 text-moonless-night"
+            aria-label="Меню"
+            :aria-expanded="mobileMenuOpen"
+            aria-controls="mobile-menu"
+            @click="mobileMenuOpen = !mobileMenuOpen"
+          >
+            <svg
+              v-if="!mobileMenuOpen"
+              class="w-7 h-7"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
-            <svg v-else class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              v-else
+              class="w-7 h-7"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -60,10 +96,19 @@ const scrollToSection = (anchor: string) => {
 
       <!-- Мобильное меню -->
       <Transition name="mobile-menu">
-        <nav v-if="mobileMenuOpen" class="md:hidden bg-white border-t border-moonless-night/10">
+        <nav
+          v-if="mobileMenuOpen"
+          id="mobile-menu"
+          class="md:hidden bg-white border-t border-moonless-night/10"
+        >
           <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 space-y-1">
-            <a v-for="link in NAV_LINKS" :key="link.to" :href="link.to" @click.prevent="scrollToSection(link.to)"
-              class="block px-4 py-3 rounded-xl text-lg hover:bg-cotton hover:text-electric-blue transition-colors cursor-pointer">
+            <a
+              v-for="link in NAV_LINKS"
+              :key="link.label"
+              :href="link.to"
+              class="block px-4 py-3 rounded-xl text-lg hover:bg-cotton hover:text-electric-blue transition-colors cursor-pointer"
+              @click.prevent="scrollToSection(link.to)"
+            >
               {{ link.label }}
             </a>
           </div>
@@ -71,22 +116,27 @@ const scrollToSection = (anchor: string) => {
       </Transition>
     </header>
 
-    <!-- Добавляем отступ для контента, чтобы он не скрывался под фиксированным header -->
-    <div class="pt-16 md:pt-20">
-      <slot></slot>
-    </div>
-
+    <!-- Отступ, чтобы контент не скрывался под фиксированным header -->
+    <main class="pt-16 md:pt-20">
+      <slot />
+    </main>
     <footer class="bg-moonless-night text-cotton/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4">
           <div class="w-24 h-24 sm:w-32 sm:h-12 shrink-0">
-            <img :src="BIG_LOGO_D" alt="ШиП-монитор" class="w-full h-full object-contain" />
+            <img
+              :src="BIG_LOGO_D"
+              alt="ШиП-монитор"
+              class="w-full h-full object-contain"
+            >
           </div>
           <p class="text-xs sm:text-sm text-center">
             © {{ new Date().getFullYear() }} ШиП-монитор · Российское ПО
           </p>
-          <a href="mailto:support@ship-monitor.ru"
-            class="text-xs sm:text-sm text-electric-blue hover:text-electric-blue/80 transition-colors">support@ship-monitor.ru</a>
+          <a
+            href="mailto:support@ship-monitor.ru"
+            class="text-xs sm:text-sm text-electric-blue hover:text-electric-blue/80 transition-colors"
+          >support@ship-monitor.ru</a>
         </div>
       </div>
     </footer>

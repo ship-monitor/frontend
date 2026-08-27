@@ -1,10 +1,9 @@
 <template>
   <button
-    v-bind="$attrs"
+    :type="type"
     :class="[
       'inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 touch-target active:scale-[0.97] cursor-pointer disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
       variantClasses,
-      $attrs.class,
     ]"
   >
     <slot />
@@ -17,8 +16,9 @@ import { computed } from "vue";
 const props = withDefaults(
   defineProps<{
     variant?: "primary" | "success" | "danger" | "ghost" | "secondary";
+    type?: "button" | "submit" | "reset";
   }>(),
-  { variant: "primary" }
+  { variant: "primary", type: "button" }
 );
 
 const variantClasses = computed(() => {

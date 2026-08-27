@@ -22,26 +22,28 @@ const api = createApi();
 const UNAUTHORIZED = 401;
 
 // Публичные маршруты, с которых не нужно принудительно уводить на логин.
-const PUBLIC_PATHS: string[] = [
-  ROUTES.LANDING,
-  ROUTES.LOGIN,
-  ROUTES.REGISTER,
-];
+const PUBLIC_PATHS: string[] = [ROUTES.LANDING, ROUTES.LOGIN];
 
 // С validateStatus: () => true axios не отклоняет ответы по статусу,
 // поэтому 401 обрабатываем здесь, в success-перехватчике.
 api.interceptors.response.use(
   (response) => {
     if (response.status === UNAUTHORIZED) {
-      const router = getAppRouter();
-      const currentPath = router?.currentRoute.value.path;
+      // Сброс сессии и редирект выполняются в одном микротаске,
+      // чтобы роутер-гард гарантированно видел уже сброшенное состояние.
+      void import("@/stores/authStore").then(({ useAuthStore }) => {
+        useAuthStore().invalidateSession();
 
-      if (router && currentPath && !PUBLIC_PATHS.includes(currentPath)) {
-        router.push({
-          path: ROUTES.LOGIN,
-          query: { redirect: router.currentRoute.value.fullPath },
-        });
-      }
+        const router = getAppRouter();
+        const currentPath = router?.currentRoute.value.path;
+
+        if (router && currentPath && !PUBLIC_PATHS.includes(currentPath)) {
+          router.push({
+            path: ROUTES.LOGIN,
+            query: { redirect: router.currentRoute.value.fullPath },
+          });
+        }
+      });
     }
 
     return response;

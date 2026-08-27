@@ -3,23 +3,25 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${CLOUD_BACKEND_URL:?CLOUD_BACKEND_URL is required}
+        VITE_CMS_URL: ${CMS_URL:-}
+        VITE_PLAUSIBLE_URL: ${PLAUSIBLE_BASE_URL:-}
+        VITE_PLAUSIBLE_DOMAIN: ${PLAUSIBLE_TRACKING_DOMAIN:-}
     ports:
       - "3000:80"
-    environment:
-      - NODE_ENV=production
-      - VITE_API_URL=${CLOUD_BACKEND_URL}
-      - VITE_CMS_URL="${CMS_URL}"
     restart: unless-stopped
-    env_file:
-      - .env
 
   database:
-    image: postgis/postgis:13-master
+    # PostgreSQL 13 EOL: мажорный апгрейд требует dump/restore (см. README).
+    image: postgis/postgis:13-3.4
     volumes:
       - ./data/database:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: "directus"
-      POSTGRES_PASSWORD: "directus"
+      # Внимание: пароль применяется только при инициализации кластера.
+      # Для существующего ./data/database смените пароль через ALTER USER (см. README).
+      POSTGRES_PASSWORD: "${DIRECTUS_DB_PASSWORD:?DIRECTUS_DB_PASSWORD is required}"
       POSTGRES_DB: "directus"
     healthcheck:
       test: ["CMD", "pg_isready", "--host=localhost", "--username=directus"]
@@ -30,7 +32,7 @@ services:
       start_period: 30s
 
   cache:
-    image: redis:6
+    image: redis:7.4-alpine
     healthcheck:
       test: ["CMD-SHELL", "[ $$(redis-cli ping) = 'PONG' ]"]
       interval: 10s
@@ -40,7 +42,10 @@ services:
       start_period: 30s
 
   directus:
-    image: directus/directus:latest
+    # Версия задаётся явно: пинуйте ту, что уже запущена на сервере
+    # (docker exec <directus> node -e "console.log(require('./package.json').version)"),
+    # затем обновляйте осознанно — миграции Directus необратимы.
+    image: directus/directus:${DIRECTUS_VERSION:?DIRECTUS_VERSION is required}
     ports:
       - 8055:8055
     volumes:
@@ -65,27 +70,26 @@ services:
     env_file:
       - .env
     environment:
-      SECRET: "${SECRET_KEY}"
+      SECRET: "${SECRET_KEY:?SECRET_KEY is required}"
 
       DB_CLIENT: "pg"
       DB_HOST: "database"
       DB_PORT: "5432"
       DB_DATABASE: "directus"
       DB_USER: "directus"
-      DB_PASSWORD: "directus"
+      DB_PASSWORD: "${DIRECTUS_DB_PASSWORD:?DIRECTUS_DB_PASSWORD is required}"
 
       CACHE_ENABLED: "true"
       CACHE_AUTO_PURGE: "true"
       CACHE_STORE: "redis"
       REDIS: "redis://cache:6379"
 
-      ADMIN_EMAIL: "${CMS_ADMIN_EMAIL}"
-      ADMIN_PASSWORD: "${CMS_ADMIN_PASSWORD}"
+      ADMIN_EMAIL: "${CMS_ADMIN_EMAIL:?CMS_ADMIN_EMAIL is required}"
+      ADMIN_PASSWORD: "${CMS_ADMIN_PASSWORD:?CMS_ADMIN_PASSWORD is required}"
 
-      PUBLIC_URL: "${CMS_URL}"
+      PUBLIC_URL: "${CMS_URL:?CMS_URL is required}"
 
 # ===== Plausible Analytics (self-hosted) =====
 # Временно отключено: не помещается на 2-ГБ сервер (ClickHouse + Postgres + BE).
 # Для включения вернуть сервисы plausible_db, plausible_events_db, plausible
 # (см. git history) и раскомментировать инициализацию в src/App.vue.
-
