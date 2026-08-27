@@ -2,6 +2,7 @@ import api from "@/api";
 import type { AxiosRequestConfig, AxiosResponse } from "axios";
 import { Result, Unit } from "true-myth";
 import { isValidEmail } from "@/utils/validators";
+import type { User } from "@/models/models";
 
 export type Device = {
   id: string;
@@ -230,15 +231,6 @@ export const getDeviceState = async <TValue>(
   return response
     .andThen((r) => first(r))
     .mapErr((e) => `no states provided in response ${e}`);
-};
-
-// TODO(models): Replace this duplicate private User shape with the canonical authenticated-user model shared by the data layer and Pinia.
-type User = {
-  id: string;
-  name: string;
-  email: string;
-  emailVerified: boolean;
-  blocked: boolean;
 };
 
 export const sendDeviceCommand = async (

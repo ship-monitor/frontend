@@ -8,7 +8,6 @@ type AuthUser = {
 };
 
 type LoginResult = Result<{ user: AuthUser }, string>;
-type RegisterResult = Result<void, string>;
 
 const errorDetails = (data: unknown, fallback: string): string => {
   if (data && typeof data === "object" && "details" in data) {
@@ -40,32 +39,6 @@ export const login = async (
     return Result.err(errorDetails(response.data, "Неверный логин или пароль"));
   } catch (e) {
     return Result.err("Не удалось выполнить вход: " + e);
-  }
-};
-
-export const register = async (
-  email: string,
-  password: string,
-  name: string
-): Promise<RegisterResult> => {
-  try {
-    // Бэкенд возвращает 201 Created без тела и НЕ авторизует пользователя.
-    const response: AxiosResponse<{ details?: string } | undefined> =
-      await api.post("/api/auth/register", {
-        email,
-        password,
-        name,
-      });
-
-    if (response.status >= 200 && response.status < 300) {
-      return Result.ok(undefined);
-    }
-
-    return Result.err(
-      errorDetails(response.data, "Не удалось зарегистрироваться")
-    );
-  } catch (e) {
-    return Result.err("Не удалось выполнить регистрацию: " + e);
   }
 };
 

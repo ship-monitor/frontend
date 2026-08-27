@@ -38,7 +38,8 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("../pages/auth/LoginPage.vue"),
     meta: { onlyAnonymous: true, layout: "auth" } as CustomRouteMeta,
   },
-  // Регистрация временно отключена (RegisterPage закомментирован).
+  // Регистрация отключена: RegisterPage.vue и register API удалены.
+  // Для возврата восстановить из git history и добавить маршрут:
   // {
   //   path: "/auth/register",
   //   name: "Register",

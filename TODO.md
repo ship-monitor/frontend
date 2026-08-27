@@ -106,13 +106,13 @@ Priorities:
 
 ## P3 — Low priority
 
-- [ ] **Verify the email-confirmation idempotency status.** The code calls HTTP 304 “Conflict”; standard Conflict is 409. Rename/document a backend-specific contract or migrate it. (`src/data/index.ts`)
+- [x] **Verify the email-confirmation idempotency status.** The code calls HTTP 304 “Conflict”; standard Conflict is 409. Rename/document a backend-specific contract or migrate it. (`src/data/index.ts`)
 - [x] **Fix latent relative-time formatting.** `formatTimeAgo` subtracts `getMilliseconds()` rather than epoch time and needs invalid/future timestamp handling. (`src/utils/utils.ts`)
 - [x] **Remove no-op sensor lifecycle code.** The deep watcher and mount callback only await `nextTick`. (`src/pages/sensors/SensorTemperatureTab.vue`)
 - [x] **Remove the no-op global router hook.** Every application-layout mount registers another empty callback and drops its cleanup function. (`src/components/layout/ApplicationLayout.vue`)
-- [ ] **Decide the registration feature explicitly.** `RegisterPage.vue` is entirely archived in comments while route constants and auth APIs remain. Remove it or restore executable, validated, tested code. (`src/pages/auth/RegisterPage.vue`, `src/constants/routes.ts`, `src/data/auth.ts`)
+- [x] **Decide the registration feature explicitly.** `RegisterPage.vue` is entirely archived in comments while route constants and auth APIs remain. Remove it or restore executable, validated, tested code. (`src/pages/auth/RegisterPage.vue`, `src/constants/routes.ts`, `src/data/auth.ts`)
 - [x] **Remove or implement the misleading history API.** `getDeviceStateWithHistory` is unused and requests only one record. (`src/data/index.ts`)
-- [ ] **Consolidate duplicate user models.** The data-layer user includes fields missing from the canonical store model. (`src/data/index.ts`, `src/models/models.ts`)
-- [ ] **Remove or adopt unused parallel sensor types.** Keeping a second domain shape encourages schema drift. (`src/types/sensor.ts`)
+- [x] **Consolidate duplicate user models.** The data-layer user includes fields missing from the canonical store model. (`src/data/index.ts`, `src/models/models.ts`)
+- [x] **Remove or adopt unused parallel sensor types.** Keeping a second domain shape encourages schema drift. (`src/types/sensor.ts`)
 - [x] **Remove dead landing state/styles.** The unused auth computed currently fails ESLint; hero-height state and scoped animation rules also contain obsolete state/style paths. (`src/pages/LandingPage.vue`)
-- [ ] **Remove or repair the stale duplicate header.** `TheHeader.vue` is unused and bypasses Pinia when logging out. (`src/components/TheHeader.vue`)
+- [x] **Remove or repair the stale duplicate header.** `TheHeader.vue` is unused and bypasses Pinia when logging out. (`src/components/TheHeader.vue`)
