@@ -204,91 +204,25 @@
         </a>
       </header>
 
-      <div class="border-t border-moonless-night/10">
-        <details class="group border-b border-moonless-night/10" open>
+      <div v-if="isLoading" class="flex items-center justify-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-electric-blue"></div>
+      </div>
+
+      <div v-else-if="error" class="py-12 text-center text-red-500">
+        {{ error }}
+      </div>
+
+      <div v-else class="border-t border-moonless-night/10">
+        <details v-for="(item, index) in faqItems" :key="item.id" class="group border-b border-moonless-night/10"
+          :open="index === 0">
           <summary
             class="relative flex min-h-24 cursor-pointer list-none items-center pr-14 text-lg font-semibold marker:hidden sm:text-xl">
-            Что такое промышленный холодильный контроллер?
+            {{ item.title }}
             <span
               class="absolute right-1 h-8 w-8 rounded-full border border-moonless-night/15 before:absolute before:left-1/2 before:top-1/2 before:h-px before:w-3 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-moonless-night after:absolute after:left-1/2 after:top-1/2 after:h-3 after:w-px after:-translate-x-1/2 after:-translate-y-1/2 after:bg-moonless-night after:transition-transform group-open:after:rotate-90"></span>
           </summary>
           <div class="max-w-2xl pb-7 pr-4 leading-7 text-moonless-night/50">
-            Это устройство, которое собирает данные с датчиков температуры, управляет порогами срабатывания и отправляет
-            уведомления при выходе температуры за допустимые границы. Контроллер ШИП Hub поддерживает до 32 датчиков и
-            имеет GSM-резерв для критических SMS.
-          </div>
-        </details>
-        <details class="group border-b border-moonless-night/10">
-          <summary
-            class="relative flex min-h-24 cursor-pointer list-none items-center pr-14 text-lg font-semibold marker:hidden sm:text-xl">
-            Чем промышленный холодильный контроллер отличается от бытового термометра?
-            <span
-              class="absolute right-1 h-8 w-8 rounded-full border border-moonless-night/15 before:absolute before:left-1/2 before:top-1/2 before:h-px before:w-3 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-moonless-night after:absolute after:left-1/2 after:top-1/2 after:h-3 after:w-px after:-translate-x-1/2 after:-translate-y-1/2 after:bg-moonless-night after:transition-transform group-open:after:rotate-90"></span>
-          </summary>
-          <div class="max-w-2xl pb-7 pr-4 leading-7 text-moonless-night/50">
-            Промышленный контроллер рассчитан на круглосуточную работу в сложных условиях, имеет защищённый корпус IP54,
-            резервное питание, возможность подключения множества датчиков и интеграцию с облачным сервисом для
-            отчётности.
-          </div>
-        </details>
-        <details class="group border-b border-moonless-night/10">
-          <summary
-            class="relative flex min-h-24 cursor-pointer list-none items-center pr-14 text-lg font-semibold marker:hidden sm:text-xl">
-            Что произойдёт, если на объекте пропадёт интернет?
-            <span
-              class="absolute right-1 h-8 w-8 rounded-full border border-moonless-night/15 before:absolute before:left-1/2 before:top-1/2 before:h-px before:w-3 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-moonless-night after:absolute after:left-1/2 after:top-1/2 after:h-3 after:w-px after:-translate-x-1/2 after:-translate-y-1/2 after:bg-moonless-night after:transition-transform group-open:after:rotate-90"></span>
-          </summary>
-          <div class="max-w-2xl pb-7 pr-4 leading-7 text-moonless-night/50">
-            Шлюз продолжит фиксировать показания локально. Если значение станет критическим, система отправит SMS через
-            резервный GSM-канал. После восстановления соединения данные синхронизируются с облаком.
-          </div>
-        </details>
-        <details class="group border-b border-moonless-night/10">
-          <summary
-            class="relative flex min-h-24 cursor-pointer list-none items-center pr-14 text-lg font-semibold marker:hidden sm:text-xl">
-            Сколько времени занимает установка?
-            <span
-              class="absolute right-1 h-8 w-8 rounded-full border border-moonless-night/15 before:absolute before:left-1/2 before:top-1/2 before:h-px before:w-3 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-moonless-night after:absolute after:left-1/2 after:top-1/2 after:h-3 after:w-px after:-translate-x-1/2 after:-translate-y-1/2 after:bg-moonless-night after:transition-transform group-open:after:rotate-90"></span>
-          </summary>
-          <div class="max-w-2xl pb-7 pr-4 leading-7 text-moonless-night/50">
-            Типовое подключение одного объекта занимает от 30 минут. Датчики устанавливаются в нужных зонах,
-            подключаются к шлюзу и появляются в личном кабинете.
-          </div>
-        </details>
-        <details class="group border-b border-moonless-night/10">
-          <summary
-            class="relative flex min-h-24 cursor-pointer list-none items-center pr-14 text-lg font-semibold marker:hidden sm:text-xl">
-            Можно ли подключить несколько объектов?
-            <span
-              class="absolute right-1 h-8 w-8 rounded-full border border-moonless-night/15 before:absolute before:left-1/2 before:top-1/2 before:h-px before:w-3 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-moonless-night after:absolute after:left-1/2 after:top-1/2 after:h-3 after:w-px after:-translate-x-1/2 after:-translate-y-1/2 after:bg-moonless-night after:transition-transform group-open:after:rotate-90"></span>
-          </summary>
-          <div class="max-w-2xl pb-7 pr-4 leading-7 text-moonless-night/50">
-            Да. В одном аккаунте можно объединить магазины, склады, холодильные камеры и производственные площадки, а
-            затем назначить ответственных сотрудников для каждого объекта.
-          </div>
-        </details>
-        <details class="group border-b border-moonless-night/10">
-          <summary
-            class="relative flex min-h-24 cursor-pointer list-none items-center pr-14 text-lg font-semibold marker:hidden sm:text-xl">
-            Какие уведомления поддерживаются?
-            <span
-              class="absolute right-1 h-8 w-8 rounded-full border border-moonless-night/15 before:absolute before:left-1/2 before:top-1/2 before:h-px before:w-3 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-moonless-night after:absolute after:left-1/2 after:top-1/2 after:h-3 after:w-px after:-translate-x-1/2 after:-translate-y-1/2 after:bg-moonless-night after:transition-transform group-open:after:rotate-90"></span>
-          </summary>
-          <div class="max-w-2xl pb-7 pr-4 leading-7 text-moonless-night/50">
-            Доступны уведомления по email, в Telegram и по SMS. Для каждого датчика можно настроить собственные
-            пороговые значения и список получателей.
-          </div>
-        </details>
-        <details class="group border-b border-moonless-night/10">
-          <summary
-            class="relative flex min-h-24 cursor-pointer list-none items-center pr-14 text-lg font-semibold marker:hidden sm:text-xl">
-            Можно ли выгружать данные для отчётности?
-            <span
-              class="absolute right-1 h-8 w-8 rounded-full border border-moonless-night/15 before:absolute before:left-1/2 before:top-1/2 before:h-px before:w-3 before:-translate-x-1/2 before:-translate-y-1/2 before:bg-moonless-night after:absolute after:left-1/2 after:top-1/2 after:h-3 after:w-px after:-translate-x-1/2 after:-translate-y-1/2 after:bg-moonless-night after:transition-transform group-open:after:rotate-90"></span>
-          </summary>
-          <div class="max-w-2xl pb-7 pr-4 leading-7 text-moonless-night/50">
-            Показания можно просматривать в личном кабинете и выгружать в виде таблиц. Для корпоративных интеграций
-            предусмотрен API.
+            {{ item.answer }}
           </div>
         </details>
       </div>
@@ -297,5 +231,13 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from "vue";
 import ShipHeading from "@/components/ShipHeading.vue";
+import { useFaq } from "@/composables/useFaq";
+
+const { faqItems, isLoading, error, fetchFaq } = useFaq();
+
+onMounted(() => {
+  fetchFaq();
+});
 </script>
