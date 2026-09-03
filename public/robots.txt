@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /sensors/
+Disallow: /profile
+Disallow: /connect-device
+Disallow: /auth/confirm-email
