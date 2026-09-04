@@ -19,8 +19,13 @@ const authStore = useAuthStore(pinia);
 authStore.initialize();
 
 if (window.location.pathname === ROUTES.LANDING) {
-  useFaq().fetchFaq();
-  useRoadmap().fetchRoadmap();
+  requestIdleCallback(
+    () => {
+      useFaq().fetchFaq();
+      useRoadmap().fetchRoadmap();
+    },
+    { timeout: 1000 },
+  );
 }
 
 app.use(createAppRouter());

@@ -6,10 +6,6 @@ import {
 } from "vue-router";
 
 import { ROUTES } from "@/constants/routes";
-
-import Dashboard from "@/pages/DashboardPage.vue";
-import Profile from "@/pages/ProfilePage.vue";
-import SensorDetailsPage from "@/pages/sensors/SensorDetailsPage.vue";
 import { useAuthStore } from "@/stores/authStore";
 
 // Синглтон роутера, доступный вне компонентов (например, в axios-перехватчике).
@@ -55,19 +51,19 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: ROUTES.DASHBOARD,
     name: "Dashboard",
-    component: Dashboard,
+    component: () => import("../pages/DashboardPage.vue"),
     meta: { requireAuth: true, layout: "app" } as CustomRouteMeta,
   },
   {
     path: ROUTES.SENSOR_DETAILS,
     name: "sensor-details",
-    component: SensorDetailsPage,
+    component: () => import("../pages/sensors/SensorDetailsPage.vue"),
     meta: { requireAuth: true, layout: "app" } as CustomRouteMeta,
   },
   {
     path: ROUTES.PROFILE,
     name: "Profile",
-    component: Profile,
+    component: () => import("../pages/ProfilePage.vue"),
     meta: { requireAuth: true, layout: "app" } as CustomRouteMeta,
   },
   {

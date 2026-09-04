@@ -1,8 +1,7 @@
 <template>
   <!-- ====== Hero Section ====== -->
   <section
-    ref="heroSection"
-    class="relative overflow-hidden flex items-center"
+    class="relative overflow-hidden flex items-center min-h-[calc(100dvh-120px)] sm:min-h-[calc(100dvh-80px)]"
   >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
       <hgroup class="flex flex-col gap-5">
@@ -24,12 +23,12 @@
       <div
         class="mt-40 flex flex-col sm:flex-row gap-3 sm:gap-4 px-4 justify-center"
       >
-        <button
-          class="text-xl items-center bg-electric-blue text-cotton rounded-full px-5 py-3 hover:bg-electric-blue/90"
+        <LandingCtaButton
+          size="lg"
           @click="scrollToForm"
         >
           Подключить мониторинг
-        </button>
+        </LandingCtaButton>
       </div>
     </div>
   </section>
@@ -390,17 +389,16 @@
           {{ formError }}
         </div>
 
-        <button
+        <LandingCtaButton
           type="submit"
           :disabled="formStatus === 'loading' || formStatus === 'success'"
-          class="px-8 py-3.5 bg-electric-blue text-cotton rounded-full font-semibold hover:bg-electric-blue/90 disabled:opacity-50 disabled:pointer-events-none transition-colors"
         >
           <span
             v-if="formStatus === 'loading'"
             class="flex items-center gap-2"
           >
             <svg
-              class="w-5 h-5 animate-spin"
+              class="h-5 w-5 animate-spin"
               fill="none"
               viewBox="0 0 24 24"
             >
@@ -421,7 +419,7 @@
             Отправляем…
           </span>
           <span v-else>Отправить заявку</span>
-        </button>
+        </LandingCtaButton>
       </form>
     </div>
   </section>
@@ -434,6 +432,7 @@ import { useLeads } from "@/composables/useLeads";
 import { isValidEmail } from "@/utils/validators";
 import AISection from "@/components/AISection.vue";
 import ShipHeading from "@/components/ShipHeading.vue";
+import LandingCtaButton from "@/components/LandingCtaButton.vue";
 
 const {
   roadmapItems,
@@ -457,17 +456,6 @@ const formStatus = ref<"idle" | "loading" | "success" | "error">("idle");
 const formErrors = ref<Record<string, string>>({});
 const formError = ref("");
 let resetTimer: ReturnType<typeof setTimeout> | null = null;
-
-// ====== Новая логика для высоты hero-секции ======
-const heroSection = ref<HTMLElement | null>(null);
-
-const updateHeroHeight = () => {
-  const header = document.querySelector("header");
-  const headerH = header ? header.offsetHeight : 0;
-  if (heroSection.value) {
-    heroSection.value.style.minHeight = `calc(100vh - ${headerH}px)`;
-  }
-};
 
 // Аппаратные спецификации – датчик
 const sensorSpecs = [
@@ -587,12 +575,9 @@ const scrollToForm = () => {
 
 onMounted(() => {
   fetchRoadmap();
-  updateHeroHeight();
-  window.addEventListener("resize", updateHeroHeight);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateHeroHeight);
   if (resetTimer) clearTimeout(resetTimer);
 });
 </script>
