@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import BIG_LOGO_D from "@/assets/big-logo-dark.png";
-import BIG_LOGO from "@/assets/big-logo.png";
+import BIG_LOGO_D from "@/assets/big-logo-dark.webp";
+import BIG_LOGO from "@/assets/big-logo.webp";
 
 const NAV_LINKS = [
   { label: "Устройства", to: "#devices" },
