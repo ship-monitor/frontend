@@ -8,6 +8,7 @@ const error = ref<string | null>(null);
 
 export const useRoadmap = () => {
   const fetchRoadmap = async (): Promise<void> => {
+    if (isLoading.value || roadmapItems.value.length > 0) return;
     isLoading.value = true;
     error.value = null;
 

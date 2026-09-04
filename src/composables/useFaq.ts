@@ -8,6 +8,7 @@ const error = ref<string | null>(null);
 
 export const useFaq = () => {
   const fetchFaq = async (): Promise<void> => {
+    if (isLoading.value || faqItems.value.length > 0) return;
     isLoading.value = true;
     error.value = null;
 
