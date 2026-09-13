@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { SUPPORT_EMAIL } from "@/constants/contacts";
 import BIG_LOGO_D from "@/assets/big-logo-dark.webp";
 import BIG_LOGO from "@/assets/big-logo.webp";
 
@@ -134,9 +135,9 @@ const scrollToSection = (anchor: string) => {
             © {{ new Date().getFullYear() }} ШиП-монитор · Российское ПО
           </p>
           <a
-            href="mailto:support@ship-monitor.ru"
+            :href="`mailto:${SUPPORT_EMAIL}`"
             class="text-xs sm:text-sm text-electric-blue hover:text-electric-blue/80 transition-colors"
-          >support@ship-monitor.ru</a>
+          >{{ SUPPORT_EMAIL }}</a>
         </div>
       </div>
     </footer>
