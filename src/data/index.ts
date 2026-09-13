@@ -58,34 +58,19 @@ const request = async <T>(
 };
 
 // ============= Устройства =============
-// NOTE: GET /api/devices/my ещё не реализован на бэке
 export const getUserDevices = async (): Promise<Result<Device[], APIError>> =>
   request(
-    { method: "get", url: "/api/devices/my" },
-    withObject<Device[]>("devices"),
+    { method: "get", url: "/api/v2/devices" },
+    withObject<Device[]>("result"),
     "Не удалось загрузить устройства"
   );
 
-const asDevice: Validator<Device> = (data) => {
-  if (data && typeof data === "object") {
-    const record = data as Record<string, unknown>;
-    if (record["device"] && typeof record["device"] === "object") {
-      return Result.ok(record["device"] as Device);
-    }
-    if (typeof record["id"] === "string") {
-      return Result.ok(data as Device);
-    }
-  }
-  return Result.err('unexpected response shape: missing "device"');
-};
-
-// NOTE: GET /api/devices/:id ещё не реализован на бэке
 export const getDeviceById = async (
   deviceId: string
 ): Promise<Result<Device, APIError>> =>
   request(
-    { method: "get", url: `/api/devices/${encodeURIComponent(deviceId)}` },
-    asDevice,
+    { method: "get", url: `/api/v2/devices/${encodeURIComponent(deviceId)}` },
+    withObject<Device>("result"),
     "Не удалось загрузить устройство"
   );
 
@@ -102,7 +87,6 @@ export const disconnectDevice = async (
     "Не удалось отключить устройство"
   );
 
-// NOTE: PATCH /api/devices/:id ещё не реализован на бэке
 export const updateDevice = async (
   deviceId: string,
   name: string
@@ -110,7 +94,7 @@ export const updateDevice = async (
   request(
     {
       method: "patch",
-      url: `/api/devices/${encodeURIComponent(deviceId)}`,
+      url: `/api/v2/devices/${encodeURIComponent(deviceId)}`,
       data: { name },
     },
     okUnit,
@@ -205,7 +189,7 @@ export const getDeviceStates = async <TValue>(
     return Result.err("history can't be less than zero");
   }
 
-  const response = await request<{ result: DeviceStateRecord<TValue>[] }>(
+  const response = await request<DeviceStateRecord<TValue>[]>(
     {
       method: "get",
       url: `/api/v2/devices/${encodeURIComponent(deviceId)}/state/${state}`,
@@ -214,7 +198,7 @@ export const getDeviceStates = async <TValue>(
     withObject("result"),
     "Не удалось загрузить состояние устройства"
   );
-  return response.map((r) => r.result);
+  return response;
 };
 
 const first = <T>(array: T[]): Result<T, string> => {
