@@ -113,5 +113,25 @@ export const createAppRouter = () => {
 
     return true;
   });
+
+  router.afterEach((to) => {
+    const routeMeta = to.meta as CustomRouteMeta;
+    let robotsMeta = document.head.querySelector<HTMLMetaElement>(
+      'meta[name="robots"]',
+    );
+
+    if (routeMeta.layout === "landing") {
+      robotsMeta?.remove();
+      return;
+    }
+
+    if (!robotsMeta) {
+      robotsMeta = document.createElement("meta");
+      robotsMeta.name = "robots";
+      document.head.appendChild(robotsMeta);
+    }
+    robotsMeta.content = "noindex, follow";
+  });
+
   return router;
 };

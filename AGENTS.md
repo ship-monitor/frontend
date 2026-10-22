@@ -4,9 +4,18 @@ Guidance for AI agents working in this repository.
 
 ## Project
 
-`ship-cloud-frontend` — the web frontend for the Ship Cloud monitoring platform
-(ship sensor telemetry, dashboards, organizations, auth). A Single Page
-Application built with **Vue 3 + TypeScript + Vite**.
+`ship-cloud-frontend` — the web frontend for **ШиП-Монитор** (ship-monitor.ru),
+a cold-chain monitoring platform: an industrial refrigeration controller and
+temperature sensors that watch refrigeration equipment 24/7 — in food
+production facilities, warehouses, pharmacies, retail chains, and refrigerated
+transport (trucks and semi-trailers with refrigerated bodies). Features:
+real-time temperature tracking on the site, temperature history (charts and
+long-term archive), and threshold alerts — when a sensor's temperature leaves
+its configured bounds, the device sends a notification via the site, a push
+notification to the phone, or SMS. Thresholds are configured per sensor. It
+detects when equipment leaves the safe temperature range so perishable goods
+do not spoil. "ШиП" is the product name, not "ship". A Single Page Application
+built with **Vue 3 + TypeScript + Vite**.
 
 ## Tech stack
 

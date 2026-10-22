@@ -1,7 +1,7 @@
 User-agent: *
-Allow: /
-Disallow: /dashboard
-Disallow: /sensors/
-Disallow: /profile
-Disallow: /connect-device
-Disallow: /auth/confirm-email
+Allow: /$
+Allow: /sitemap.xml$
+Allow: /llms.txt$
+Disallow: /
+
+Sitemap: https://ship-monitor.ru/sitemap.xml
