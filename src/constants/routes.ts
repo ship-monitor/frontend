@@ -1,5 +1,6 @@
 export const ROUTES = {
   LANDING: "/",
+  LANDING_EN: "/en",
   LOGIN: "/auth/login",
   CONFIRM_EMAIL: "/auth/confirm-email",
   DASHBOARD: "/dashboard",

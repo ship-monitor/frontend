@@ -1,15 +1,20 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
+
 import { SUPPORT_EMAIL } from "@/constants/contacts";
 import BIG_LOGO_D from "@/assets/big-logo-dark.webp";
 import BIG_LOGO from "@/assets/big-logo.webp";
 
-const NAV_LINKS = [
-  { label: "Устройства", to: "#devices" },
-  { label: "Тарифы", to: "#pricing" },
-  { label: "Поддержка", to: "#lead-form" },
-];
+const { t } = useI18n();
+
 const mobileMenuOpen = ref(false);
+
+const navLinks = computed(() => [
+  { label: t("nav.devices"), to: "#devices" },
+  { label: t("nav.pricing"), to: "#pricing" },
+  { label: t("nav.support"), to: "#lead-form" },
+]);
 
 const scrollToSection = (anchor: string) => {
   mobileMenuOpen.value = false;
@@ -45,8 +50,8 @@ const scrollToSection = (anchor: string) => {
           <!-- Десктоп-меню -->
           <nav class="hidden md:flex gap-10">
             <a
-              v-for="link in NAV_LINKS"
-              :key="link.label"
+              v-for="link in navLinks"
+              :key="link.to"
               :href="link.to"
               class="hover:text-electric-blue text-center transition-all duration-300 text-lg cursor-pointer"
               @click.prevent="scrollToSection(link.to)"
@@ -55,43 +60,62 @@ const scrollToSection = (anchor: string) => {
             </a>
           </nav>
 
-          <!-- Бургер (мобильное) -->
-          <button
-            class="md:hidden p-2 -mr-2 text-moonless-night"
-            aria-label="Меню"
-            :aria-expanded="mobileMenuOpen"
-            aria-controls="mobile-menu"
-            @click="mobileMenuOpen = !mobileMenuOpen"
-          >
-            <svg
-              v-if="!mobileMenuOpen"
-              class="w-7 h-7"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div class="flex items-center gap-2">
+            <nav class="hidden md:flex gap-1 rounded-full border border-moonless-night/15 p-1 text-sm">
+              <router-link
+                to="/"
+                class="rounded-full px-3 py-1 transition-colors"
+                :class="$route.name === 'Landing' ? 'bg-electric-blue text-cotton' : 'hover:text-electric-blue'"
+              >
+                RU
+              </router-link>
+              <router-link
+                to="/en"
+                class="rounded-full px-3 py-1 transition-colors"
+                :class="$route.name === 'LandingEn' ? 'bg-electric-blue text-cotton' : 'hover:text-electric-blue'"
+              >
+                EN
+              </router-link>
+            </nav>
+
+            <!-- Бургер (мобильное) -->
+            <button
+              class="md:hidden p-2 -mr-2 text-moonless-night"
+              :aria-label="$t('layout.menu')"
+              :aria-expanded="mobileMenuOpen"
+              aria-controls="mobile-menu"
+              @click="mobileMenuOpen = !mobileMenuOpen"
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-            <svg
-              v-else
-              class="w-7 h-7"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+              <svg
+                v-if="!mobileMenuOpen"
+                class="w-7 h-7"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+              <svg
+                v-else
+                class="w-7 h-7"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -104,14 +128,30 @@ const scrollToSection = (anchor: string) => {
         >
           <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 space-y-1">
             <a
-              v-for="link in NAV_LINKS"
-              :key="link.label"
+              v-for="link in navLinks"
+              :key="link.to"
               :href="link.to"
               class="block px-4 py-3 rounded-xl text-lg hover:bg-cotton hover:text-electric-blue transition-colors cursor-pointer"
               @click.prevent="scrollToSection(link.to)"
             >
               {{ link.label }}
             </a>
+            <div class="flex gap-2 px-4 pt-3 text-lg">
+              <router-link
+                to="/"
+                class="rounded-full border border-moonless-night/15 px-4 py-2"
+                :class="$route.name === 'Landing' ? 'bg-electric-blue text-cotton border-electric-blue' : ''"
+              >
+                RU
+              </router-link>
+              <router-link
+                to="/en"
+                class="rounded-full border border-moonless-night/15 px-4 py-2"
+                :class="$route.name === 'LandingEn' ? 'bg-electric-blue text-cotton border-electric-blue' : ''"
+              >
+                EN
+              </router-link>
+            </div>
           </div>
         </nav>
       </Transition>
@@ -132,7 +172,7 @@ const scrollToSection = (anchor: string) => {
             >
           </div>
           <p class="text-xs sm:text-sm text-center">
-            © {{ new Date().getFullYear() }} ШиП-монитор · Российское ПО
+            © {{ new Date().getFullYear() }} ШиП-монитор · {{ $t("layout.footerNote") }}
           </p>
           <a
             :href="`mailto:${SUPPORT_EMAIL}`"

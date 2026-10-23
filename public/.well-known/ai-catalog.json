@@ -1,0 +1,66 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "ШиП-Монитор",
+    "identifier": "did:web:ship-monitor.ru",
+    "documentationUrl": "https://ship-monitor.ru/llms.txt",
+    "logoUrl": "https://ship-monitor.ru/logo.png"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:ship-monitor.ru:website:landing",
+      "displayName": "ШиП-Монитор — обзор системы",
+      "type": "text/html",
+      "url": "https://ship-monitor.ru/",
+      "description": "Промышленный холодильный контроллер и датчики температуры: онлайн-мониторинг температуры в реальном времени, история показаний (графики и архив) и уведомления о выходе температуры за настроенные границы — на сайте, push на телефон или SMS. Пороги настраиваются для каждого датчика. Для пищевых производств, складов, аптек, торговых сетей и рефрижераторного транспорта.",
+      "tags": [
+        "cold-chain",
+        "temperature-monitoring",
+        "refrigeration",
+        "food-safety",
+        "iot"
+      ],
+      "capabilities": [
+        "RealTimeTemperature",
+        "TemperatureHistory",
+        "ThresholdAlerts"
+      ],
+      "representativeQueries": [
+        "Как контролировать температуру холодильного оборудования на складе",
+        "Система мониторинга температуры для скоропортящейся продукции",
+        "Уведомления о нарушении температурного режима рефрижератора"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-10-23T00:00:00Z",
+      "metadata": {
+        "language": "ru"
+      }
+    },
+    {
+      "identifier": "urn:air:ship-monitor.ru:docs:llms-txt",
+      "displayName": "ШиП-Монитор — guide для ИИ-агентов",
+      "type": "text/markdown",
+      "url": "https://ship-monitor.ru/llms.txt",
+      "description": "Описание системы ШиП-Монитор в формате llms.txt: возможности, основная страница и правила доступа.",
+      "tags": ["llms-txt", "documentation"],
+      "version": "1.0.0",
+      "updatedAt": "2026-10-23T00:00:00Z",
+      "metadata": {
+        "language": "ru"
+      }
+    },
+    {
+      "identifier": "urn:air:ship-monitor.ru:docs:sitemap-xml",
+      "displayName": "ШиП-Монитор — карта сайта",
+      "type": "application/xml",
+      "url": "https://ship-monitor.ru/sitemap.xml",
+      "description": "Sitemap с индексируемыми страницами сайта ship-monitor.ru.",
+      "tags": ["sitemap", "discovery"],
+      "version": "1.0.0",
+      "updatedAt": "2026-10-23T00:00:00Z",
+      "metadata": {
+        "language": "ru"
+      }
+    }
+  ]
+}

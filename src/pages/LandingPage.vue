@@ -6,17 +6,15 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
       <hgroup class="flex flex-col gap-5">
         <div class="text-xl">
-          Температура холодильного оборудования под контролем 24/7
+          {{ $t("hero.tagline") }}
         </div>
         <h1
           class="text-4xl sm:text-7xl md:text-9xl font-extrabold font-accent uppercase"
         >
-          ШИП-монитор
+          {{ $t("hero.title") }}
         </h1>
         <p class="mt-6 max-w-2xl text-lg text-moonless-night/70">
-          Промышленный холодильный контроллер и датчики температуры для
-          автоматического контроля на пищевых производствах, складах, в аптеках
-          и торговых сетях.
+          {{ $t("hero.subtitle") }}
         </p>
       </hgroup>
 
@@ -27,7 +25,7 @@
           size="lg"
           @click="scrollToForm"
         >
-          Подключить мониторинг
+          {{ $t("hero.cta") }}
         </LandingCtaButton>
       </div>
     </div>
@@ -37,8 +35,8 @@
   <section class="py-16 sm:py-24 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <ShipHeading
-        heading="Дорожная карта"
-        heading-alt="что сделано и что в работе"
+        :heading="$t('roadmap.heading')"
+        :heading-alt="$t('roadmap.headingAlt')"
         description=""
       />
 
@@ -66,13 +64,13 @@
         role="alert"
       >
         <p class="text-moonless-night/60 mb-3">
-          Дорожная карта временно недоступна
+          {{ $t("roadmap.unavailable") }}
         </p>
         <button
           class="px-5 py-2.5 bg-electric-blue text-cotton rounded-full text-sm font-semibold hover:bg-electric-blue/90"
           @click="fetchRoadmap"
         >
-          Повторить
+          {{ $t("roadmap.retry") }}
         </button>
       </div>
 
@@ -80,7 +78,7 @@
         v-else-if="roadmapItems.length === 0"
         class="py-10 text-center text-moonless-night/50"
       >
-        Дорожная карта пока не заполнена
+        {{ $t("roadmap.empty") }}
       </p>
 
       <div
@@ -113,19 +111,19 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-baseline gap-4 mb-12">
         <h2 class="text-4xl sm:text-5xl font-bold uppercase">
-          Железо и софт
+          {{ $t("tech.heading") }}
         </h2>
       </div>
       <div class="grid lg:grid-cols-2 gap-12 lg:gap-20">
         <!-- Аппаратная часть -->
         <div>
           <p class="text-electric-blue font-semibold text-sm mb-4">
-            Аппаратная часть
+            {{ $t("tech.hardware") }}
           </p>
 
           <!-- Датчик -->
           <h3 class="text-xl font-bold mb-4">
-            Промышленный датчик температуры
+            {{ $t("tech.sensorTitle") }}
           </h3>
           <dl class="space-y-0 mb-8">
             <div
@@ -144,7 +142,7 @@
 
           <!-- Хаб -->
           <h3 class="text-xl font-bold mb-4">
-            Промышленный холодильный контроллер (Шлюз)
+            {{ $t("tech.hubTitle") }}
           </h3>
           <dl class="space-y-0">
             <div
@@ -165,10 +163,10 @@
         <!-- Программная часть -->
         <div>
           <p class="text-electric-blue font-semibold text-sm mb-4">
-            Программная часть
+            {{ $t("tech.software") }}
           </p>
           <h3 class="text-2xl font-bold mb-6">
-            Облачный сервис мониторинга
+            {{ $t("tech.cloudTitle") }}
           </h3>
           <dl class="space-y-0">
             <div
@@ -201,10 +199,10 @@
         <h2
           class="text-5xl font-bold leading-none tracking-[-0.045em] sm:text-6xl lg:text-7xl"
         >
-          Заявка
+          {{ $t("form.heading") }}
         </h2>
         <span class="text-moonless-night/40 text-sm hidden sm:inline">
-          ответим в течение дня
+          {{ $t("form.note") }}
         </span>
       </div>
 
@@ -218,12 +216,12 @@
             <label
               for="person_name"
               class="block text-sm font-medium text-moonless-night/60 mb-1.5"
-            >Имя *</label>
+            >{{ $t("form.nameLabel") }} *</label>
             <input
               id="person_name"
               v-model="leadForm.person_name"
               type="text"
-              placeholder="Иван"
+              :placeholder="$t('form.namePlaceholder')"
               required
               autocomplete="name"
               :class="leadInputClass('person_name')"
@@ -243,7 +241,7 @@
             <label
               for="phone"
               class="block text-sm font-medium text-moonless-night/60 mb-1.5"
-            >Телефон</label>
+            >{{ $t("form.phoneLabel") }}</label>
             <input
               id="phone"
               v-model="leadForm.phone"
@@ -268,7 +266,7 @@
           <label
             for="email"
             class="block text-sm font-medium text-moonless-night/60 mb-1.5"
-          >Email *</label>
+          >{{ $t("form.emailLabel") }} *</label>
           <input
             id="email"
             v-model="leadForm.email"
@@ -294,12 +292,12 @@
             <label
               for="company_name"
               class="block text-sm font-medium text-moonless-night/60 mb-1.5"
-            >Компания *</label>
+            >{{ $t("form.companyLabel") }} *</label>
             <input
               id="company_name"
               v-model="leadForm.company_name"
               type="text"
-              placeholder="ООО Пример"
+              :placeholder="$t('form.companyPlaceholder')"
               required
               autocomplete="organization"
               :class="leadInputClass('company_name')"
@@ -319,7 +317,7 @@
             <label
               for="refrigerators_count"
               class="block text-sm font-medium text-moonless-night/60 mb-1.5"
-            >Камер *</label>
+            >{{ $t("form.chambersLabel") }} *</label>
             <input
               id="refrigerators_count"
               v-model.number="leadForm.refrigerators_count"
@@ -345,12 +343,12 @@
           <label
             for="comment"
             class="block text-sm font-medium text-moonless-night/60 mb-1.5"
-          >Комментарий</label>
+          >{{ $t("form.commentLabel") }}</label>
           <textarea
             id="comment"
             v-model="leadForm.comment"
             rows="3"
-            placeholder="Вопросы, пожелания…"
+            :placeholder="$t('form.commentPlaceholder')"
             :class="[leadInputClass('comment'), 'resize-none']"
             :disabled="formStatus === 'loading'"
           />
@@ -363,7 +361,7 @@
             :disabled="formStatus === 'loading'"
           >
           <span class="text-sm text-moonless-night/60">
-            Согласен на обработку персональных данных *
+            {{ $t("form.agreement") }} *
           </span>
         </label>
         <p
@@ -378,7 +376,7 @@
           role="status"
           class="p-4 rounded-2xl bg-electric-blue/10 text-electric-blue text-sm border border-electric-blue/20"
         >
-          Заявка отправлена. Мы свяжемся с вами в ближайшее время.
+          {{ $t("form.success") }}
         </div>
 
         <div
@@ -416,9 +414,9 @@
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
               />
             </svg>
-            Отправляем…
+            {{ $t("form.sending") }}
           </span>
-          <span v-else>Отправить заявку</span>
+          <span v-else>{{ $t("form.submit") }}</span>
         </LandingCtaButton>
       </form>
     </div>
@@ -426,13 +424,17 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, reactive, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { useI18n } from "vue-i18n";
+
 import { useRoadmap } from "@/composables/useRoadmap";
 import { useLeads } from "@/composables/useLeads";
 import { isValidEmail } from "@/utils/validators";
 import AISection from "@/components/AISection.vue";
 import ShipHeading from "@/components/ShipHeading.vue";
 import LandingCtaButton from "@/components/LandingCtaButton.vue";
+
+const { t } = useI18n();
 
 const {
   roadmapItems,
@@ -458,41 +460,32 @@ const formError = ref("");
 let resetTimer: ReturnType<typeof setTimeout> | null = null;
 
 // Аппаратные спецификации – датчик
-const sensorSpecs = [
-  { label: "Чип", value: "Температурный модуль + микроконтроллер" },
-  { label: "Радио", value: "Встроенный радиомодуль для связи с хабом" },
-  { label: "Датчики", value: "Выносные цифровые термодатчики, кабель до 5 м" },
-  { label: "Питание", value: "Аккумулятор + модуль зарядки, USB-C" },
-  { label: "Корпус", value: "Промышленный пластик, IP54" },
-];
+const sensorSpecs = computed(() => [
+  { label: t("tech.sensorChipLabel"), value: t("tech.sensorChipValue") },
+  { label: t("tech.sensorRadioLabel"), value: t("tech.sensorRadioValue") },
+  { label: t("tech.sensorProbesLabel"), value: t("tech.sensorProbesValue") },
+  { label: t("tech.sensorPowerLabel"), value: t("tech.sensorPowerValue") },
+  { label: t("tech.sensorCaseLabel"), value: t("tech.sensorCaseValue") },
+]);
 
 // Аппаратные спецификации – хаб (холодильный контроллер)
-const hubSpecs = [
-  { label: "Тип", value: "Промышленный холодильный контроллер" },
-  { label: "Ядро", value: "Промышленный микроконтроллер" },
-  { label: "Связь", value: "GSM-модуль (SMS) + радиомодуль для датчиков" },
-  { label: "Питание", value: "Аккумулятор с резервом до 8 ч, USB-C" },
-  { label: "Корпус", value: "Промышленный пластик, IP54" },
-];
+const hubSpecs = computed(() => [
+  { label: t("tech.hubTypeLabel"), value: t("tech.hubTypeValue") },
+  { label: t("tech.hubCoreLabel"), value: t("tech.hubCoreValue") },
+  { label: t("tech.hubCommsLabel"), value: t("tech.hubCommsValue") },
+  { label: t("tech.hubPowerLabel"), value: t("tech.hubPowerValue") },
+  { label: t("tech.hubCaseLabel"), value: t("tech.hubCaseValue") },
+]);
 
 // Программные спецификации
-const softwareSpecs = [
-  {
-    label: "Визуализация",
-    value: "Температура в реальном времени, графики, история",
-  },
-  {
-    label: "Уведомления",
-    value: "Push + SMS, настройка порогов для каждого датчика",
-  },
-  { label: "Отчёты", value: "Экспорт журналов для СЭС в один клик" },
-  { label: "Группировка", value: "Объединение датчиков по объектам и зонам" },
-  {
-    label: "Доступ",
-    value: "Мультипользовательский, роли: директор, менеджер",
-  },
-  { label: "Стек", value: "Vue 3, TypeScript, Node.js, PostgreSQL" },
-];
+const softwareSpecs = computed(() => [
+  { label: t("tech.cloudVizLabel"), value: t("tech.cloudVizValue") },
+  { label: t("tech.cloudAlertsLabel"), value: t("tech.cloudAlertsValue") },
+  { label: t("tech.cloudReportsLabel"), value: t("tech.cloudReportsValue") },
+  { label: t("tech.cloudGroupsLabel"), value: t("tech.cloudGroupsValue") },
+  { label: t("tech.cloudAccessLabel"), value: t("tech.cloudAccessValue") },
+  { label: t("tech.cloudStackLabel"), value: t("tech.cloudStackValue") },
+]);
 
 const leadInputClass = (field: string) => [
   "w-full px-4 py-3 rounded-2xl border bg-cotton outline-none transition-colors focus:border-electric-blue",
@@ -504,21 +497,21 @@ const validateForm = (): boolean => {
   const errors: Record<string, string> = {};
 
   if (!leadForm.person_name.trim()) {
-    errors.person_name = "Введите имя";
+    errors.person_name = t("form.errorName");
   }
   if (!leadForm.email.trim()) {
-    errors.email = "Введите email";
+    errors.email = t("form.errorEmail");
   } else if (!isValidEmail(leadForm.email)) {
-    errors.email = "Некорректный email";
+    errors.email = t("form.errorEmailInvalid");
   }
   if (!leadForm.company_name.trim()) {
-    errors.company_name = "Введите название компании";
+    errors.company_name = t("form.errorCompany");
   }
   if (leadForm.refrigerators_count < 1) {
-    errors.refrigerators_count = "Количество должно быть минимум 1";
+    errors.refrigerators_count = t("form.errorCount");
   }
   if (!leadForm.personal_data_agreement) {
-    errors.personal_data_agreement = "Требуется согласие на обработку данных";
+    errors.personal_data_agreement = t("form.errorAgreement");
   }
 
   formErrors.value = errors;

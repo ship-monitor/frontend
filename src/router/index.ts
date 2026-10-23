@@ -6,6 +6,7 @@ import {
 } from "vue-router";
 
 import { ROUTES } from "@/constants/routes";
+import { setLocale } from "@/i18n";
 import { useAuthStore } from "@/stores/authStore";
 
 // Синглтон роутера, доступный вне компонентов (например, в axios-перехватчике).
@@ -25,6 +26,12 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: ROUTES.LANDING,
     name: "Landing",
+    component: () => import("../pages/LandingPage.vue"),
+    meta: { layout: "landing" } as CustomRouteMeta,
+  },
+  {
+    path: ROUTES.LANDING_EN,
+    name: "LandingEn",
     component: () => import("../pages/LandingPage.vue"),
     meta: { layout: "landing" } as CustomRouteMeta,
   },
@@ -90,6 +97,10 @@ export const createAppRouter = () => {
 
   router.beforeEach(async (to) => {
     const routeMeta = to.meta as CustomRouteMeta;
+
+    const locale = to.name === "LandingEn" ? "en" : "ru";
+    setLocale(locale);
+    document.documentElement.lang = locale;
 
     // Дожидаемся проверки cookie-сессии только для маршрутов,
     // где результат влияет на навигацию (публичные страницы не блокируются).

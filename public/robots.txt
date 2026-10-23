@@ -1,7 +1,11 @@
 User-agent: *
 Allow: /$
+Allow: /en$
+Allow: /en/$
 Allow: /sitemap.xml$
 Allow: /llms.txt$
+Allow: /ai-catalog.json$
+Allow: /.well-known/ai-catalog.json$
 Disallow: /
 
 Sitemap: https://ship-monitor.ru/sitemap.xml
