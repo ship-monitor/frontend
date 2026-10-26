@@ -123,7 +123,7 @@
                   {{ $t("devices.backup") }}
                 </dt>
                 <dd class="text-sm font-semibold">
-                  {{ $t("devices.upTo8h") }}
+                  {{ $t("devices.backupTime") }}
                 </dd>
               </div>
             </dl>
