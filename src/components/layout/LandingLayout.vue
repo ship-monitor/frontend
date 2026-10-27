@@ -2,11 +2,16 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { saveLocaleChoice, type AppLocale } from "@/i18n";
 import { SUPPORT_EMAIL } from "@/constants/contacts";
 import BIG_LOGO_D from "@/assets/big-logo-dark.webp";
 import BIG_LOGO from "@/assets/big-logo.webp";
 
 const { t } = useI18n();
+
+const selectLocale = (locale: AppLocale) => {
+  saveLocaleChoice(locale);
+};
 
 const mobileMenuOpen = ref(false);
 
@@ -66,6 +71,7 @@ const scrollToSection = (anchor: string) => {
                 to="/"
                 class="rounded-full px-3 py-1 transition-colors"
                 :class="$route.name === 'Landing' ? 'bg-electric-blue text-cotton' : 'hover:text-electric-blue'"
+                @click="selectLocale('ru')"
               >
                 RU
               </router-link>
@@ -73,6 +79,7 @@ const scrollToSection = (anchor: string) => {
                 to="/en"
                 class="rounded-full px-3 py-1 transition-colors"
                 :class="$route.name === 'LandingEn' ? 'bg-electric-blue text-cotton' : 'hover:text-electric-blue'"
+                @click="selectLocale('en')"
               >
                 EN
               </router-link>
@@ -141,6 +148,7 @@ const scrollToSection = (anchor: string) => {
                 to="/"
                 class="rounded-full border border-moonless-night/15 px-4 py-2"
                 :class="$route.name === 'Landing' ? 'bg-electric-blue text-cotton border-electric-blue' : ''"
+                @click="selectLocale('ru')"
               >
                 RU
               </router-link>
@@ -148,6 +156,7 @@ const scrollToSection = (anchor: string) => {
                 to="/en"
                 class="rounded-full border border-moonless-night/15 px-4 py-2"
                 :class="$route.name === 'LandingEn' ? 'bg-electric-blue text-cotton border-electric-blue' : ''"
+                @click="selectLocale('en')"
               >
                 EN
               </router-link>

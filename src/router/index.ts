@@ -6,7 +6,13 @@ import {
 } from "vue-router";
 
 import { ROUTES } from "@/constants/routes";
-import { setLocale } from "@/i18n";
+import {
+  isBotUserAgent,
+  negotiateFirstVisitLocale,
+  saveLocaleChoice,
+  setLocale,
+  storedLocaleChoice,
+} from "@/i18n";
 import { useAuthStore } from "@/stores/authStore";
 
 // Синглтон роутера, доступный вне компонентов (например, в axios-перехватчике).
@@ -97,6 +103,21 @@ export const createAppRouter = () => {
 
   router.beforeEach(async (to) => {
     const routeMeta = to.meta as CustomRouteMeta;
+
+    if (
+      storedLocaleChoice() === null &&
+      !isBotUserAgent() &&
+      (to.name === "Landing" || to.name === "LandingEn")
+    ) {
+      const negotiated = negotiateFirstVisitLocale();
+      saveLocaleChoice(negotiated);
+      if (negotiated === "en" && to.name === "Landing") {
+        return { path: ROUTES.LANDING_EN };
+      }
+      if (negotiated === "ru" && to.name === "LandingEn") {
+        return { path: ROUTES.LANDING };
+      }
+    }
 
     const locale = to.name === "LandingEn" ? "en" : "ru";
     setLocale(locale);
