@@ -34,5 +34,7 @@ if (
   );
 }
 
-app.use(createAppRouter());
-app.mount("#app");
+const router = createAppRouter();
+app.use(router);
+
+router.isReady().then(() => app.mount("#app"));
