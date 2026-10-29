@@ -34,6 +34,9 @@
   <!-- ====== Архитектура системы ====== -->
   <ArchitectureSection />
 
+  <!-- ====== Сегменты ====== -->
+  <SegmentsSection />
+
   <!-- ====== Дорожная карта ====== -->
   <section class="py-16 sm:py-24 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -435,6 +438,7 @@ import { useLeads } from "@/composables/useLeads";
 import { isValidEmail } from "@/utils/validators";
 import AISection from "@/components/AISection.vue";
 import ArchitectureSection from "@/components/ArchitectureSection.vue";
+import SegmentsSection from "@/components/SegmentsSection.vue";
 import ShipHeading from "@/components/ShipHeading.vue";
 import LandingCtaButton from "@/components/LandingCtaButton.vue";
 

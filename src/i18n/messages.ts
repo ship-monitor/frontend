@@ -34,6 +34,30 @@ export const messages = {
       step4Text:
         "Все камеры — на одном экране в личном кабинете. Температура вышла за порог — уведомление на сайте, push или SMS. Журналы ХАССП и отчёты для СЭС выгружаются в один клик.",
     },
+    segments: {
+      heading: "Кому это нужно",
+      headingAlt: "Система ШиП-Монитор",
+      description:
+        "Система мониторинга холодильного оборудования для бизнеса, где холод — это деньги: от одной камеры в кафе до распределённых складов и автопарка рефрижераторов.",
+      seg1Title: "Пищевые производства",
+      seg1Text:
+        "Контроль температуры в цехах, камерах охлаждения и заморозки. Автоматические журналы ХАССП вместо ручных замеров три раза в день.",
+      seg2Title: "Склады и холодильные камеры",
+      seg2Text:
+        "Мониторинг температуры склада 24/7: до 15 камер на один хаб, пороги для каждого датчика, история показаний за 12 месяцев.",
+      seg3Title: "Магазины и торговые сети",
+      seg3Text:
+        "Все точки продаж на одном экране: витрины, бонеты, камеры. Директор видит аварию раньше, чем позвонит администратор магазина.",
+      seg4Title: "Аптеки и фармацевтика",
+      seg4Text:
+        "Контроль температуры в аптеке по СанПиН: термолабильные препараты под наблюдением, отчёты для проверок выгружаются в один клик.",
+      seg5Title: "Рестораны и общепит",
+      seg5Text:
+        "Журнал температур ХАССП ведётся сам, а при выходе температуры за порог приходит SMS — до того, как испортилась партия продуктов.",
+      seg6Title: "Транспорт и рефрижераторы",
+      seg6Text:
+        "Мониторинг рефрижераторов в пути: датчик с аварийной батареей продолжает писать температуру, даже если водитель заглушил машину.",
+    },
     roadmap: {
       heading: "Дорожная карта",
       headingAlt: "что сделано и что в работе",
@@ -202,6 +226,30 @@ export const messages = {
       step4Title: "Your phone rings before the goods spoil",
       step4Text:
         "Every chamber on one screen in your dashboard. Temperature leaves the threshold — you get a web, push or SMS notification. HACCP logs and hygiene reports export in one click.",
+    },
+    segments: {
+      heading: "Who it is for",
+      headingAlt: "Ship-Monitor system",
+      description:
+        "A refrigeration equipment monitoring system for businesses where cold means money: from a single cold room in a café to distributed warehouses and a reefer fleet.",
+      seg1Title: "Food production",
+      seg1Text:
+        "Temperature control in workshops, cooling and freezing rooms. Automated HACCP logs instead of manual readings three times a day.",
+      seg2Title: "Warehouses and cold rooms",
+      seg2Text:
+        "24/7 warehouse temperature monitoring: up to 15 cold rooms on one hub, thresholds per sensor, 12 months of reading history.",
+      seg3Title: "Retail stores and chains",
+      seg3Text:
+        "Every store on one screen: display cases, islands, cold rooms. The director sees an alert before the store manager even calls.",
+      seg4Title: "Pharmacies and pharma",
+      seg4Text:
+        "Pharmacy temperature control in line with sanitary rules: thermolabile products under watch, inspection reports in one click.",
+      seg5Title: "Restaurants and food service",
+      seg5Text:
+        "The HACCP temperature log keeps itself, and an SMS arrives the moment temperature leaves the threshold — before the batch is lost.",
+      seg6Title: "Transport and reefers",
+      seg6Text:
+        "Reefer monitoring on the road: the sensor's backup battery keeps recording temperature even when the driver shuts the engine off.",
     },
     roadmap: {
       heading: "Roadmap",
