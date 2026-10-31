@@ -14,6 +14,7 @@ import {
   storedLocaleChoice,
 } from "@/i18n";
 import { useAuthStore } from "@/stores/authStore";
+import { metrikaHit } from "@/utils/metrika";
 
 // Синглтон роутера, доступный вне компонентов (например, в axios-перехватчике).
 let appRouter: Router | null = null;
@@ -146,7 +147,11 @@ export const createAppRouter = () => {
     return true;
   });
 
-  router.afterEach((to) => {
+  router.afterEach((to, from) => {
+    if (from.name !== undefined) {
+      metrikaHit(to.fullPath);
+    }
+
     const routeMeta = to.meta as CustomRouteMeta;
     let robotsMeta = document.head.querySelector<HTMLMetaElement>(
       'meta[name="robots"]',

@@ -436,6 +436,7 @@ import { useI18n } from "vue-i18n";
 import { useRoadmap } from "@/composables/useRoadmap";
 import { useLeads } from "@/composables/useLeads";
 import { isValidEmail } from "@/utils/validators";
+import { metrikaReachGoal } from "@/utils/metrika";
 import AISection from "@/components/AISection.vue";
 import ArchitectureSection from "@/components/ArchitectureSection.vue";
 import SegmentsSection from "@/components/SegmentsSection.vue";
@@ -547,6 +548,7 @@ const handleSubmit = async (): Promise<void> => {
   });
 
   if (failure === null) {
+    metrikaReachGoal("lead_form_submit");
     formStatus.value = "success";
     resetTimer = setTimeout(() => {
       Object.assign(leadForm, {
