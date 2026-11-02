@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { ROUTES } from "@/constants/routes";
+import { LANDING_URL } from "@/constants/contacts";
 import { login } from "@/data/auth";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
@@ -285,12 +286,12 @@ const handleLogin = async () => {
         <p class="mt-6 text-center text-sm text-ink-500">
           Нет аккаунта? Запросите демо-доступ:
 
-          <router-link
-            :to="ROUTES.LANDING"
+          <a
+            :href="LANDING_URL"
             class="text-brand-600 hover:text-brand-700 font-semibold"
           >
             Вернуться на лендинг
-          </router-link>
+          </a>
         </p>
       </div>
     </div>

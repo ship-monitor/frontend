@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { type Component } from "vue";
-import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
 import { ROUTES } from "@/constants/routes";
+import { LANDING_URL } from "@/constants/contacts";
 import IconLogout from "@/components/icons/IconLogout.vue";
 import IconPulse from "@/components/icons/IconPulse.vue";
 import IconPerson from "@/components/icons/IconPerson.vue";
 
-const router = useRouter();
 const authStore = useAuthStore();
 
 type NavigationItem = { label: string; link: string; icon: Component };
@@ -18,7 +17,7 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
 
 const logoutHandler = async () => {
   await authStore.logout();
-  router.push(ROUTES.LANDING);
+  window.location.assign(LANDING_URL);
 };
 </script>
 <template>
@@ -52,8 +51,8 @@ const logoutHandler = async () => {
     >
       <!-- Логотип -->
       <div class="hidden lg:block p-5 border-b border-ink-800">
-        <router-link
-          :to="ROUTES.LANDING"
+        <a
+          :href="LANDING_URL"
           class="flex items-center gap-3"
         >
           <span
@@ -62,7 +61,7 @@ const logoutHandler = async () => {
           <h2 class="text-lg font-bold tracking-tight">
             ШиП-монитор
           </h2>
-        </router-link>
+        </a>
       </div>
 
       <!-- Навигация -->

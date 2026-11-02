@@ -3,7 +3,6 @@ import { ROUTES, route } from "@/constants/routes";
 
 describe("route builders", () => {
   it("builds static routes from constants", () => {
-    expect(route.landing()).toBe(ROUTES.LANDING);
     expect(route.login()).toBe(ROUTES.LOGIN);
     expect(route.profile()).toBe(ROUTES.PROFILE);
     expect(route.dashboard()).toBe(ROUTES.DASHBOARD);

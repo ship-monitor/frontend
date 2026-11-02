@@ -6,13 +6,6 @@ import {
 } from "vue-router";
 
 import { ROUTES } from "@/constants/routes";
-import {
-  isBotUserAgent,
-  negotiateFirstVisitLocale,
-  saveLocaleChoice,
-  setLocale,
-  storedLocaleChoice,
-} from "@/i18n";
 import { useAuthStore } from "@/stores/authStore";
 import { metrikaHit } from "@/utils/metrika";
 
@@ -21,7 +14,7 @@ let appRouter: Router | null = null;
 
 export const getAppRouter = (): Router | null => appRouter;
 
-export type RouteLayout = "landing" | "auth" | "app";
+export type RouteLayout = "auth" | "app";
 
 export type CustomRouteMeta = {
   requireAuth: boolean;
@@ -30,18 +23,6 @@ export type CustomRouteMeta = {
 };
 
 const routes: Array<RouteRecordRaw> = [
-  {
-    path: ROUTES.LANDING,
-    name: "Landing",
-    component: () => import("../pages/LandingPage.vue"),
-    meta: { layout: "landing" } as CustomRouteMeta,
-  },
-  {
-    path: ROUTES.LANDING_EN,
-    name: "LandingEn",
-    component: () => import("../pages/LandingPage.vue"),
-    meta: { layout: "landing" } as CustomRouteMeta,
-  },
   {
     path: ROUTES.LOGIN,
     name: "Login",
@@ -89,7 +70,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/:pathMatch(.*)*",
 
-    redirect: ROUTES.LANDING,
+    redirect: ROUTES.LOGIN,
   },
 ];
 export const createAppRouter = () => {
@@ -105,27 +86,8 @@ export const createAppRouter = () => {
   router.beforeEach(async (to) => {
     const routeMeta = to.meta as CustomRouteMeta;
 
-    if (
-      storedLocaleChoice() === null &&
-      !isBotUserAgent() &&
-      (to.name === "Landing" || to.name === "LandingEn")
-    ) {
-      const negotiated = negotiateFirstVisitLocale();
-      saveLocaleChoice(negotiated);
-      if (negotiated === "en" && to.name === "Landing") {
-        return { path: ROUTES.LANDING_EN };
-      }
-      if (negotiated === "ru" && to.name === "LandingEn") {
-        return { path: ROUTES.LANDING };
-      }
-    }
-
-    const locale = to.name === "LandingEn" ? "en" : "ru";
-    setLocale(locale);
-    document.documentElement.lang = locale;
-
     // Дожидаемся проверки cookie-сессии только для маршрутов,
-    // где результат влияет на навигацию (публичные страницы не блокируются).
+    // где результат влияет на навигацию.
     if (
       (routeMeta?.requireAuth || routeMeta?.onlyAnonymous) &&
       !authStore.initialized
@@ -151,23 +113,6 @@ export const createAppRouter = () => {
     if (from.name !== undefined) {
       metrikaHit(to.fullPath);
     }
-
-    const routeMeta = to.meta as CustomRouteMeta;
-    let robotsMeta = document.head.querySelector<HTMLMetaElement>(
-      'meta[name="robots"]',
-    );
-
-    if (routeMeta.layout === "landing") {
-      robotsMeta?.remove();
-      return;
-    }
-
-    if (!robotsMeta) {
-      robotsMeta = document.createElement("meta");
-      robotsMeta.name = "robots";
-      document.head.appendChild(robotsMeta);
-    }
-    robotsMeta.content = "noindex, follow";
   });
 
   return router;

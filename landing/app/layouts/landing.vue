@@ -8,6 +8,7 @@ import BIG_LOGO_D from "@/assets/big-logo-dark.webp";
 import BIG_LOGO from "@/assets/big-logo.webp";
 
 const { t } = useI18n();
+const route = useRoute();
 
 const selectLocale = (locale: AppLocale) => {
   saveLocaleChoice(locale);
@@ -67,22 +68,22 @@ const scrollToSection = (anchor: string) => {
 
           <div class="flex items-center gap-2">
             <nav class="hidden md:flex gap-1 rounded-full border border-moonless-night/15 p-1 text-sm">
-              <router-link
+              <NuxtLink
                 to="/"
                 class="rounded-full px-3 py-1 transition-colors"
-                :class="$route.name === 'Landing' ? 'bg-electric-blue text-cotton' : 'hover:text-electric-blue'"
+                :class="route.path === '/' ? 'bg-electric-blue text-cotton' : 'hover:text-electric-blue'"
                 @click="selectLocale('ru')"
               >
                 RU
-              </router-link>
-              <router-link
+              </NuxtLink>
+              <NuxtLink
                 to="/en"
                 class="rounded-full px-3 py-1 transition-colors"
-                :class="$route.name === 'LandingEn' ? 'bg-electric-blue text-cotton' : 'hover:text-electric-blue'"
+                :class="route.path === '/en' ? 'bg-electric-blue text-cotton' : 'hover:text-electric-blue'"
                 @click="selectLocale('en')"
               >
                 EN
-              </router-link>
+              </NuxtLink>
             </nav>
 
             <!-- Бургер (мобильное) -->
@@ -144,22 +145,22 @@ const scrollToSection = (anchor: string) => {
               {{ link.label }}
             </a>
             <div class="flex gap-2 px-4 pt-3 text-lg">
-              <router-link
+              <NuxtLink
                 to="/"
                 class="rounded-full border border-moonless-night/15 px-4 py-2"
-                :class="$route.name === 'Landing' ? 'bg-electric-blue text-cotton border-electric-blue' : ''"
+                :class="route.path === '/' ? 'bg-electric-blue text-cotton border-electric-blue' : ''"
                 @click="selectLocale('ru')"
               >
                 RU
-              </router-link>
-              <router-link
+              </NuxtLink>
+              <NuxtLink
                 to="/en"
                 class="rounded-full border border-moonless-night/15 px-4 py-2"
-                :class="$route.name === 'LandingEn' ? 'bg-electric-blue text-cotton border-electric-blue' : ''"
+                :class="route.path === '/en' ? 'bg-electric-blue text-cotton border-electric-blue' : ''"
                 @click="selectLocale('en')"
               >
                 EN
-              </router-link>
+              </NuxtLink>
             </div>
           </div>
         </nav>

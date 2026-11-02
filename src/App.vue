@@ -3,10 +3,6 @@
   <div v-if="layout === 'auth'">
     <router-view />
   </div>
-  <!-- Лендинг -->
-  <landing-layout v-else-if="layout === 'landing'">
-    <router-view />
-  </landing-layout>
   <!-- Основной layout с адаптивным меню -->
   <application-layout v-else>
     <router-view />
@@ -18,7 +14,6 @@ import { computed } from "vue";
 import { useRoute } from "vue-router";
 import type { CustomRouteMeta } from "@/router";
 import ApplicationLayout from "@/components/layout/ApplicationLayout.vue";
-import LandingLayout from "./components/layout/LandingLayout.vue";
 import CookieBanner from "./components/CookieBanner.vue";
 
 const route = useRoute();

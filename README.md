@@ -1,5 +1,12 @@
 # ship-cloud-frontend
 
+Репозиторий «ШиП-Монитор» (ship-monitor.ru) состоит из двух независимых проектов:
+
+- **Корень** — кабинет пользователя: CSR SPA (Vue 3 + Vite), статика раздаётся nginx-контейнером. Лендинга здесь больше нет — только страницы за логином (`/dashboard`, `/sensors/:id`, `/profile`, `/connect-device`, `/auth/*`), весь кабинет `noindex`.
+- **`landing/`** — публичный лендинг на Nuxt 4 с SSR: страницы `/` (ru) и `/en` (en), SEO-мета, hreflang, OG и JSON-LD (Organization/WebSite/FAQPage) рендерятся на сервере; FAQ/roadmap тянутся из Directus CMS на сервере. Деплой — Node-контейнер (`node .output/server/index.mjs`, порт 3000). Команды и детали — в `landing/README.md`.
+
+Ссылки между проектами идут через константу `LANDING_URL` (`src/constants/contacts.ts`).
+
 ## Переменные окружения
 
 В проекте два независимых набора переменных. Они живут в разных `.env` и работают по-разному.
@@ -8,7 +15,7 @@
 
 Файл `.env` в корне проекта — для локальной разработки. Переменные **запекаются в бандл** на этапе `npm run build` / `docker build`. После сборки изменить их нельзя.
 
-При сборке Docker-образа значения передаются как build-args (см. `build.args` в `docker-compose.yml`): `VITE_API_URL` берётся из `CLOUD_BACKEND_URL` (обязателен — без него сборка упадёт), `VITE_CMS_URL` из `CMS_URL`, Plausible-переменные из соответствующих `PLAUSIBLE_*`.
+При сборке Docker-образа значения передаются как build-args (см. `build.args` в `docker-compose.yml`): `VITE_API_URL` берётся из `CLOUD_BACKEND_URL` (обязателен — без него сборка упадёт), Plausible-переменные из соответствующих `PLAUSIBLE_*`.
 
 - `VITE_API_URL` — базовый URL Ship-бэкенда (используется в `src/api.ts`)
 - `VITE_PLAUSIBLE_URL` — URL сервера Plausible для трекинга (`src/App.vue`). Аналитика временно отключена, см. примечание ниже
@@ -23,7 +30,7 @@
 | `SECRET_KEY` | `directus` → `SECRET` | Секрет Directus (подпись токенов). Сгенерировать: `openssl rand -hex 32`. Обязателен |
 | `CMS_ADMIN_EMAIL` | `directus` → `ADMIN_EMAIL` | Email администратора Directus. Обязателен |
 | `CMS_ADMIN_PASSWORD` | `directus` → `ADMIN_PASSWORD` | Пароль администратора Directus. Обязателен |
-| `CMS_URL` | `directus` → `PUBLIC_URL`, build-arg `VITE_CMS_URL` образа `frontend` | Публичный адрес CMS (например `https://cms.ship-monitor.ru`). Используется как baseURL CMS-клиента (`src/composables/api_cms.ts`); при отсутствии — захардкоженный `https://cms.ship-monitor.ru`. Обязателен |
+| `CMS_URL` | `directus` → `PUBLIC_URL` | Публичный адрес CMS (например `https://cms.ship-monitor.ru`). Обязателен |
 | `CLOUD_BACKEND_URL` | build-arg `VITE_API_URL` образа `frontend` | URL Ship-бэкенда, запекается в SPA при сборке. Обязателен (`docker compose build` упадёт без него) |
 | `DIRECTUS_DB_PASSWORD` | `database` → `POSTGRES_PASSWORD`, `directus` → `DB_PASSWORD` | Пароль БД Directus/Postgres. Обязателен. Применяется только при инициализации кластера — для существующей БД см. заметку ниже |
 | `DIRECTUS_VERSION` | образ `directus` | Точный патч-пин версии Directus (например `11.17.4`). Обязателен — `latest` и мутабельные мажорные теги (`11`) запрещены: Directus запускает миграции БД автоматически, миграции необратимы, откат на меньшую версию ломает БД. Пин должен быть не ниже версии, работающей на сервере (узнать: `docker exec <directus> node -e "console.log(require('./package.json').version)"`) |

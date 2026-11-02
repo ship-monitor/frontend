@@ -1,6 +1,4 @@
 export const ROUTES = {
-  LANDING: "/",
-  LANDING_EN: "/en",
   LOGIN: "/auth/login",
   CONFIRM_EMAIL: "/auth/confirm-email",
   DASHBOARD: "/dashboard",
@@ -12,7 +10,6 @@ export const ROUTES = {
 export type RouteKey = keyof typeof ROUTES;
 
 export const route = {
-  landing: () => ROUTES.LANDING,
   login: () => ROUTES.LOGIN,
   confirmEmail: (token: string) =>
     `${ROUTES.CONFIRM_EMAIL}?token=${encodeURIComponent(token)}`,

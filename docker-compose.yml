@@ -5,7 +5,6 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: ${CLOUD_BACKEND_URL:?CLOUD_BACKEND_URL is required}
-        VITE_CMS_URL: ${CMS_URL:-}
         VITE_PLAUSIBLE_URL: ${PLAUSIBLE_BASE_URL:-}
         VITE_PLAUSIBLE_DOMAIN: ${PLAUSIBLE_TRACKING_DOMAIN:-}
     ports:
