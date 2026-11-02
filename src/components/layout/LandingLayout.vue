@@ -1,13 +1,23 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRoute, useRouter } from "vue-router";
 
 import { saveLocaleChoice, type AppLocale } from "@/i18n";
+import { ROUTES } from "@/constants/routes";
 import { SUPPORT_EMAIL } from "@/constants/contacts";
 import BIG_LOGO_D from "@/assets/big-logo-dark.webp";
 import BIG_LOGO from "@/assets/big-logo.webp";
 
 const { t } = useI18n();
+const routeState = useRoute();
+const router = useRouter();
+
+const showLocaleSwitch = computed(
+  () =>
+    routeState.path === ROUTES.LANDING ||
+    routeState.path === ROUTES.LANDING_EN,
+);
 
 const selectLocale = (locale: AppLocale) => {
   saveLocaleChoice(locale);
@@ -33,7 +43,9 @@ const scrollToSection = (anchor: string) => {
       top: offsetPosition,
       behavior: "smooth",
     });
+    return;
   }
+  router.push({ path: ROUTES.LANDING, hash: anchor });
 };
 </script>
 <template>
@@ -43,13 +55,17 @@ const scrollToSection = (anchor: string) => {
         <div class="flex justify-between items-center py-3 sm:py-4">
           <!-- Логотип -->
           <div class="flex items-center">
-            <div class="w-24 h-24 sm:w-32 sm:h-12 shrink-0">
+            <router-link
+              :to="ROUTES.LANDING"
+              class="w-24 h-24 sm:w-32 sm:h-12 shrink-0"
+              aria-label="ШиП-Монитор"
+            >
               <img
                 :src="BIG_LOGO"
                 alt="ШиП-монитор"
                 class="w-full h-full object-contain"
               >
-            </div>
+            </router-link>
           </div>
 
           <!-- Десктоп-меню -->
@@ -66,9 +82,12 @@ const scrollToSection = (anchor: string) => {
           </nav>
 
           <div class="flex items-center gap-2">
-            <nav class="hidden md:flex gap-1 rounded-full border border-moonless-night/15 p-1 text-sm">
+            <nav
+              v-if="showLocaleSwitch"
+              class="hidden md:flex gap-1 rounded-full border border-moonless-night/15 p-1 text-sm"
+            >
               <router-link
-                to="/"
+                :to="ROUTES.LANDING"
                 class="rounded-full px-3 py-1 transition-colors"
                 :class="$route.name === 'Landing' ? 'bg-electric-blue text-cotton' : 'hover:text-electric-blue'"
                 @click="selectLocale('ru')"
@@ -76,7 +95,7 @@ const scrollToSection = (anchor: string) => {
                 RU
               </router-link>
               <router-link
-                to="/en"
+                :to="ROUTES.LANDING_EN"
                 class="rounded-full px-3 py-1 transition-colors"
                 :class="$route.name === 'LandingEn' ? 'bg-electric-blue text-cotton' : 'hover:text-electric-blue'"
                 @click="selectLocale('en')"
@@ -143,9 +162,12 @@ const scrollToSection = (anchor: string) => {
             >
               {{ link.label }}
             </a>
-            <div class="flex gap-2 px-4 pt-3 text-lg">
+            <div
+              v-if="showLocaleSwitch"
+              class="flex gap-2 px-4 pt-3 text-lg"
+            >
               <router-link
-                to="/"
+                :to="ROUTES.LANDING"
                 class="rounded-full border border-moonless-night/15 px-4 py-2"
                 :class="$route.name === 'Landing' ? 'bg-electric-blue text-cotton border-electric-blue' : ''"
                 @click="selectLocale('ru')"
@@ -153,7 +175,7 @@ const scrollToSection = (anchor: string) => {
                 RU
               </router-link>
               <router-link
-                to="/en"
+                :to="ROUTES.LANDING_EN"
                 class="rounded-full border border-moonless-night/15 px-4 py-2"
                 :class="$route.name === 'LandingEn' ? 'bg-electric-blue text-cotton border-electric-blue' : ''"
                 @click="selectLocale('en')"
@@ -173,13 +195,17 @@ const scrollToSection = (anchor: string) => {
     <footer class="bg-moonless-night text-cotton/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div class="w-24 h-24 sm:w-32 sm:h-12 shrink-0">
+          <router-link
+            :to="ROUTES.LANDING"
+            class="w-24 h-24 sm:w-32 sm:h-12 shrink-0"
+            aria-label="ШиП-Монитор"
+          >
             <img
               :src="BIG_LOGO_D"
               alt="ШиП-монитор"
               class="w-full h-full object-contain"
             >
-          </div>
+          </router-link>
           <p class="text-xs sm:text-sm text-center">
             © {{ new Date().getFullYear() }} ШиП-монитор · {{ $t("layout.footerNote") }}
           </p>

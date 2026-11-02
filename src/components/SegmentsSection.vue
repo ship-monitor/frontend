@@ -22,6 +22,13 @@
           <p class="mt-3 text-sm leading-6 text-moonless-night/50">
             {{ segment.text }}
           </p>
+          <router-link
+            v-if="segment.to"
+            :to="segment.to"
+            class="group mt-4 inline-flex items-center gap-2 text-sm font-semibold text-electric-blue"
+          >
+            {{ $t("segments.more") }}<span class="transition-transform group-hover:translate-x-1">→</span>
+          </router-link>
         </article>
       </div>
     </div>
@@ -32,16 +39,36 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { currentLocale } from "@/i18n";
+import { route } from "@/constants/routes";
 import ShipHeading from "@/components/ShipHeading.vue";
 
 const { t } = useI18n();
 
+const isRuLocale = computed(() => currentLocale() === "ru");
+
 const segments = computed(() => [
-  { title: t("segments.seg1Title"), text: t("segments.seg1Text") },
-  { title: t("segments.seg2Title"), text: t("segments.seg2Text") },
-  { title: t("segments.seg3Title"), text: t("segments.seg3Text") },
-  { title: t("segments.seg4Title"), text: t("segments.seg4Text") },
-  { title: t("segments.seg5Title"), text: t("segments.seg5Text") },
-  { title: t("segments.seg6Title"), text: t("segments.seg6Text") },
+  { title: t("segments.seg1Title"), text: t("segments.seg1Text"), to: undefined },
+  {
+    title: t("segments.seg2Title"),
+    text: t("segments.seg2Text"),
+    to: isRuLocale.value ? route.sklady() : undefined,
+  },
+  { title: t("segments.seg3Title"), text: t("segments.seg3Text"), to: undefined },
+  {
+    title: t("segments.seg4Title"),
+    text: t("segments.seg4Text"),
+    to: isRuLocale.value ? route.apteki() : undefined,
+  },
+  {
+    title: t("segments.seg5Title"),
+    text: t("segments.seg5Text"),
+    to: isRuLocale.value ? route.restorany() : undefined,
+  },
+  {
+    title: t("segments.seg6Title"),
+    text: t("segments.seg6Text"),
+    to: isRuLocale.value ? route.refrizheratory() : undefined,
+  },
 ]);
 </script>

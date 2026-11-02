@@ -5,6 +5,8 @@ import { createMemoryHistory, createRouter, RouterView } from "vue-router";
 
 import LandingLayout from "@/components/layout/LandingLayout.vue";
 import LandingPage from "@/pages/LandingPage.vue";
+import ZhurnalTemperaturPage from "@/pages/ZhurnalTemperaturPage.vue";
+import SegmentPage from "@/pages/SegmentPage.vue";
 import { i18n, setLocale, type AppLocale } from "@/i18n";
 import { useFaq } from "@/composables/useFaq";
 import { useRoadmap } from "@/composables/useRoadmap";
@@ -27,15 +29,26 @@ async function seedCmsData(): Promise<void> {
   roadmap.error.value = null;
 }
 
-export async function renderLanding(locale: AppLocale): Promise<string> {
+export async function renderPage(
+  path: string,
+  locale: AppLocale,
+): Promise<string> {
   await seedCmsData();
   setLocale(locale);
 
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: "/", component: LandingPage }],
+    routes: [
+      { path: "/", component: LandingPage },
+      { path: "/en", component: LandingPage },
+      { path: "/zhurnal-temperatur", component: ZhurnalTemperaturPage },
+      { path: "/apteki", component: SegmentPage, meta: { segment: "apteki" } },
+      { path: "/restorany", component: SegmentPage, meta: { segment: "restorany" } },
+      { path: "/sklady", component: SegmentPage, meta: { segment: "sklady" } },
+      { path: "/refrizheratory", component: SegmentPage, meta: { segment: "refrizheratory" } },
+    ],
   });
-  await router.push("/");
+  await router.push(path);
   await router.isReady();
 
   const app = createSSRApp({
@@ -46,6 +59,10 @@ export async function renderLanding(locale: AppLocale): Promise<string> {
   app.use(i18n);
 
   return renderToString(app);
+}
+
+export async function renderLanding(locale: AppLocale): Promise<string> {
+  return renderPage("/", locale);
 }
 
 export function getFaqItems(locale: AppLocale) {

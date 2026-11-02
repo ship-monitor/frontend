@@ -6,6 +6,7 @@ import {
 } from "vue-router";
 
 import { ROUTES } from "@/constants/routes";
+import { SEO, SEO_PAGES } from "@/constants/seo";
 import {
   isBotUserAgent,
   negotiateFirstVisitLocale,
@@ -15,6 +16,7 @@ import {
 } from "@/i18n";
 import { useAuthStore } from "@/stores/authStore";
 import { metrikaHit } from "@/utils/metrika";
+import { applySeoMeta } from "@/utils/seo";
 
 // Синглтон роутера, доступный вне компонентов (например, в axios-перехватчике).
 let appRouter: Router | null = null;
@@ -27,6 +29,7 @@ export type CustomRouteMeta = {
   requireAuth: boolean;
   onlyAnonymous: boolean;
   layout: RouteLayout;
+  segment?: string;
 };
 
 const routes: Array<RouteRecordRaw> = [
@@ -41,6 +44,36 @@ const routes: Array<RouteRecordRaw> = [
     name: "LandingEn",
     component: () => import("../pages/LandingPage.vue"),
     meta: { layout: "landing" } as CustomRouteMeta,
+  },
+  {
+    path: ROUTES.ZHURNAL_TEMPERATUR,
+    name: "ZhurnalTemperatur",
+    component: () => import("../pages/ZhurnalTemperaturPage.vue"),
+    meta: { layout: "landing" } as CustomRouteMeta,
+  },
+  {
+    path: ROUTES.APTEKI,
+    name: "Apteki",
+    component: () => import("../pages/SegmentPage.vue"),
+    meta: { layout: "landing", segment: "apteki" } as CustomRouteMeta,
+  },
+  {
+    path: ROUTES.RESTORANY,
+    name: "Restorany",
+    component: () => import("../pages/SegmentPage.vue"),
+    meta: { layout: "landing", segment: "restorany" } as CustomRouteMeta,
+  },
+  {
+    path: ROUTES.SKLADY,
+    name: "Sklady",
+    component: () => import("../pages/SegmentPage.vue"),
+    meta: { layout: "landing", segment: "sklady" } as CustomRouteMeta,
+  },
+  {
+    path: ROUTES.REFRIZHERATORY,
+    name: "Refrizheratory",
+    component: () => import("../pages/SegmentPage.vue"),
+    meta: { layout: "landing", segment: "refrizheratory" } as CustomRouteMeta,
   },
   {
     path: ROUTES.LOGIN,
@@ -96,6 +129,20 @@ export const createAppRouter = () => {
   const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes,
+    scrollBehavior: (to, _from, savedPosition) => {
+      if (to.hash) {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            const element = document.querySelector(to.hash);
+            const top = element
+              ? element.getBoundingClientRect().top + window.scrollY - 80
+              : 0;
+            resolve({ top, left: 0 });
+          }, 0);
+        });
+      }
+      return savedPosition ?? { top: 0, left: 0 };
+    },
   });
 
   appRouter = router;
@@ -153,14 +200,19 @@ export const createAppRouter = () => {
     }
 
     const routeMeta = to.meta as CustomRouteMeta;
+    const locale = to.name === "LandingEn" ? "en" : "ru";
     let robotsMeta = document.head.querySelector<HTMLMetaElement>(
       'meta[name="robots"]',
     );
 
     if (routeMeta.layout === "landing") {
       robotsMeta?.remove();
+      const pageSeo = to.name ? SEO_PAGES[String(to.name)] : undefined;
+      applySeoMeta(pageSeo ?? SEO[locale]);
       return;
     }
+
+    document.title = SEO.ru.title;
 
     if (!robotsMeta) {
       robotsMeta = document.createElement("meta");

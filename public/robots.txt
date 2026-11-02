@@ -2,6 +2,16 @@ User-agent: *
 Allow: /$
 Allow: /en$
 Allow: /en/$
+Allow: /zhurnal-temperatur$
+Allow: /zhurnal-temperatur/$
+Allow: /apteki$
+Allow: /apteki/$
+Allow: /restorany$
+Allow: /restorany/$
+Allow: /sklady$
+Allow: /sklady/$
+Allow: /refrizheratory$
+Allow: /refrizheratory/$
 Allow: /sitemap.xml$
 Allow: /llms.txt$
 Allow: /ai-catalog.json$
