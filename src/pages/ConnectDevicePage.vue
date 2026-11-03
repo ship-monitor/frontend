@@ -1,6 +1,6 @@
 <template>
   <div
-    class="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-ink-50"
+    class="min-h-full flex items-center justify-center p-4 sm:p-6 bg-ink-50"
   >
     <div class="ship-card p-6 sm:p-8 max-w-md w-full animate-scale-in">
       <!-- Заголовок -->
@@ -66,60 +66,32 @@
           </p>
         </div>
 
-        <!-- Пароль устройства -->
+        <!-- Ключ безопасности устройства -->
         <div>
           <label
-            for="device-password"
+            for="device-security-key"
             class="block text-sm font-medium text-ink-700 mb-1.5"
           >
-            Пароль устройства <span class="text-red-500">*</span>
+            Ключ безопасности <span class="text-red-500">*</span>
           </label>
           <input
-            id="device-password"
-            v-model="form.password"
+            id="device-security-key"
+            v-model="form.securityKey"
             type="password"
-            placeholder="Пароль с наклейки"
+            placeholder="Ключ с наклейки"
             class="ship-field"
-            :class="{ '!border-red-400': errors.password }"
+            :class="{ '!border-red-400': errors.securityKey }"
             :disabled="submitting"
             autocomplete="off"
-            :aria-invalid="errors.password ? 'true' : undefined"
-            aria-describedby="device-password-error"
+            :aria-invalid="errors.securityKey ? 'true' : undefined"
+            aria-describedby="device-security-key-error"
           >
           <p
-            v-if="errors.password"
-            id="device-password-error"
+            v-if="errors.securityKey"
+            id="device-security-key-error"
             class="mt-1 text-xs text-red-500"
           >
-            {{ errors.password }}
-          </p>
-        </div>
-
-        <!-- Название устройства -->
-        <div>
-          <label
-            for="device-name"
-            class="block text-sm font-medium text-ink-700 mb-1.5"
-          >
-            Название устройства <span class="text-red-500">*</span>
-          </label>
-          <input
-            id="device-name"
-            v-model="form.name"
-            type="text"
-            placeholder="Холодильник N1"
-            class="ship-field"
-            :class="{ '!border-red-400': errors.name }"
-            :disabled="submitting"
-            :aria-invalid="errors.name ? 'true' : undefined"
-            aria-describedby="device-name-error"
-          >
-          <p
-            v-if="errors.name"
-            id="device-name-error"
-            class="mt-1 text-xs text-red-500"
-          >
-            {{ errors.name }}
+            {{ errors.securityKey }}
           </p>
         </div>
 
@@ -214,7 +186,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { connectDevice } from "@/data";
+import { addDevice } from "@/data";
 import { ROUTES } from "@/constants/routes";
 
 const currentRoute = useRoute();
@@ -225,14 +197,12 @@ const submitStatus = ref<"idle" | "success" | "error">("idle");
 const errorMessage = ref("");
 const errors = reactive<{
   deviceId?: string;
-  password?: string;
-  name?: string;
+  securityKey?: string;
 }>({});
 
 const form = reactive({
   deviceId: "",
-  password: "",
-  name: "",
+  securityKey: "",
 });
 
 const goBack = () => {
@@ -254,9 +224,10 @@ const validate = (): boolean => {
     : UUID_RE.test(id) || HEX_ID_RE.test(id)
       ? undefined
       : "ID должен быть UUID (например 123e4567-e89b-12d3-a456-426614174000)";
-  errors.password = form.password ? undefined : "Введите пароль устройства";
-  errors.name = form.name.trim() ? undefined : "Введите название устройства";
-  return !errors.deviceId && !errors.password && !errors.name;
+  errors.securityKey = form.securityKey
+    ? undefined
+    : "Введите ключ безопасности";
+  return !errors.deviceId && !errors.securityKey;
 };
 
 const handleSubmit = async () => {
@@ -265,11 +236,7 @@ const handleSubmit = async () => {
   submitting.value = true;
   submitStatus.value = "idle";
 
-  const result = await connectDevice(
-    form.deviceId.trim(),
-    form.password,
-    form.name.trim()
-  );
+  const result = await addDevice(form.deviceId.trim(), form.securityKey);
 
   submitting.value = false;
 

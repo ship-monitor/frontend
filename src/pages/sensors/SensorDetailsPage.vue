@@ -61,66 +61,23 @@
         @ping="pingAndUpdateStatus"
       />
 
-      <SensorTabs
-        v-model="activeTab"
-        :tabs="tabs"
-        @select="activeTab = $event"
+      <!-- NOTE: вкладка «Температура» вернётся вместе со схемой ответа
+           GET /api/v2/devices/{id}/metrics. -->
+      <SensorInfoTab
+        :settings="settings"
+        :saving="saving"
+        :error="saveError"
+        @save="saveSettings"
       />
-
-      <div
-        id="sensor-tabpanel"
-        role="tabpanel"
-        :aria-labelledby="`sensor-tab-${activeTab}`"
-        tabindex="0"
-      >
-        <transition
-          name="fade"
-          mode="out-in"
-        >
-          <SensorTemperatureTab
-            v-if="activeTab === 'temperature'"
-            :current-temp="currentTemp"
-            :last-temp-time="lastTempTime"
-            :error="tempError"
-            :stale="tempStale"
-            :loading="tempLoading"
-            :selected-period="selectedPeriod"
-            :history="tempHistory"
-            :thresholds="{
-              min: settings.minThreshold,
-              max: settings.maxThreshold,
-            }"
-            :is-connected="deviceIsConnected"
-            @refresh="refreshTemperature"
-            @update:period="selectedPeriod = $event"
-          />
-
-          <SensorInfoTab
-            v-else-if="activeTab === 'info'"
-            :settings="settings"
-            :saving="saving"
-            :error="saveError"
-            @save="saveSettings"
-          />
-        </transition>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import {
-  getDeviceState,
-  getDeviceStates,
-  updateDevice,
-  getDeviceById,
-  type DeviceStateRecord,
-} from "@/data";
+import { updateDevice, getDeviceById } from "@/data";
 import SensorHeader from "./SensorHeader.vue";
-import SensorTabs from "./SensorTabs.vue";
-import SensorTemperatureTab from "./SensorTemperatureTab.vue";
 import SensorInfoTab, { type SensorSettings } from "./SensorInfoTab.vue";
 import { fetchOnlineStatus } from "@/utils/utils";
 import safeStorage from "@/utils/storage";
@@ -132,27 +89,14 @@ const deviceId = computed(() => {
 });
 
 const loading = ref(true);
-const tempLoading = ref(false);
 const statusLoading = ref(false);
 const saving = ref(false);
-const activeTab = ref("temperature");
 const deviceIsConnected = ref(false);
 const sensorName = ref("");
 const statusUnknown = ref(true);
-
-const currentTemp = ref<DeviceStateRecord<number> | null>(null);
-const lastTempTime = ref("");
-const tempError = ref("");
-const tempStale = ref(false);
 const saveError = ref("");
 const loadError = ref("");
-const tempHistory = ref<
-  Array<{ time: string; value: number; timestamp: number }>
->([]);
-const selectedPeriod = ref("24h");
 
-let refreshTimer: ReturnType<typeof setInterval> | null = null;
-let refreshInFlight = false;
 // Счётчик поколений: ответы от предыдущего устройства не перезаписывают новое.
 let generation = 0;
 
@@ -190,11 +134,6 @@ function persistLocalSettings() {
     })
   );
 }
-
-const tabs = [
-  { value: "temperature", label: "Температура" },
-  { value: "info", label: "Информация" },
-];
 
 function getDisplayName(apiName?: string): string {
   if (settings.value.name && settings.value.name.trim() !== "")
@@ -243,57 +182,6 @@ async function pingAndUpdateStatus() {
   statusLoading.value = false;
 }
 
-async function loadTemperatureHistory(currentGeneration: number) {
-  const result = await getDeviceStates<number>(
-    deviceId.value,
-    "temperature",
-    100
-  );
-  if (currentGeneration !== generation) return;
-  result
-    .map((history) => {
-      const mapped = history.map((record) => ({
-        time: record.timestamp,
-        value: record.value as number,
-        timestamp: new Date(record.timestamp).getTime(),
-      }));
-      mapped.sort((a, b) => a.timestamp - b.timestamp);
-      tempHistory.value = mapped;
-    })
-    .inspectErr((err) =>
-      console.error("Failed load state history: %s", err)
-    );
-}
-
-async function refreshTemperature() {
-  if (refreshInFlight) return;
-  refreshInFlight = true;
-  tempLoading.value = true;
-  tempError.value = "";
-  const currentGeneration = generation;
-
-  const result = await getDeviceState<number>(deviceId.value, "temperature");
-  // Ответ от прошлого устройства: флаги мог уже перехватить новый refresh
-  // (resetState сбросил их при смене) — ничего не трогаем.
-  if (currentGeneration !== generation) return;
-
-  if (result.isOk) {
-    currentTemp.value = result.value;
-    tempStale.value = false;
-    lastTempTime.value = new Date(result.value.timestamp).toLocaleString(
-      "ru-RU"
-    );
-    await loadTemperatureHistory(currentGeneration);
-  } else {
-    // Показанные данные могли устареть — помечаем, но не прячем.
-    tempError.value = result.error;
-    if (currentTemp.value) tempStale.value = true;
-  }
-
-  tempLoading.value = false;
-  refreshInFlight = false;
-}
-
 async function loadDeviceData() {
   const currentGeneration = ++generation;
   loading.value = true;
@@ -310,40 +198,16 @@ async function loadDeviceData() {
 
   sensorName.value = getDisplayName(deviceResult.value.name);
   await pingAndUpdateStatus();
-  await refreshTemperature();
   loading.value = false;
-  startAutoRefresh();
-}
-
-function startAutoRefresh() {
-  stopAutoRefresh();
-  refreshTimer = setInterval(() => {
-    refreshTemperature();
-  }, 10000);
-}
-
-function stopAutoRefresh() {
-  if (refreshTimer) {
-    clearInterval(refreshTimer);
-    refreshTimer = null;
-  }
 }
 
 function resetState() {
-  stopAutoRefresh();
   generation++;
-  refreshInFlight = false;
   statusLoading.value = false;
-  currentTemp.value = null;
-  tempHistory.value = [];
-  lastTempTime.value = "";
-  tempError.value = "";
-  tempStale.value = false;
   saveError.value = "";
   statusUnknown.value = true;
   deviceIsConnected.value = false;
   sensorName.value = "";
-  activeTab.value = "temperature";
 }
 
 // Vue Router переиспользует компонент при смене :id — перезагружаем состояние.
@@ -364,18 +228,4 @@ onMounted(() => {
     loading.value = false;
   }
 });
-
-onUnmounted(stopAutoRefresh);
 </script>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

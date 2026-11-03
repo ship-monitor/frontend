@@ -1,17 +1,10 @@
-import { getDeviceState } from "@/data";
-
-const SECOND = 1000;
-const PING_INTERVAL = 10 * SECOND;
+import { getDeviceOnlineStatus } from "@/data";
 
 export async function fetchOnlineStatus(
   deviceId: string
 ): Promise<boolean | null> {
-  return (await getDeviceState<boolean>(deviceId, "online"))
-    .map((r) => {
-      const timestamp = new Date(r.timestamp).getTime();
-      if (!Number.isFinite(timestamp)) return null;
-      return r.value === true && Date.now() - timestamp <= PING_INTERVAL;
-    })
+  return (await getDeviceOnlineStatus(deviceId))
+    .map((status) => status.online)
     .inspectErr((err) => console.error("Faild load online state: %s", err))
     .unwrapOr(null);
 }
@@ -19,18 +12,3 @@ export async function fetchOnlineStatus(
 export async function isOnline(deviceId: string): Promise<boolean> {
   return (await fetchOnlineStatus(deviceId)) ?? false;
 }
-
-export const formatTimeAgo = (timestamp: string): string => {
-  const date = new Date(timestamp);
-  const diff = Date.now() - date.getTime();
-  if (!Number.isFinite(diff)) return "—";
-  if (diff < 0) return "только что";
-  const sec = Math.floor(diff / 1000);
-  if (sec < 10) return "только что";
-  if (sec < 60) return `${sec}с назад`;
-  const min = Math.floor(sec / 60);
-  if (min < 60) return `${min}м назад`;
-  const hours = Math.floor(min / 60);
-  if (hours < 24) return `${hours}ч назад`;
-  return `${Math.floor(hours / 24)}д назад`;
-};

@@ -236,7 +236,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, onActivated } from "vue";
 import { ROUTES } from "@/constants/routes";
-import { getUserDevices, getDeviceState } from "@/data";
+import { getUserDevices } from "@/data";
 import { fetchOnlineStatus } from "@/utils/utils";
 import { useAuthStore } from "@/stores/authStore";
 import safeStorage from "@/utils/storage";
@@ -334,15 +334,6 @@ function savePingHistory(deviceId: string, history: boolean[]) {
   );
 }
 
-function readCachedTemperature(deviceId: string): number | null {
-  const data = asRecord(safeStorage.getJson(`device_data_${deviceId}`));
-  const temp = data?.["currentTemp"];
-  if (typeof temp === "number") {
-    return temp;
-  }
-  return null;
-}
-
 async function loadSensors() {
   if (refreshInFlight) return;
   refreshInFlight = true;
@@ -356,19 +347,13 @@ async function loadSensors() {
   }
   loadError.value = null;
 
-  // Единый снапшот: на каждое устройство — статус и температура параллельно.
+  // Единый снапшот: на каждое устройство — статус параллельно.
+  // NOTE: температура вернётся вместе со схемой ответа /api/v2/devices/{id}/metrics.
   const snapshot = await Promise.all(
-    devicesResult.value.map(async (device) => {
-      const [ok, tempRecord] = await Promise.all([
-        fetchOnlineStatus(device.id),
-        getDeviceState<number>(device.id, "temperature"),
-      ]);
-      return {
-        device,
-        ok,
-        temp: tempRecord.isOk ? tempRecord.value : null,
-      };
-    })
+    devicesResult.value.map(async (device) => ({
+      device,
+      ok: await fetchOnlineStatus(device.id),
+    }))
   );
 
   const allSensors: SensorDisplay[] = [];
@@ -376,7 +361,7 @@ async function loadSensors() {
     sensors.value.map((sensor) => [sensor.id, sensor.status])
   );
 
-  for (const { device, ok, temp } of snapshot) {
+  for (const { device, ok } of snapshot) {
     const pingHistory = loadPingHistory(device.id);
     if (ok !== null) {
       pingHistory.push(ok);
@@ -399,22 +384,13 @@ async function loadSensors() {
       }
     }
 
-    const temperature: number | null =
-      temp?.value ?? readCachedTemperature(device.id);
-    if (temp?.value !== null && temp?.value !== undefined) {
-      safeStorage.setItem(
-        `device_data_${device.id}`,
-        JSON.stringify({ currentTemp: temp.value, savedAt: Date.now() })
-      );
-    }
-
     allSensors.push({
       id: device.id,
       name: device.name,
       displayName: getDisplayName(device.id, device.name),
       status,
-      temperature,
-      tempUpdatedAt: temp ? new Date(temp.timestamp).getTime() : null,
+      temperature: null,
+      tempUpdatedAt: null,
     });
   }
 

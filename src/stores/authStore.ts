@@ -1,15 +1,15 @@
 import { defineStore } from "pinia";
-import type { User } from "@/models/models";
-import { getCurrentUser, logout as apiLogout } from "@/data";
+import { logout as localLogout } from "@/data";
+import { clearAuthToken, getAuthToken } from "@/utils/authToken";
 
 export const useAuthStore = defineStore("auth-store", {
   state: () => ({
-    user: null as User | null,
+    authenticated: false,
     initialized: false,
     ready: null as Promise<void> | null,
   }),
   getters: {
-    isAuthenticated: (state) => state.user !== null,
+    isAuthenticated: (state) => state.authenticated,
   },
   actions: {
     async initialize() {
@@ -22,17 +22,21 @@ export const useAuthStore = defineStore("auth-store", {
       return this.ready;
     },
 
+    // В API v2 нет эндпоинта текущего пользователя: валидность сессии
+    // определяется наличием сохранённого Bearer-токена.
     async checkLogin() {
-      this.user = null;
-      (await getCurrentUser())
-        .map((u) => {
-          this.user = u;
-        })
-        .inspectErr((err) => console.error("failed fetch user: %s", err));
+      this.authenticated = false;
+      // Временный обход авторизации для локальной разработки (VITE_DISABLE_AUTH=true).
+      // Только для DEV-сборок: в production проверка выполняется как обычно.
+      if (import.meta.env.DEV && import.meta.env.VITE_DISABLE_AUTH) {
+        this.authenticated = true;
+        return;
+      }
+      this.authenticated = getAuthToken() !== null;
     },
 
     reset() {
-      this.user = null;
+      this.authenticated = false;
       this.initialized = false;
       this.ready = null;
     },
@@ -40,14 +44,12 @@ export const useAuthStore = defineStore("auth-store", {
     // Сброс только сессии, без обнуления initialized/ready:
     // используется 401-интерсептором, повторная инициализация не нужна.
     invalidateSession() {
-      this.user = null;
+      this.authenticated = false;
+      clearAuthToken();
     },
 
     async logout() {
-      const result = await apiLogout();
-      if (result.isErr) {
-        console.warn("server logout failed, clearing local session: %s", result.error);
-      }
+      await localLogout();
       this.reset();
     },
   },

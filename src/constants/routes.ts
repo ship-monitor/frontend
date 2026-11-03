@@ -1,6 +1,5 @@
 export const ROUTES = {
   LOGIN: "/auth/login",
-  CONFIRM_EMAIL: "/auth/confirm-email",
   DASHBOARD: "/dashboard",
   SENSOR_DETAILS: "/sensors/:id",
   PROFILE: "/profile",
@@ -11,8 +10,6 @@ export type RouteKey = keyof typeof ROUTES;
 
 export const route = {
   login: () => ROUTES.LOGIN,
-  confirmEmail: (token: string) =>
-    `${ROUTES.CONFIRM_EMAIL}?token=${encodeURIComponent(token)}`,
   dashboard: () => ROUTES.DASHBOARD,
   sensorDetails: (id: string) => ROUTES.SENSOR_DETAILS.replace(":id", id),
   profile: () => ROUTES.PROFILE,

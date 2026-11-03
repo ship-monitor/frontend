@@ -12,10 +12,4 @@ describe("route builders", () => {
   it("substitutes the sensor id", () => {
     expect(route.sensorDetails("abc-123")).toBe(`/sensors/abc-123`);
   });
-
-  it("encodes the confirmation token as a query parameter", () => {
-    expect(route.confirmEmail("tok en+1")).toBe(
-      "/auth/confirm-email?token=tok%20en%2B1"
-    );
-  });
 });

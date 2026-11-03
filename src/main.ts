@@ -12,7 +12,7 @@ const pinia = createPinia();
 app.use(pinia);
 app.use(i18n);
 
-// Запускаем проверку сессии (по cookie) в фоне, не блокируя первый рендер.
+// Запускаем проверку сессии (по Bearer-токену) в фоне, не блокируя первый рендер.
 // Гвард роутера дожидается завершения инициализации через authStore.ready.
 const authStore = useAuthStore(pinia);
 authStore.initialize();

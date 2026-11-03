@@ -11,9 +11,10 @@ vi.mock("@/api", () => ({
 }));
 
 import api from "@/api";
-import { getUserDevices, sendDeviceCommand } from "@/data";
+import { getUserDevices, addDevice } from "@/data";
 
 const mockedRequest = vi.mocked(api.request);
+const mockedPost = vi.mocked(api.post);
 
 const response = (status: number, data: unknown) => ({
   status,
@@ -26,22 +27,46 @@ const response = (status: number, data: unknown) => ({
 describe("data layer request adapter", () => {
   beforeEach(() => {
     mockedRequest.mockReset();
+    mockedPost.mockReset();
   });
 
-  it("returns Ok with unwrapped devices for a 2xx envelope response", async () => {
-    const devices = [{ id: "d1", name: "Fridge", isConnected: true }];
+  it("returns Ok with devices mapped from the v2 envelope", async () => {
     mockedRequest.mockResolvedValue(
-      response(200, { devices }) as never
+      response(200, {
+        devices: [{ id: "d1", name: "Fridge", owner_id: "u1" }],
+      }) as never
     );
 
     const result = await getUserDevices();
     expect(result.isOk).toBe(true);
-    result.map((value) => expect(value).toEqual(devices));
+    result.map((value) =>
+      expect(value).toEqual([{ id: "d1", name: "Fridge", ownerId: "u1" }])
+    );
   });
 
-  it("returns Err for non-2xx statuses", async () => {
+  it("collects devices from all pages", async () => {
+    const fullPage = Array.from({ length: 50 }, (_, i) => ({
+      id: `d${i}`,
+      name: `N${i}`,
+    }));
+    mockedRequest
+      .mockResolvedValueOnce(response(200, { devices: fullPage }) as never)
+      .mockResolvedValueOnce(
+        response(200, { devices: [{ id: "last", name: "Last" }] }) as never
+      );
+
+    const result = await getUserDevices();
+    expect(result.isOk).toBe(true);
+    result.map((value) => expect(value).toHaveLength(51));
+    expect(mockedRequest).toHaveBeenCalledTimes(2);
+    expect(mockedRequest.mock.calls[1]?.[0]).toMatchObject({
+      params: { page: 1, pageSize: 50 },
+    });
+  });
+
+  it("returns Err with problem details for non-2xx statuses", async () => {
     mockedRequest.mockResolvedValue(
-      response(500, { details: "server exploded" }) as never
+      response(500, { title: "Error", status: 500, detail: "server exploded" }) as never
     );
 
     const result = await getUserDevices();
@@ -49,7 +74,17 @@ describe("data layer request adapter", () => {
     result.inspectErr((err) => expect(err).toBe("server exploded"));
   });
 
-  it("returns Err with details fallback for non-2xx without details", async () => {
+  it("falls back to the problem title without detail", async () => {
+    mockedRequest.mockResolvedValue(
+      response(500, { type: "error", title: "server exploded", status: 500 }) as never
+    );
+
+    const result = await getUserDevices();
+    expect(result.isErr).toBe(true);
+    result.inspectErr((err) => expect(err).toBe("server exploded"));
+  });
+
+  it("returns Err with fallback for non-2xx without a problem body", async () => {
     mockedRequest.mockResolvedValue(response(503, null) as never);
 
     const result = await getUserDevices();
@@ -74,13 +109,21 @@ describe("data layer request adapter", () => {
     expect(result.isErr).toBe(true);
   });
 
-  it("sendDeviceCommand resolves Ok for 2xx and Err for 4xx", async () => {
-    mockedRequest.mockResolvedValue(response(204, null) as never);
-    const ok = await sendDeviceCommand("d1", "ping");
+  it("addDevice resolves Ok for 201 and maps 409 to a dedicated error", async () => {
+    mockedPost.mockResolvedValue(response(201, null) as never);
+    const ok = await addDevice("d1", "key");
     expect(ok.isOk).toBe(true);
 
-    mockedRequest.mockResolvedValue(response(404, { details: "no device" }) as never);
-    const err = await sendDeviceCommand("d1", "ping");
-    expect(err.isErr).toBe(true);
+    mockedPost.mockResolvedValue(response(409, null) as never);
+    const conflict = await addDevice("d1", "key");
+    expect(conflict.isErr).toBe(true);
+    conflict.inspectErr((err) => expect(err).toBe("Устройство уже подключено"));
+
+    mockedPost.mockResolvedValue(
+      response(400, { title: "Error", status: 400, detail: "bad key" }) as never
+    );
+    const bad = await addDevice("d1", "key");
+    expect(bad.isErr).toBe(true);
+    bad.inspectErr((err) => expect(err).toBe("bad key"));
   });
 });

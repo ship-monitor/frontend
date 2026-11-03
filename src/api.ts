@@ -1,6 +1,7 @@
 import axios from "axios";
 import { ROUTES } from "@/constants/routes";
 import { getAppRouter } from "@/router";
+import { getAuthToken } from "@/utils/authToken";
 
 const createApi = () => {
   const backendUrl = import.meta.env.VITE_API_URL;
@@ -13,11 +14,19 @@ const createApi = () => {
     baseURL: backendUrl,
     validateStatus: () => true,
     timeout: 5000,
-    withCredentials: true,
   });
 };
 
 const api = createApi();
+
+// Авторизация в API v2 — Bearer-токен из логина, cookies больше не используются.
+api.interceptors.request.use((config) => {
+  const token = getAuthToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 const UNAUTHORIZED = 401;
 

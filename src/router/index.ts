@@ -38,12 +38,6 @@ const routes: Array<RouteRecordRaw> = [
   //   meta: { onlyAnonymous: true, layout: "auth" },
   // },
   {
-    path: ROUTES.CONFIRM_EMAIL,
-    name: "ConfirmEmail",
-    component: () => import("../pages/auth/ConfirmEmailPage.vue"),
-    meta: { requireAuth: true, layout: "auth" } as CustomRouteMeta,
-  },
-  {
     path: ROUTES.DASHBOARD,
     name: "Dashboard",
     component: () => import("../pages/DashboardPage.vue"),
