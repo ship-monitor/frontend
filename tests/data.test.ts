@@ -33,14 +33,20 @@ describe("data layer request adapter", () => {
   it("returns Ok with devices mapped from the v2 envelope", async () => {
     mockedRequest.mockResolvedValue(
       response(200, {
-        devices: [{ id: "d1", name: "Fridge", owner_id: "u1" }],
+        devices: [
+          { id: "d1", name: "Fridge", ownerId: "u1" },
+          { id: "d2", name: "Old", owner_id: "u1" },
+        ],
       }) as never
     );
 
     const result = await getUserDevices();
     expect(result.isOk).toBe(true);
     result.map((value) =>
-      expect(value).toEqual([{ id: "d1", name: "Fridge", ownerId: "u1" }])
+      expect(value).toEqual([
+        { id: "d1", name: "Fridge", ownerId: "u1" },
+        { id: "d2", name: "Old", ownerId: "u1" },
+      ])
     );
   });
 

@@ -48,11 +48,11 @@ const asDevice: Validator<Device> = (data) => {
     const record = data as Record<string, unknown>;
     const id = record["id"];
     if (typeof id === "string") {
+      const owner = record["ownerId"] ?? record["owner_id"];
       return Result.ok({
         id,
         name: typeof record["name"] === "string" ? record["name"] : "",
-        ownerId:
-          typeof record["owner_id"] === "string" ? record["owner_id"] : undefined,
+        ownerId: typeof owner === "string" ? owner : undefined,
       });
     }
   }

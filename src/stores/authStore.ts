@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { logout as localLogout } from "@/data";
-import { clearAuthToken, getAuthToken } from "@/utils/authToken";
+import { clearAuthTokens, getAuthToken } from "@/utils/authToken";
 
 export const useAuthStore = defineStore("auth-store", {
   state: () => ({
@@ -45,7 +45,7 @@ export const useAuthStore = defineStore("auth-store", {
     // используется 401-интерсептором, повторная инициализация не нужна.
     invalidateSession() {
       this.authenticated = false;
-      clearAuthToken();
+      clearAuthTokens();
     },
 
     async logout() {
