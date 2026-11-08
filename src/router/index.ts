@@ -29,14 +29,12 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("../pages/auth/LoginPage.vue"),
     meta: { onlyAnonymous: true, layout: "auth" } as CustomRouteMeta,
   },
-  // Регистрация отключена: RegisterPage.vue и register API удалены.
-  // Для возврата восстановить из git history и добавить маршрут:
-  // {
-  //   path: "/auth/register",
-  //   name: "Register",
-  //   component: () => import("../pages/auth/RegisterPage.vue"),
-  //   meta: { onlyAnonymous: true, layout: "auth" },
-  // },
+  {
+    path: ROUTES.REGISTER,
+    name: "Register",
+    component: () => import("../pages/auth/RegisterPage.vue"),
+    meta: { onlyAnonymous: true, layout: "auth" } as CustomRouteMeta,
+  },
   {
     path: ROUTES.DASHBOARD,
     name: "Dashboard",

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { ROUTES } from "@/constants/routes";
-import { LANDING_URL } from "@/constants/contacts";
 import { login } from "@/data/auth";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
@@ -284,14 +283,14 @@ const handleLogin = async () => {
         </form>
 
         <p class="mt-6 text-center text-sm text-ink-500">
-          Нет аккаунта? Запросите демо-доступ:
+          Нет аккаунта?
 
-          <a
-            :href="LANDING_URL"
+          <router-link
+            :to="ROUTES.REGISTER"
             class="text-brand-600 hover:text-brand-700 font-semibold"
           >
-            Вернуться на лендинг
-          </a>
+            Зарегистрироваться
+          </router-link>
         </p>
       </div>
     </div>

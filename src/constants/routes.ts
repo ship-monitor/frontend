@@ -1,5 +1,6 @@
 export const ROUTES = {
   LOGIN: "/auth/login",
+  REGISTER: "/auth/register",
   DASHBOARD: "/dashboard",
   SENSOR_DETAILS: "/sensors/:id",
   PROFILE: "/profile",
@@ -10,6 +11,7 @@ export type RouteKey = keyof typeof ROUTES;
 
 export const route = {
   login: () => ROUTES.LOGIN,
+  register: () => ROUTES.REGISTER,
   dashboard: () => ROUTES.DASHBOARD,
   sensorDetails: (id: string) => ROUTES.SENSOR_DETAILS.replace(":id", id),
   profile: () => ROUTES.PROFILE,
