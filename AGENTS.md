@@ -22,7 +22,7 @@ Guidance for AI agents working in this repository.
 
 SPA на **Vue 3** (Composition API, `<script setup lang="ts">`), TypeScript
 (strict, `noUncheckedIndexedAccess`), Vite 7, Pinia, Vue Router, Tailwind CSS
-v4, Axios, true-myth.
+v4, oazapfts, true-myth.
 
 ### Commands
 
@@ -33,16 +33,28 @@ npm run type-check   # vue-tsc --build
 npm run lint         # eslint
 npm run test         # vitest run
 npm run format       # prettier . --write
+npm run api:generate # Regenerate API client from ../cloud/specs/openapi.yml
 ```
 
 Always run `npm run lint` and `npm run type-check` before considering a task
 done. They must pass.
 
+### API client
+
+`src/api/index.ts` is **generated** by oazapfts from
+`../cloud/specs/openapi.yml` — never edit it by hand; run
+`npm run api:generate` after the spec changes (on Windows the script
+delegates to WSL because the oazapfts CLI crashes there).
+`src/api/client.ts` configures the generated client at startup
+(`configureApi()` in `main.ts`): `VITE_API_URL` base URL, Bearer header,
+and a 401 → refresh → retry wrapper. `src/data/*` wraps generated
+operations in true-myth `Result`s and problem+json error parsing.
+
 ### Project structure
 
 ```
 src/
-├── api.ts              # Axios instance for the Ship backend (+ 401 interceptor)
+├── api/                # Generated oazapfts client + client setup
 ├── main.ts             # App entrypoint
 ├── App.vue             # Root component (auth/app layout switch)
 ├── styles.css          # Global styles + Tailwind import

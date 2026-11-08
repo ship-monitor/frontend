@@ -5,6 +5,11 @@ import { i18n } from "@/i18n";
 import "./styles.css";
 import { createPinia } from "pinia";
 import { useAuthStore } from "@/stores/authStore";
+import { configureApi } from "@/api/client";
+
+// Сгенерированный клиент (src/api/index.ts) настраивается до любого запроса:
+// baseUrl из окружения + Bearer-заголовок и авто-refresh при 401.
+configureApi();
 
 const app = createApp(App);
 

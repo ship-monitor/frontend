@@ -21,6 +21,14 @@ export default defineConfig([
     extends: ["js/recommended"],
     languageOptions: { globals: globals.browser },
   },
+  {
+    files: ["scripts/**/*.mjs"],
+    languageOptions: { globals: globals.node },
+  },
+  {
+    files: ["src/api/index.ts"],
+    languageOptions: { globals: globals.browser },
+  },
   tseslint.configs.recommended,
   {
     files: ["**/*.vue"],

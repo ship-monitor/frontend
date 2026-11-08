@@ -1,33 +1,36 @@
-import api from "@/api";
-import type { AxiosResponse } from "axios";
+import { loginUser, refreshToken as refreshTokenOp, registerUser } from "@/api";
 import { Result, Unit } from "true-myth";
 import { problemDetails } from "@/utils/problem";
 import {
   clearAuthTokens,
+  getRefreshToken,
   setAuthToken,
   setRefreshToken,
-  getRefreshToken,
 } from "@/utils/authToken";
 
 const NETWORK_ERROR = "Не удалось связаться с сервером";
 
-const isOkStatus = (status: number) => status >= 200 && status < 300;
+const errorData = (response: { status: number }): unknown =>
+  "data" in response ? (response as { data?: unknown }).data : undefined;
 
-type LoginResponse = {
-  success?: boolean;
-  token?: string;
-  refreshToken?: string;
-};
+const saveTokens = (data: unknown, requireRefreshToken: boolean): boolean => {
+  const record =
+    data && typeof data === "object"
+      ? (data as Record<string, unknown>)
+      : {};
+  const token = record["token"];
+  if (record["success"] !== true || typeof token !== "string" || !token) {
+    return false;
+  }
+  const refresh = record["refreshToken"];
+  if (requireRefreshToken && (typeof refresh !== "string" || !refresh)) {
+    return false;
+  }
 
-const saveTokens = (
-  data: LoginResponse,
-  requireRefreshToken: boolean
-): boolean => {
-  if (data.success !== true || !data.token) return false;
-  if (requireRefreshToken && !data.refreshToken) return false;
-
-  setAuthToken(data.token);
-  if (data.refreshToken) setRefreshToken(data.refreshToken);
+  setAuthToken(token);
+  if (typeof refresh === "string" && refresh) {
+    setRefreshToken(refresh);
+  }
   return true;
 };
 
@@ -35,23 +38,23 @@ export const login = async (
   email: string,
   password: string
 ): Promise<Result<Unit, string>> => {
-  let response: AxiosResponse<LoginResponse>;
+  let response;
   try {
-    response = await api.post("/api/v2/auth/login", { email, password });
+    response = await loginUser({ email, password });
   } catch {
     return Result.err(NETWORK_ERROR);
   }
 
   if (response.status === 401) {
     return Result.err(
-      problemDetails(response.data, "Неверный логин или пароль")
+      problemDetails(errorData(response), "Неверный логин или пароль")
     );
   }
-  if (!isOkStatus(response.status)) {
-    return Result.err(problemDetails(response.data, "Не удалось выполнить вход"));
+  if (response.status !== 200) {
+    return Result.err(problemDetails(errorData(response), "Не удалось выполнить вход"));
   }
 
-  if (!saveTokens(response.data ?? {}, false)) {
+  if (!saveTokens(response.data, false)) {
     return Result.err("Неверный ответ сервера авторизации");
   }
   return Result.ok(Unit);
@@ -62,20 +65,16 @@ export const register = async (
   password: string,
   name: string
 ): Promise<Result<Unit, string>> => {
-  let response: AxiosResponse;
+  let response;
   try {
-    response = await api.post("/api/v2/auth/register", {
-      email,
-      password,
-      name,
-    });
+    response = await registerUser({ email, password, name });
   } catch {
     return Result.err(NETWORK_ERROR);
   }
 
-  if (!isOkStatus(response.status)) {
+  if (response.status !== 201) {
     return Result.err(
-      problemDetails(response.data, "Не удалось зарегистрироваться")
+      problemDetails(errorData(response), "Не удалось зарегистрироваться")
     );
   }
   return Result.ok(Unit);
@@ -88,23 +87,23 @@ export const logout = async (): Promise<Result<Unit, string>> => {
 };
 
 export const refreshSession = async (): Promise<Result<Unit, string>> => {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) return Result.err("Нет refresh-токена");
+  const current = getRefreshToken();
+  if (!current) return Result.err("Нет refresh-токена");
 
-  let response: AxiosResponse<LoginResponse>;
+  let response;
   try {
-    response = await api.post("/api/v2/auth/refresh", { refreshToken });
+    response = await refreshTokenOp({ refreshToken: current });
   } catch {
     return Result.err(NETWORK_ERROR);
   }
 
-  if (!isOkStatus(response.status)) {
+  if (response.status !== 200) {
     return Result.err(
-      problemDetails(response.data, "Не удалось обновить сессию")
+      problemDetails(errorData(response), "Не удалось обновить сессию")
     );
   }
 
-  if (!saveTokens(response.data ?? {}, true)) {
+  if (!saveTokens(response.data, true)) {
     return Result.err("Неверный ответ обновления сессии");
   }
   return Result.ok(Unit);

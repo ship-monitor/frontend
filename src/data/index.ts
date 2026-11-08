@@ -1,5 +1,11 @@
-import api from "@/api";
-import type { AxiosRequestConfig, AxiosResponse } from "axios";
+import {
+  connectDevice,
+  editDevice,
+  getDevice,
+  getDeviceOnlineStatus as getDeviceOnlineStatusOp,
+  getDevices,
+  removeDevice,
+} from "@/api";
 import { Result, Unit } from "true-myth";
 import { problemDetails } from "@/utils/problem";
 
@@ -16,63 +22,23 @@ export type DeviceOnlineStatus = {
 
 export type APIError = string;
 
-const isOkStatus = (status: number) => status >= 200 && status < 300;
+const errorData = (response: { status: number }): unknown =>
+  "data" in response ? (response as { data?: unknown }).data : undefined;
 
-type Validator<T> = (data: unknown) => Result<T, APIError>;
-
-const okUnit: Validator<Unit> = () => Result.ok(Unit);
-
-const request = async <T>(
-  config: AxiosRequestConfig,
-  validate: Validator<T>,
-  fallbackError: string
-): Promise<Result<T, APIError>> => {
-  let response: AxiosResponse;
-  try {
-    response = await api.request(config);
-  } catch {
-    return Result.err("Не удалось связаться с сервером");
-  }
-
-  if (!isOkStatus(response.status)) {
-    return Result.err(problemDetails(response.data, fallbackError));
-  }
-
-  return validate(response.data);
-};
-
-// ============= Устройства =============
-
-const asDevice: Validator<Device> = (data) => {
+const asDevice = (data: unknown): Result<Device, APIError> => {
   if (data && typeof data === "object") {
     const record = data as Record<string, unknown>;
     const id = record["id"];
     if (typeof id === "string") {
-      const owner = record["ownerId"] ?? record["owner_id"];
       return Result.ok({
         id,
         name: typeof record["name"] === "string" ? record["name"] : "",
-        ownerId: typeof owner === "string" ? owner : undefined,
+        ownerId:
+          typeof record["ownerId"] === "string" ? record["ownerId"] : undefined,
       });
     }
   }
   return Result.err('unexpected response shape: missing "id"');
-};
-
-const asDeviceList: Validator<Device[]> = (data) => {
-  if (data && typeof data === "object") {
-    const list = (data as Record<string, unknown>)["devices"];
-    if (Array.isArray(list)) {
-      const devices: Device[] = [];
-      for (const item of list) {
-        const device = asDevice(item);
-        if (device.isErr) return Result.err(device.error);
-        devices.push(device.value);
-      }
-      return Result.ok(devices);
-    }
-  }
-  return Result.err('unexpected response shape: missing "devices"');
 };
 
 const DEVICES_PAGE_SIZE = 50;
@@ -83,19 +49,35 @@ export const getUserDevices = async (): Promise<Result<Device[], APIError>> => {
   const devices: Device[] = [];
 
   for (let page = 0; page < MAX_DEVICE_PAGES; page++) {
-    const result = await request(
-      {
-        method: "get",
-        url: "/api/v2/devices",
-        params: { page, pageSize: DEVICES_PAGE_SIZE },
-      },
-      asDeviceList,
-      "Не удалось загрузить устройства"
-    );
-    if (result.isErr) return Result.err(result.error);
+    let response;
+    try {
+      response = await getDevices({ page, pageSize: DEVICES_PAGE_SIZE });
+    } catch {
+      return Result.err("Не удалось связаться с сервером");
+    }
 
-    devices.push(...result.value);
-    if (result.value.length < DEVICES_PAGE_SIZE) break;
+    if (response.status !== 200) {
+      return Result.err(
+        problemDetails(errorData(response), "Не удалось загрузить устройства")
+      );
+    }
+
+    const payload: unknown = response.data;
+    const list =
+      payload && typeof payload === "object"
+        ? (payload as Record<string, unknown>)["devices"]
+        : null;
+    if (!Array.isArray(list)) {
+      return Result.err('unexpected response shape: missing "devices"');
+    }
+
+    for (const item of list) {
+      const device = asDevice(item);
+      if (device.isErr) return Result.err(device.error);
+      devices.push(device.value);
+    }
+
+    if (list.length < DEVICES_PAGE_SIZE) break;
   }
 
   return Result.ok(devices);
@@ -103,21 +85,31 @@ export const getUserDevices = async (): Promise<Result<Device[], APIError>> => {
 
 export const getDeviceById = async (
   deviceId: string
-): Promise<Result<Device, APIError>> =>
-  request(
-    { method: "get", url: `/api/v2/devices/${encodeURIComponent(deviceId)}` },
-    asDevice,
-    "Не удалось загрузить устройство"
-  );
+): Promise<Result<Device, APIError>> => {
+  let response;
+  try {
+    response = await getDevice(deviceId);
+  } catch {
+    return Result.err("Не удалось связаться с сервером");
+  }
+
+  if (response.status !== 200) {
+    return Result.err(
+      problemDetails(errorData(response), "Не удалось загрузить устройство")
+    );
+  }
+
+  return asDevice(response.data);
+};
 
 // NOTE(api-contract): 409 «устройство уже подключено» приходит без тела.
 export const addDevice = async (
   deviceId: string,
   securityKey: string
 ): Promise<Result<Unit, APIError>> => {
-  let response: AxiosResponse;
+  let response;
   try {
-    response = await api.post("/api/v2/devices", { deviceId, securityKey });
+    response = await connectDevice({ deviceId, securityKey });
   } catch {
     return Result.err("Не удалось связаться с сервером");
   }
@@ -125,9 +117,9 @@ export const addDevice = async (
   if (response.status === 409) {
     return Result.err("Устройство уже подключено");
   }
-  if (!isOkStatus(response.status)) {
+  if (response.status !== 201) {
     return Result.err(
-      problemDetails(response.data, "Не удалось подключить устройство")
+      problemDetails(errorData(response), "Не удалось подключить устройство")
     );
   }
   return Result.ok(Unit);
@@ -136,32 +128,59 @@ export const addDevice = async (
 export const updateDevice = async (
   deviceId: string,
   name: string
-): Promise<Result<Unit, APIError>> =>
-  request(
-    {
-      method: "patch",
-      url: `/api/v2/devices/${encodeURIComponent(deviceId)}`,
-      data: { name },
-    },
-    okUnit,
-    "Не удалось обновить устройство"
-  );
+): Promise<Result<Unit, APIError>> => {
+  let response;
+  try {
+    response = await editDevice(deviceId, { name });
+  } catch {
+    return Result.err("Не удалось связаться с сервером");
+  }
+
+  if (response.status !== 200) {
+    return Result.err(
+      problemDetails(errorData(response), "Не удалось обновить устройство")
+    );
+  }
+  return Result.ok(Unit);
+};
 
 export const disconnectDevice = async (
   deviceId: string
-): Promise<Result<Unit, APIError>> =>
-  request(
-    {
-      method: "delete",
-      url: `/api/v2/devices/${encodeURIComponent(deviceId)}`,
-    },
-    okUnit,
-    "Не удалось отключить устройство"
-  );
+): Promise<Result<Unit, APIError>> => {
+  let response;
+  try {
+    response = await removeDevice(deviceId);
+  } catch {
+    return Result.err("Не удалось связаться с сервером");
+  }
 
-const asOnlineStatus: Validator<DeviceOnlineStatus> = (data) => {
-  if (data && typeof data === "object") {
-    const record = data as Record<string, unknown>;
+  if (response.status !== 200) {
+    return Result.err(
+      problemDetails(errorData(response), "Не удалось отключить устройство")
+    );
+  }
+  return Result.ok(Unit);
+};
+
+export const getDeviceOnlineStatus = async (
+  deviceId: string
+): Promise<Result<DeviceOnlineStatus, APIError>> => {
+  let response;
+  try {
+    response = await getDeviceOnlineStatusOp(deviceId);
+  } catch {
+    return Result.err("Не удалось связаться с сервером");
+  }
+
+  if (response.status !== 200) {
+    return Result.err(
+      problemDetails(errorData(response), "Не удалось загрузить статус устройства")
+    );
+  }
+
+  const payload: unknown = response.data;
+  if (payload && typeof payload === "object") {
+    const record = payload as Record<string, unknown>;
     const online = record["online"];
     const lastSeen = record["lastSeen"];
     if (typeof online === "boolean" && typeof lastSeen === "number") {
@@ -171,16 +190,4 @@ const asOnlineStatus: Validator<DeviceOnlineStatus> = (data) => {
   return Result.err('unexpected response shape: missing "online"/"lastSeen"');
 };
 
-export const getDeviceOnlineStatus = async (
-  deviceId: string
-): Promise<Result<DeviceOnlineStatus, APIError>> =>
-  request(
-    {
-      method: "get",
-      url: `/api/v2/devices/${encodeURIComponent(deviceId)}/online`,
-    },
-    asOnlineStatus,
-    "Не удалось загрузить статус устройства"
-  );
-
-export { login, register, logout } from "./auth";
+export { login, register, logout, refreshSession } from "./auth";

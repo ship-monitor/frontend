@@ -11,7 +11,8 @@
     "type-check": "vue-tsc --build",
     "test": "vitest run",
     "lint": "eslint",
-    "format": "prettier . --write"
+    "format": "prettier . --write",
+    "api:generate": "node scripts/generate-api.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",
@@ -36,6 +37,7 @@
     "eslint-plugin-vue": "^10.9.2",
     "globals": "^17.4.0",
     "npm-run-all2": "^8.0.4",
+    "oazapfts": "^7.5.0",
     "prettier": "3.9.1",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.57.0",
