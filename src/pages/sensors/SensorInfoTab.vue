@@ -45,6 +45,30 @@
         </p>
       </div>
     </div>
+
+    <div class="ship-card p-6 border-red-200">
+      <h2 class="text-lg font-bold text-red-700 mb-2">
+        Отключение устройства
+      </h2>
+      <p class="text-sm text-ink-500 mb-4">
+        Устройство будет отвязано от аккаунта. Датчики перестанут
+        отслеживаться, данные на сервере сохранятся.
+      </p>
+      <ShipButton
+        variant="danger"
+        :disabled="disconnecting"
+        @click="confirmDisconnect"
+      >
+        {{ disconnecting ? "Отключение..." : "Отключить устройство" }}
+      </ShipButton>
+      <p
+        v-if="disconnectError"
+        role="alert"
+        class="text-sm text-red-600 mt-3"
+      >
+        {{ disconnectError }}
+      </p>
+    </div>
   </div>
 </template>
 
@@ -65,11 +89,24 @@ const props = defineProps<{
   settings: SensorSettings;
   saving: boolean;
   error?: string;
+  disconnecting?: boolean;
+  disconnectError?: string;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   save: [settings: SensorSettings];
+  disconnect: [deviceId: string];
 }>();
+
+const confirmDisconnect = () => {
+  if (
+    window.confirm(
+      `Отключить устройство «${props.settings.name || props.settings.id.slice(0, 8)}»?`
+    )
+  ) {
+    emit("disconnect", props.settings.id);
+  }
+};
 
 const local = reactive<SensorSettings>({ ...props.settings });
 

@@ -67,7 +67,10 @@
         :settings="settings"
         :saving="saving"
         :error="saveError"
+        :disconnecting="disconnecting"
+        :disconnect-error="disconnectError"
         @save="saveSettings"
+        @disconnect="disconnectSensor"
       />
     </div>
   </div>
@@ -75,14 +78,16 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
-import { useRoute } from "vue-router";
-import { updateDevice, getDeviceById } from "@/data";
+import { useRoute, useRouter } from "vue-router";
+import { updateDevice, getDeviceById, disconnectDevice } from "@/data";
+import { ROUTES } from "@/constants/routes";
 import SensorHeader from "./SensorHeader.vue";
 import SensorInfoTab, { type SensorSettings } from "./SensorInfoTab.vue";
 import { fetchOnlineStatus } from "@/utils/utils";
 import safeStorage from "@/utils/storage";
 
 const route = useRoute();
+const router = useRouter();
 const deviceId = computed(() => {
   const id = route.params.id;
   return typeof id === "string" ? id : "";
@@ -96,6 +101,8 @@ const sensorName = ref("");
 const statusUnknown = ref(true);
 const saveError = ref("");
 const loadError = ref("");
+const disconnecting = ref(false);
+const disconnectError = ref("");
 
 // Счётчик поколений: ответы от предыдущего устройства не перезаписывают новое.
 let generation = 0;
@@ -164,6 +171,22 @@ async function saveSettings(s: SensorSettings) {
     })
     .unwrapOr(undefined);
   saving.value = false;
+}
+
+async function disconnectSensor() {
+  disconnecting.value = true;
+  const result = await disconnectDevice(deviceId.value);
+  disconnecting.value = false;
+
+  result
+    .map(() => {
+      safeStorage.removeItem(`device_settings_${deviceId.value}`);
+      void router.push(ROUTES.DASHBOARD);
+    })
+    .inspectErr((err) => {
+      disconnectError.value = err;
+    })
+    .unwrapOr(undefined);
 }
 
 async function pingAndUpdateStatus() {
