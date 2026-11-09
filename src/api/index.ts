@@ -1,6 +1,6 @@
 /**
- * Ship Monitor API
- * 1.0.0
+ * Ship Monitor
+ * 2.0.0
  * DO NOT MODIFY - This file has been generated using oazapfts.
  * See https://www.npmjs.com/package/oazapfts
  */
@@ -15,22 +15,36 @@ export const servers = {
     localDevelopmentServer: "http://localhost:8080",
     productionServer: "https://api.ship-monitor.ru"
 };
-export type RegisterForm = {
-    email: string;
-    password: string;
-    name: string;
-};
+export type ServiceStatus = "ok" | "warn" | "fail";
 export type Problem = {
     "type": string;
     title: string;
     status: number;
     detail?: string;
 };
+export type RegisterForm = {
+    email: string;
+    password: string;
+    name: string;
+};
 export type Device = {
     id: string;
     name: string;
     ownerId: string;
 };
+export function getHealth(opts?: Oazapfts.RequestOpts) {
+    return oazapfts.fetchJson<{
+        status: 200;
+        data: {
+            status: ServiceStatus;
+        };
+    } | {
+        status: number;
+        data: Problem;
+    }>("/api/v2/health", {
+        ...opts
+    });
+}
 export function registerUser(registerForm: RegisterForm, opts?: Oazapfts.RequestOpts) {
     return oazapfts.fetchJson<{
         status: 201;
