@@ -3,13 +3,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@/api", () => ({
   getDevices: vi.fn(),
   connectDevice: vi.fn(),
+  getSensors: vi.fn(),
+  editSensor: vi.fn(),
 }));
 
-import { getDevices, connectDevice } from "@/api";
-import { getUserDevices, addDevice } from "@/data";
+import { getDevices, connectDevice, getSensors, editSensor } from "@/api";
+import { getUserDevices, addDevice, getDeviceSensors, renameSensor } from "@/data";
 
 const mockedGetDevices = vi.mocked(getDevices);
 const mockedConnectDevice = vi.mocked(connectDevice);
+const mockedGetSensors = vi.mocked(getSensors);
+const mockedEditSensor = vi.mocked(editSensor);
 
 const response = (status: number, data: unknown) => ({
   status,
@@ -21,6 +25,8 @@ describe("data layer on generated client", () => {
   beforeEach(() => {
     mockedGetDevices.mockReset();
     mockedConnectDevice.mockReset();
+    mockedGetSensors.mockReset();
+    mockedEditSensor.mockReset();
   });
 
   it("returns Ok with devices from the v2 envelope", async () => {
@@ -117,5 +123,65 @@ describe("data layer on generated client", () => {
     const bad = await addDevice("d1", "key");
     expect(bad.isErr).toBe(true);
     bad.inspectErr((err) => expect(err).toBe("bad key"));
+  });
+});
+
+describe("sensors", () => {
+  it("getDeviceSensors maps the v2 envelope", async () => {
+    mockedGetSensors.mockResolvedValue(
+      response(200, {
+        sensors: [
+          {
+            id: "temp-1",
+            name: "Температура камеры",
+            deviceId: "d1",
+            displayName: "Морозилка",
+          },
+        ],
+      }) as never
+    );
+
+    const result = await getDeviceSensors("d1");
+    expect(result.isOk).toBe(true);
+    result.map((list) =>
+      expect(list).toEqual([
+        {
+          id: "temp-1",
+          name: "Температура камеры",
+          deviceId: "d1",
+          displayName: "Морозилка",
+        },
+      ])
+    );
+  });
+
+  it("getDeviceSensors returns Err on problem response", async () => {
+    mockedGetSensors.mockResolvedValue(
+      response(404, { type: "error", title: "Not found", status: 404, detail: "no device" }) as never
+    );
+
+    const result = await getDeviceSensors("d1");
+    expect(result.isErr).toBe(true);
+    result.inspectErr((err) => expect(err).toBe("no device"));
+  });
+
+  it("renameSensor updates displayName and returns the sensor", async () => {
+    mockedEditSensor.mockResolvedValue(
+      response(200, {
+        sensor: {
+          id: "temp-1",
+          name: "Температура камеры",
+          deviceId: "d1",
+          displayName: "Новое имя",
+        },
+      }) as never
+    );
+
+    const result = await renameSensor("d1", "temp-1", "Новое имя");
+    expect(result.isOk).toBe(true);
+    result.map((s) => expect(s.displayName).toBe("Новое имя"));
+    expect(mockedEditSensor).toHaveBeenCalledWith("d1", "temp-1", {
+      displayName: "Новое имя",
+    });
   });
 });
