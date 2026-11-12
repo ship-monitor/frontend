@@ -32,6 +32,27 @@ export type Device = {
     name: string;
     ownerId: string;
 };
+export type Sensor = {
+    id: string;
+    name: string;
+    deviceId: string;
+    displayName: string;
+};
+export type MetricType = "GAUGE" | "COUNTER" | "HISTOGRAM";
+export type Metric = {
+    name: string;
+    "type": MetricType;
+    unit: string;
+    value: number;
+    /** The UTC timestamp when metric was captured */
+    timestamp: string;
+};
+export type Metrics = {
+    name: string;
+    "type": MetricType;
+    unit: string;
+    values: Metric[];
+};
 export function getHealth(opts?: Oazapfts.RequestOpts) {
     return oazapfts.fetchJson<{
         status: 200;
@@ -123,6 +144,7 @@ export function connectDevice(body: {
         status: 201;
     } | {
         status: 409;
+        data: Problem;
     } | {
         status: number;
         data: Problem;
@@ -182,8 +204,59 @@ export function getDeviceOnlineStatus(deviceId: string, opts?: Oazapfts.RequestO
         ...opts
     });
 }
+export function getSensors(deviceId: string, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.fetchJson<{
+        status: 200;
+        data: {
+            sensors: Sensor[];
+        };
+    } | {
+        status: number;
+        data: Problem;
+    }>(`/api/v2/devices/${encodeURIComponent(deviceId)}/sensors`, {
+        ...opts
+    });
+}
+export function editSensor(deviceId: string, sensorId: string, body: {
+    displayName: string;
+}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.fetchJson<{
+        status: 200;
+        data: {
+            sensor: Sensor;
+        };
+    } | {
+        status: number;
+        data: Problem;
+    }>(`/api/v2/devices/${encodeURIComponent(deviceId)}/sensors/${encodeURIComponent(sensorId)}`, oazapfts.json({
+        ...opts,
+        method: "PATCH",
+        body
+    }));
+}
+export function getSensorMetrics(deviceId: string, sensorId: string, $from: string, to: string, metric: string, { limit }: {
+    limit?: number;
+} = {}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.fetchJson<{
+        status: 200;
+        data: Metrics;
+    } | {
+        status: number;
+        data: Problem;
+    }>(`/api/v2/devices/${encodeURIComponent(deviceId)}/sensors/${encodeURIComponent(sensorId)}/metrics${QS.query(QS.explode({
+        "from": $from,
+        to,
+        metric,
+        limit
+    }))}`, {
+        ...opts
+    });
+}
 export function getDeviceMetrics(deviceId: string, opts?: Oazapfts.RequestOpts) {
     return oazapfts.fetchJson<{
+        status: 200;
+        data: Metrics;
+    } | {
         status: number;
         data: Problem;
     }>(`/api/v2/devices/${encodeURIComponent(deviceId)}/metrics`, {
