@@ -1,1 +1,0 @@
-import{t as e}from"./CNs_Ozdc.js";import{u as t}from"./CmUwmB1w.js";import{D as n,P as r,X as i}from"./3AzQnlhx.js";var a=r({__name:`[...slug]`,setup(r){return e({layout:`landing`,middleware:[()=>t(`/`,{redirectCode:302})]}),(e,t)=>(i(),n(`div`))}});export{a as default};
