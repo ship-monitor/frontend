@@ -1,0 +1,1 @@
+var e=new URL(`big-logo.BJmJkPWl.webp`,import.meta.url).href;export{e as t};

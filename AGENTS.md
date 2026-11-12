@@ -4,19 +4,14 @@ Guidance for AI agents working in this repository.
 
 ## Project
 
-Репозиторий содержит **два независимых фронтенда** «ШиП-Монитор»
-(ship-monitor.ru):
+Репозиторий содержит **кабинет пользователя** «ШиП-Монитор» (ship-monitor.ru) —
+`ship-cloud-frontend`: CSR SPA (Vue 3 + TypeScript + Vite). Страницы за
+логином: мониторинг, датчики, профиль, подключение устройств. Публичного
+контента нет (`noindex`).
 
-- **Корень (`/`)** — `ship-cloud-frontend`: **кабинет пользователя** (CSR SPA,
-  Vue 3 + TypeScript + Vite). Страницы за логином: мониторинг, датчики,
-  профиль, подключение устройств. Публичного контента нет (`noindex`).
-- **`landing/`** — **лендинг на Nuxt 4 (SSR)** со своим `package.json`,
-  конфигами и зависимостями. Публичные страницы `/` и `/en`, SEO-мета и
-  JSON-LD рендерятся на сервере.
-
-Проекты не имеют общей кодовой базы: правки кабинета — в корне, лендинга — в
-`landing/`. Ссылка между ними — константа `LANDING_URL` в
-`src/constants/contacts.ts`. «ШиП» — название продукта, не "ship".
+Маркетинговый лендинг — отдельный проект вне этого репозитория. Ссылка на
+него — константа `LANDING_URL` в `src/constants/contacts.ts`. «ШиП» —
+название продукта, не "ship".
 
 ## Cabinet (корень репозитория)
 
@@ -106,40 +101,6 @@ the bundle at build time; Docker passes them as build args):
 
 Do not commit secrets or real credentials.
 
-## Landing (`landing/`)
-
-Nuxt 4 SSR-приложение (структура Nuxt 4: код в `landing/app/`).
-
-- Pages `app/pages/index.vue` (ru) и `app/pages/en/index.vue` (en); сама
-  страница — `app/components/LandingPage.vue`.
-- SEO (мета, canonical, hreflang, OG, JSON-LD Organization/WebSite/FAQPage) —
-  в `app/composables/useLandingSeo.ts`, вызывается из страниц.
-- FAQ и roadmap тянутся из Directus CMS на сервере через `useAsyncData` в
-  страницах (`app/composables/useFaq.ts`, `useRoadmap.ts`); модульное
-  состояние работает как серверный кэш.
-- vue-i18n создаётся **на каждый запрос** плагином `app/plugins/i18n.ts`
-  (синглтон протекал бы между параллельными SSR-запросами с разными локалями).
-  Переговоры локали первого визита — только на клиенте
-  (`app/middleware/locale.global.ts`).
-- В computed-геттерах не вызывать `currentLocale()`/`useNuxtApp()` — head
-  резолвится после рендера вне контекста запроса; используйте `localeRef()`.
-
-Commands (run in `landing/`):
-
-```bash
-npm run dev          # Nuxt dev server
-npm run build        # nuxt build (SSR-бандл в .output/)
-npm run preview      # Запуск собранного SSR-сервера
-npm run typecheck    # nuxt typecheck
-npm run lint         # eslint
-```
-
-Env: `VITE_CMS_URL` (опционален; по умолчанию `https://cms.ship-monitor.ru`).
-
-Deploy: в отличие от кабинета (статика в nginx-контейнере), лендинг —
-Node-рантайм: `node .output/server/index.mjs`, порт 3000 (см.
-`landing/Dockerfile`).
-
 ## Agent rules
 
 - Do **not** commit unless explicitly asked.
@@ -147,6 +108,3 @@ Node-рантайм: `node .output/server/index.mjs`, порт 3000 (см.
 - Follow existing file/style conventions; mimic nearby code.
 - When adding dependencies, confirm they are compatible with the versions in
   the relevant `package.json` (Node `^20.19.0 || >=22.12.0`).
-- Changes in the cabinet and landing are independent: running the root
-  `npm run lint`/`type-check` does not check `landing/` — run the landing
-  commands separately when editing `landing/`.

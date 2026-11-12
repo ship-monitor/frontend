@@ -1,11 +1,8 @@
 # ship-cloud-frontend
 
-Репозиторий «ШиП-Монитор» (ship-monitor.ru) состоит из двух независимых проектов:
+Кабинет пользователя «ШиП-Монитор» (ship-monitor.ru): CSR SPA (Vue 3 + Vite), статика раздаётся nginx-контейнером. Публичного контента нет — только страницы за логином (`/dashboard`, `/sensors/:id`, `/profile`, `/connect-device`, `/auth/*`), весь кабинет `noindex`.
 
-- **Корень** — кабинет пользователя: CSR SPA (Vue 3 + Vite), статика раздаётся nginx-контейнером. Лендинга здесь больше нет — только страницы за логином (`/dashboard`, `/sensors/:id`, `/profile`, `/connect-device`, `/auth/*`), весь кабинет `noindex`.
-- **`landing/`** — публичный лендинг на Nuxt 4 с SSR: страницы `/` (ru) и `/en` (en), SEO-мета, hreflang, OG и JSON-LD (Organization/WebSite/FAQPage) рендерятся на сервере; FAQ/roadmap тянутся из Directus CMS на сервере. Деплой — Node-контейнер (`node .output/server/index.mjs`, порт 3000). Команды и детали — в `landing/README.md`.
-
-Ссылки между проектами идут через константу `LANDING_URL` (`src/constants/contacts.ts`).
+Маркетинговый лендинг — отдельный проект; ссылка на него в кабинете идёт через константу `LANDING_URL` (`src/constants/contacts.ts`).
 
 ## Переменные окружения
 
