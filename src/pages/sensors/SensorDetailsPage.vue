@@ -61,8 +61,8 @@
         @ping="pingAndUpdateStatus"
       />
 
-      <!-- NOTE: вкладка «Температура» вернётся вместе со схемой ответа
-           GET /api/v2/devices/{id}/metrics. -->
+      <!-- NOTE: вкладка «Температура» вернётся, когда в API появится
+           хранение и отдача метрик (GET .../metrics — заглушка). -->
       <SensorInfoTab
         :settings="settings"
         :saving="saving"
@@ -72,6 +72,39 @@
         @save="saveSettings"
         @disconnect="disconnectSensor"
       />
+
+      <SensorsCard
+        :device-id="deviceId"
+        :sensors="sensors"
+        :loading="sensorsLoading"
+        :error="sensorsError"
+        @renamed="onSensorRenamed"
+      />
+
+      <div class="ship-card p-6">
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-lg font-bold text-ink-900">
+            Температура
+          </h2>
+          <span
+            v-if="temperature.current !== null"
+            class="text-2xl font-bold text-ink-900"
+          >{{ temperature.current.toFixed(1) }}°C</span>
+        </div>
+        <p class="text-sm text-ink-500 mb-4">
+          <template v-if="temperature.updatedAt !== null">
+            обновлено {{ new Date(temperature.updatedAt).toLocaleTimeString("ru") }}
+          </template>
+          <template v-else>
+            нет данных
+          </template>
+        </p>
+
+        <TemperatureChart
+          :history="chartHistory"
+          :thresholds="{ min: settings.minThreshold, max: settings.maxThreshold }"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -79,10 +112,20 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { updateDevice, getDeviceById, disconnectDevice } from "@/data";
+import {
+  updateDevice,
+  getDeviceById,
+  disconnectDevice,
+  getDeviceSensors,
+  getDeviceTemperature,
+  type Sensor,
+  type DeviceTemperature,
+} from "@/data";
 import { ROUTES } from "@/constants/routes";
 import SensorHeader from "./SensorHeader.vue";
 import SensorInfoTab, { type SensorSettings } from "./SensorInfoTab.vue";
+import SensorsCard from "./SensorsCard.vue";
+import TemperatureChart from "@/components/TemperatureChart.vue";
 import { fetchOnlineStatus } from "@/utils/utils";
 import safeStorage from "@/utils/storage";
 
@@ -103,6 +146,14 @@ const saveError = ref("");
 const loadError = ref("");
 const disconnecting = ref(false);
 const disconnectError = ref("");
+const sensors = ref<Sensor[]>([]);
+const sensorsLoading = ref(true);
+const sensorsError = ref("");
+const temperature = ref<DeviceTemperature>({
+  current: null,
+  updatedAt: null,
+  history: [],
+});
 
 // Счётчик поколений: ответы от предыдущего устройства не перезаписывают новое.
 let generation = 0;
@@ -189,6 +240,47 @@ async function disconnectSensor() {
     .unwrapOr(undefined);
 }
 
+async function loadSensors() {
+  sensorsLoading.value = true;
+  const result = await getDeviceSensors(deviceId.value);
+  result
+    .map((list) => {
+      sensors.value = list;
+      sensorsError.value = "";
+    })
+    .inspectErr((err) => {
+      sensorsError.value = err;
+    })
+    .unwrapOr(undefined);
+  sensorsLoading.value = false;
+}
+
+function onSensorRenamed(updated: Sensor) {
+  sensors.value = sensors.value.map((s) =>
+    s.id === updated.id ? updated : s
+  );
+}
+
+async function loadTemperature() {
+  const result = await getDeviceTemperature(deviceId.value);
+  result
+    .map((data) => {
+      temperature.value = data;
+    })
+    .inspectErr((err) => {
+      console.error("Faild load temperature: %s", err);
+    })
+    .unwrapOr(undefined);
+}
+
+const chartHistory = computed(() =>
+  temperature.value.history.map((point) => ({
+    time: new Date(point.timestamp).toLocaleTimeString("ru"),
+    value: point.value,
+    timestamp: point.timestamp,
+  }))
+);
+
 async function pingAndUpdateStatus() {
   if (statusLoading.value) return;
   statusLoading.value = true;
@@ -220,6 +312,8 @@ async function loadDeviceData() {
   }
 
   sensorName.value = getDisplayName(deviceResult.value.name);
+  void loadSensors();
+  void loadTemperature();
   await pingAndUpdateStatus();
   loading.value = false;
 }
@@ -231,6 +325,10 @@ function resetState() {
   statusUnknown.value = true;
   deviceIsConnected.value = false;
   sensorName.value = "";
+  sensors.value = [];
+  sensorsLoading.value = true;
+  sensorsError.value = "";
+  temperature.value = { current: null, updatedAt: null, history: [] };
 }
 
 // Vue Router переиспользует компонент при смене :id — перезагружаем состояние.

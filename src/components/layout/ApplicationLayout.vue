@@ -123,7 +123,7 @@ const logoutHandler = async () => {
       </header>
 
       <!-- Основной контент -->
-      <main class="flex-1 overflow-auto p-3 sm:p-4 lg:p-8">
+      <main class="flex-1 overflow-hidden p-3 sm:p-4 lg:p-8">
         <slot />
       </main>
 

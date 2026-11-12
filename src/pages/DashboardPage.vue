@@ -236,8 +236,16 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, onActivated } from "vue";
 import { ROUTES } from "@/constants/routes";
-import { getUserDevices } from "@/data";
+import { getUserDevices, getDeviceTemperature, type DeviceTemperature } from "@/data";
 import { fetchOnlineStatus } from "@/utils/utils";
+
+async function fetchDeviceTemperature(
+  deviceId: string
+): Promise<DeviceTemperature | null> {
+  return (await getDeviceTemperature(deviceId))
+    .inspectErr((err) => console.error("Faild load temperature: %s", err))
+    .unwrapOr(null);
+}
 import { useAuthStore } from "@/stores/authStore";
 import safeStorage from "@/utils/storage";
 import DeviceCard, {
@@ -353,6 +361,7 @@ async function loadSensors() {
     devicesResult.value.map(async (device) => ({
       device,
       ok: await fetchOnlineStatus(device.id),
+      temp: await fetchDeviceTemperature(device.id),
     }))
   );
 
@@ -361,7 +370,7 @@ async function loadSensors() {
     sensors.value.map((sensor) => [sensor.id, sensor.status])
   );
 
-  for (const { device, ok } of snapshot) {
+  for (const { device, ok, temp } of snapshot) {
     const pingHistory = loadPingHistory(device.id);
     if (ok !== null) {
       pingHistory.push(ok);
@@ -389,8 +398,8 @@ async function loadSensors() {
       name: device.name,
       displayName: getDisplayName(device.id, device.name),
       status,
-      temperature: null,
-      tempUpdatedAt: null,
+      temperature: temp?.current ?? null,
+      tempUpdatedAt: temp?.updatedAt ?? null,
     });
   }
 
