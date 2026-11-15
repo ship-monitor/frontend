@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { type Component } from "vue";
+import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
 import { ROUTES } from "@/constants/routes";
 import { LANDING_URL } from "@/constants/contacts";
@@ -8,6 +9,7 @@ import IconPulse from "@/components/icons/IconPulse.vue";
 import IconPerson from "@/components/icons/IconPerson.vue";
 
 const authStore = useAuthStore();
+const router = useRouter();
 
 type NavigationItem = { label: string; link: string; icon: Component };
 const NAVIGATION_ITEMS: NavigationItem[] = [
@@ -17,7 +19,7 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
 
 const logoutHandler = async () => {
   await authStore.logout();
-  window.location.assign(LANDING_URL);
+  void router.push({ path: ROUTES.LOGIN });
 };
 </script>
 <template>
