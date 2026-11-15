@@ -17,7 +17,7 @@
         </p>
       </div>
       <span
-        :class="['ship-badge', badgeClass]"
+        class="inline-flex items-center gap-1.5 text-xs text-ink-500"
         role="status"
       >
         <span
@@ -86,18 +86,6 @@ const statusLabel = computed(() => {
       return "Ошибка связи";
     default:
       return "Статус неизвестен";
-  }
-});
-
-const badgeClass = computed(() => {
-  switch (props.sensor.status) {
-    case "online":
-      return "ship-badge-success";
-    case "offline":
-    case "error":
-      return "ship-badge-danger";
-    default:
-      return "ship-badge-muted";
   }
 });
 

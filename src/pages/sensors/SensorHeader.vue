@@ -40,43 +40,28 @@
           </span>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button
-          :disabled="statusLoading"
-          class="px-3 py-2 text-sm bg-ink-100 text-ink-600 rounded-xl hover:bg-ink-200 touch-target transition-colors font-medium"
-          @click="$emit('ping')"
-        >
-          {{ statusLoading ? "Проверка..." : "Связь" }}
-        </button>
+      <span
+        class="inline-flex items-center gap-1.5 text-xs text-ink-500"
+        role="status"
+      >
         <span
           :class="[
-            'ship-badge',
+            'w-1.5 h-1.5 rounded-full',
             statusUnknown
-              ? 'ship-badge-muted'
+              ? 'bg-ink-400'
               : isConnected
-                ? 'ship-badge-success'
-                : 'ship-badge-danger',
+                ? 'bg-brand-500'
+                : 'bg-red-400',
           ]"
-        >
-          <span
-            :class="[
-              'w-1.5 h-1.5 rounded-full',
-              statusUnknown
-                ? 'bg-ink-400'
-                : isConnected
-                  ? 'bg-brand-500'
-                  : 'bg-red-400',
-            ]"
-          />
-          {{
-            statusUnknown
-              ? "Статус неизвестен"
-              : isConnected
-                ? "В сети"
-                : "Не в сети"
-          }}
-        </span>
-      </div>
+        />
+        {{
+          statusUnknown
+            ? "Статус неизвестен"
+            : isConnected
+              ? "В сети"
+              : "Не в сети"
+        }}
+      </span>
     </div>
   </div>
 </template>
@@ -87,11 +72,6 @@ defineProps<{
   deviceId: string;
   isConnected: boolean;
   statusUnknown?: boolean;
-  statusLoading: boolean;
   tags: string[];
-}>();
-
-defineEmits<{
-  ping: [];
 }>();
 </script>

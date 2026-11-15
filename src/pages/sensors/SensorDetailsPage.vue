@@ -56,9 +56,7 @@
         :device-id="deviceId"
         :is-connected="deviceIsConnected"
         :status-unknown="statusUnknown"
-        :status-loading="statusLoading"
         :tags="settings.tags"
-        @ping="pingAndUpdateStatus"
       />
 
       <!-- NOTE: вкладка «Температура» вернётся, когда в API появится
@@ -85,6 +83,7 @@
         <div class="flex items-center justify-between mb-1">
           <h2 class="text-lg font-bold text-ink-900">
             Температура
+            <span class="text-xs font-normal text-ink-400">за последний час</span>
           </h2>
           <span
             v-if="temperature.current !== null"
@@ -137,7 +136,6 @@ const deviceId = computed(() => {
 });
 
 const loading = ref(true);
-const statusLoading = ref(false);
 const saving = ref(false);
 const deviceIsConnected = ref(false);
 const sensorName = ref("");
@@ -273,17 +271,22 @@ async function loadTemperature() {
     .unwrapOr(undefined);
 }
 
-const chartHistory = computed(() =>
-  temperature.value.history.map((point) => ({
-    time: new Date(point.timestamp).toLocaleTimeString("ru"),
-    value: point.value,
-    timestamp: point.timestamp,
-  }))
-);
+const CHART_WINDOW_MS = 60 * 60 * 1000;
+
+const chartHistory = computed(() => {
+  const history = temperature.value.history;
+  if (history.length === 0) return [];
+  const cutoff = history[history.length - 1]!.timestamp - CHART_WINDOW_MS;
+  return history
+    .filter((point) => point.timestamp >= cutoff)
+    .map((point) => ({
+      time: new Date(point.timestamp).toLocaleTimeString("ru"),
+      value: point.value,
+      timestamp: point.timestamp,
+    }));
+});
 
 async function pingAndUpdateStatus() {
-  if (statusLoading.value) return;
-  statusLoading.value = true;
   const currentGeneration = generation;
   const ok = await fetchOnlineStatus(deviceId.value);
   if (currentGeneration !== generation) return;
@@ -294,7 +297,6 @@ async function pingAndUpdateStatus() {
     statusUnknown.value = false;
     deviceIsConnected.value = ok;
   }
-  statusLoading.value = false;
 }
 
 async function loadDeviceData() {
@@ -320,7 +322,6 @@ async function loadDeviceData() {
 
 function resetState() {
   generation++;
-  statusLoading.value = false;
   saveError.value = "";
   statusUnknown.value = true;
   deviceIsConnected.value = false;
