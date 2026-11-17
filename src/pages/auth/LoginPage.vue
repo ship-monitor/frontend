@@ -73,7 +73,7 @@ const handleLogin = async () => {
       <!-- Логотип -->
       <div class="relative flex items-center gap-3">
         <span
-          class="w-11 h-11 rounded-xl bg-brand-500 flex items-center justify-center font-bold text-lg shadow-lg shadow-brand-500/30"
+          class="w-11 h-11 rounded-xl bg-brand-600 flex items-center justify-center font-bold text-lg shadow-lg shadow-brand-600/30"
         >C</span>
         <span class="text-xl font-bold tracking-tight font-accent uppercase">Coldstat</span>
       </div>
@@ -129,7 +129,7 @@ const handleLogin = async () => {
         <!-- Мобильный логотип -->
         <div class="lg:hidden flex items-center justify-center gap-2.5 mb-8">
           <span
-            class="w-10 h-10 rounded-xl bg-brand-500 flex items-center justify-center font-bold text-base"
+            class="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center font-bold text-base"
           >C</span>
           <span class="text-lg font-bold text-ink-900 font-accent uppercase">Coldstat</span>
         </div>
@@ -276,7 +276,7 @@ const handleLogin = async () => {
           <button
             type="submit"
             :disabled="!canSubmit"
-            class="w-full py-3 bg-brand-600 text-white rounded-xl font-semibold hover:bg-brand-700 transition-all duration-150 active:scale-[0.98] hover:shadow-md hover:shadow-brand-500/20 disabled:opacity-50 disabled:pointer-events-none"
+            class="w-full py-3 bg-brand-600 text-white rounded-xl font-semibold hover:bg-brand-700 transition-all duration-150 active:scale-[0.98] hover:shadow-md hover:shadow-brand-600/20 disabled:opacity-50 disabled:pointer-events-none"
           >
             {{ submitting ? "Вход..." : "Войти" }}
           </button>

@@ -33,7 +33,7 @@ const logoutHandler = async () => {
         class="flex items-center gap-2"
       >
         <span
-          class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center font-bold text-sm"
+          class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center font-bold text-sm"
         >C</span>
         <h2 class="text-lg font-bold tracking-tight font-accent uppercase">
           Coldstat
@@ -41,7 +41,7 @@ const logoutHandler = async () => {
       </router-link>
       <router-link
         :to="ROUTES.CONNECT_DEVICE"
-        class="px-3 py-1.5 bg-brand-500 text-white rounded-lg text-sm font-medium touch-target transition-colors hover:bg-brand-600"
+        class="px-3 py-1.5 bg-brand-600 text-white rounded-lg text-sm font-medium touch-target transition-colors hover:bg-brand-600"
       >
         + Устройство
       </router-link>
@@ -58,7 +58,7 @@ const logoutHandler = async () => {
           class="flex items-center gap-3"
         >
           <span
-            class="w-9 h-9 rounded-xl bg-brand-500 flex items-center justify-center font-bold text-base shadow-lg shadow-brand-500/20"
+            class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center font-bold text-base shadow-lg shadow-brand-600/20"
           >C</span>
           <h2 class="text-lg font-bold tracking-tight font-accent uppercase">
             Coldstat

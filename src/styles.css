@@ -18,17 +18,17 @@
   --color-cotton: #f4f3f1;
   --color-electric-blue: #2b66b0;
   --color-moonless-night: #020822;
-  /* ===== Brand: Electric Blue ===== */
-  --color-brand-50: #f0f5fb;
-  --color-brand-100: #dce8f6;
-  --color-brand-200: #bfd5ec;
-  --color-brand-300: #93b7e0;
-  --color-brand-400: #5c92cf;
-  --color-brand-500: #2b66b0;
-  --color-brand-600: #24599c;
-  --color-brand-700: #1e4a80;
-  --color-brand-800: #183965;
-  --color-brand-900: #122a4b;
+  /* ===== Brand: Electric Blue (600 = #2b66b0, цвет лендинга) ===== */
+  --color-brand-50: #f2f6fb;
+  --color-brand-100: #e0ebf7;
+  --color-brand-200: #c2d6ee;
+  --color-brand-300: #97b9e3;
+  --color-brand-400: #5f93d2;
+  --color-brand-500: #3574bc;
+  --color-brand-600: #2b66b0;
+  --color-brand-700: #23548f;
+  --color-brand-800: #1c4372;
+  --color-brand-900: #153255;
 
   /* ===== Surface: Cotton/Moonless ===== */
   --color-ink-50: #f4f3f1;
