@@ -74,8 +74,8 @@ const handleLogin = async () => {
       <div class="relative flex items-center gap-3">
         <span
           class="w-11 h-11 rounded-xl bg-brand-500 flex items-center justify-center font-bold text-lg shadow-lg shadow-brand-500/30"
-        >Ш</span>
-        <span class="text-xl font-bold tracking-tight">ШиП-монитор</span>
+        >C</span>
+        <span class="text-xl font-bold tracking-tight font-accent uppercase">Coldstat</span>
       </div>
 
       <!-- Контент -->
@@ -130,8 +130,8 @@ const handleLogin = async () => {
         <div class="lg:hidden flex items-center justify-center gap-2.5 mb-8">
           <span
             class="w-10 h-10 rounded-xl bg-brand-500 flex items-center justify-center font-bold text-base"
-          >Ш</span>
-          <span class="text-lg font-bold text-ink-900">ШиП-монитор</span>
+          >C</span>
+          <span class="text-lg font-bold text-ink-900 font-accent uppercase">Coldstat</span>
         </div>
 
         <h2 class="text-2xl font-bold text-ink-900 tracking-tight">

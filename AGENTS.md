@@ -4,14 +4,14 @@ Guidance for AI agents working in this repository.
 
 ## Project
 
-Репозиторий содержит **кабинет пользователя** «ШиП-Монитор» (ship-monitor.ru) —
-`ship-cloud-frontend`: CSR SPA (Vue 3 + TypeScript + Vite). Страницы за
+Репозиторий содержит **кабинет пользователя** «Coldstat» (coldstat.ru) —
+`coldstat-frontend`: CSR SPA (Vue 3 + TypeScript + Vite). Страницы за
 логином: мониторинг, датчики, профиль, подключение устройств. Публичного
 контента нет (`noindex`).
 
 Маркетинговый лендинг — отдельный проект вне этого репозитория. Ссылка на
-него — константа `LANDING_URL` в `src/constants/contacts.ts`. «ШиП» —
-название продукта, не "ship".
+него — константа `LANDING_URL` в `src/constants/contacts.ts`. «Coldstat» —
+название продукта.
 
 ## Cabinet (корень репозитория)
 
@@ -78,9 +78,9 @@ src/
   existing `authStore.ts` style.
 - **Data access:** the `src/data` layer wraps API calls and returns
   `true-myth` `Result` values; consume with `.map` / `.inspectErr`. Keep
-  components free of direct `axios` calls to the Ship backend — go through
+  components free of direct `axios` calls to the Coldstat backend — go through
   `src/data`.
-- **Error handling in components:** the Ship backend axios instance uses
+- **Error handling in components:** the Coldstat backend axios instance uses
   `validateStatus: () => true`, so HTTP errors arrive as normal responses.
   Inspect `response.status` explicitly; do not rely on thrown rejections for
   non-2xx statuses.
@@ -95,7 +95,7 @@ src/
 A `.env` file is required for the dev server and build (values are baked into
 the bundle at build time; Docker passes them as build args):
 
-- `VITE_API_URL` — Ship backend base URL (consumed in `src/api.ts`).
+- `VITE_API_URL` — Coldstat backend base URL (consumed in `src/api.ts`).
 - `VITE_PLAUSIBLE_URL` / `VITE_PLAUSIBLE_DOMAIN` — optional analytics
   (currently disabled; see README.md).
 

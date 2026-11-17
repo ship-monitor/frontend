@@ -34,9 +34,9 @@ const logoutHandler = async () => {
       >
         <span
           class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center font-bold text-sm"
-        >Ш</span>
-        <h2 class="text-lg font-bold tracking-tight">
-          ШиП-монитор
+        >C</span>
+        <h2 class="text-lg font-bold tracking-tight font-accent uppercase">
+          Coldstat
         </h2>
       </router-link>
       <router-link
@@ -59,9 +59,9 @@ const logoutHandler = async () => {
         >
           <span
             class="w-9 h-9 rounded-xl bg-brand-500 flex items-center justify-center font-bold text-base shadow-lg shadow-brand-500/20"
-          >Ш</span>
-          <h2 class="text-lg font-bold tracking-tight">
-            ШиП-монитор
+          >C</span>
+          <h2 class="text-lg font-bold tracking-tight font-accent uppercase">
+            Coldstat
           </h2>
         </a>
       </div>

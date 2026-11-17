@@ -1,6 +1,6 @@
-# ship-cloud-frontend
+# coldstat-frontend
 
-Кабинет пользователя «ШиП-Монитор» (ship-monitor.ru): CSR SPA (Vue 3 + Vite), статика раздаётся nginx-контейнером. Публичного контента нет — только страницы за логином (`/dashboard`, `/sensors/:id`, `/profile`, `/connect-device`, `/auth/*`), весь кабинет `noindex`.
+Кабинет пользователя «Coldstat» (coldstat.ru): CSR SPA (Vue 3 + Vite), статика раздаётся nginx-контейнером. Публичного контента нет — только страницы за логином (`/dashboard`, `/sensors/:id`, `/profile`, `/connect-device`, `/auth/*`), весь кабинет `noindex`.
 
 Маркетинговый лендинг — отдельный проект; ссылка на него в кабинете идёт через константу `LANDING_URL` (`src/constants/contacts.ts`).
 
@@ -14,7 +14,7 @@
 
 При сборке Docker-образа значения передаются как build-args (см. `build.args` в `docker-compose.yml`): `VITE_API_URL` берётся из `CLOUD_BACKEND_URL` (обязателен — без него сборка упадёт), Plausible-переменные из соответствующих `PLAUSIBLE_*`.
 
-- `VITE_API_URL` — базовый URL Ship-бэкенда (используется в `src/api.ts`)
+- `VITE_API_URL` — базовый URL бэкенда Coldstat (используется в `src/api.ts`)
 - `VITE_PLAUSIBLE_URL` — URL сервера Plausible для трекинга (`src/App.vue`). Аналитика временно отключена, см. примечание ниже
 - `VITE_PLAUSIBLE_DOMAIN` — домен сайта, отображаемый в Plausible (`src/App.vue`)
 
@@ -27,8 +27,8 @@
 | `SECRET_KEY` | `directus` → `SECRET` | Секрет Directus (подпись токенов). Сгенерировать: `openssl rand -hex 32`. Обязателен |
 | `CMS_ADMIN_EMAIL` | `directus` → `ADMIN_EMAIL` | Email администратора Directus. Обязателен |
 | `CMS_ADMIN_PASSWORD` | `directus` → `ADMIN_PASSWORD` | Пароль администратора Directus. Обязателен |
-| `CMS_URL` | `directus` → `PUBLIC_URL` | Публичный адрес CMS (например `https://cms.ship-monitor.ru`). Обязателен |
-| `CLOUD_BACKEND_URL` | build-arg `VITE_API_URL` образа `frontend` | URL Ship-бэкенда, запекается в SPA при сборке. Обязателен (`docker compose build` упадёт без него) |
+| `CMS_URL` | `directus` → `PUBLIC_URL` | Публичный адрес CMS (например `https://cms.coldstat.ru`). Обязателен |
+| `CLOUD_BACKEND_URL` | build-arg `VITE_API_URL` образа `frontend` | URL бэкенда Coldstat, запекается в SPA при сборке. Обязателен (`docker compose build` упадёт без него) |
 | `DIRECTUS_DB_PASSWORD` | `database` → `POSTGRES_PASSWORD`, `directus` → `DB_PASSWORD` | Пароль БД Directus/Postgres. Обязателен. Применяется только при инициализации кластера — для существующей БД см. заметку ниже |
 | `DIRECTUS_VERSION` | образ `directus` | Точный патч-пин версии Directus (например `11.17.4`). Обязателен — `latest` и мутабельные мажорные теги (`11`) запрещены: Directus запускает миграции БД автоматически, миграции необратимы, откат на меньшую версию ломает БД. Пин должен быть не ниже версии, работающей на сервере (узнать: `docker exec <directus> node -e "console.log(require('./package.json').version)"`) |
 
@@ -39,12 +39,12 @@ Self-hosted Plausible (ClickHouse + Postgres + BE) не помещался на 
 Переменные Directus, которые не упоминаются в yml, а читаются Directus напрямую из окружения (попадают в контейнер через `env_file`):
 
 - `CORS_ENABLED` — включить CORS (`true`/`false`)
-- `CORS_ORIGIN` — список разрешённых origin через запятую. Схема имеет значение: `https://ship-monitor.ru` и `http://ship-monitor.ru` — разные origin. Проверка браузером строгая, с несовпавшим origin заголовок `Access-Control-Allow-Origin` не вернётся
+- `CORS_ORIGIN` — список разрешённых origin через запятую. Схема имеет значение: `https://coldstat.ru` и `http://coldstat.ru` — разные origin. Проверка браузером строгая, с несовпавшим origin заголовок `Access-Control-Allow-Origin` не вернётся
 - `CORS_CREDENTIALS` — разрешить запросы с куками (`true`/`false`)
 
 После изменения `.env` контейнеры нужно пересоздать: `docker compose up -d` (простой restart не подхватывает переменные).
 
-**Деплой-заметка:** `CLOUD_BACKEND_URL` обязателен — без него `docker compose` падает на интерполяции с ошибкой `required variable CLOUD_BACKEND_URL is missing a value` ещё до сборки. Если на сервере деплой внезапно упал с этой ошибкой, добавьте в серверный `.env` строку `CLOUD_BACKEND_URL=https://api.ship-monitor.ru`.
+**Деплой-заметка:** `CLOUD_BACKEND_URL` обязателен — без него `docker compose` падает на интерполяции с ошибкой `required variable CLOUD_BACKEND_URL is missing a value` ещё до сборки. Если на сервере деплой внезапно упал с этой ошибкой, добавьте в серверный `.env` строку `CLOUD_BACKEND_URL=https://api.coldstat.ru`.
 
 **Смена пароля БД на существующем сервере.** `DIRECTUS_DB_PASSWORD` применяется только при инициализации нового кластера Postgres. Для уже развёрнутой БД (пароль по умолчанию был `directus`):
 

@@ -138,7 +138,7 @@ function drawChart(highlightIndex: number | null = null) {
 
   const history = props.history;
   if (history.length < 2) {
-    ctx.fillStyle = "#64748b";
+    ctx.fillStyle = "#7b7e8a";
     ctx.font =
       "14px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif";
     ctx.textAlign = "center";
@@ -167,8 +167,8 @@ function drawChart(highlightIndex: number | null = null) {
     return padding.top + chartHeight * ((maxVal - value) / range);
   }
 
-  ctx.strokeStyle = "#e2e8f0";
-  ctx.fillStyle = "#64748b";
+  ctx.strokeStyle = "#dcdcdf";
+  ctx.fillStyle = "#7b7e8a";
   ctx.font = `${a.fontSizeY}px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif`;
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
@@ -200,7 +200,7 @@ function drawChart(highlightIndex: number | null = null) {
   }
 
   ctx.beginPath();
-  ctx.strokeStyle = "#10b981";
+  ctx.strokeStyle = "#2b66b0";
   ctx.lineWidth = a.lineWidth;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
@@ -228,7 +228,7 @@ function drawChart(highlightIndex: number | null = null) {
     const item = history[highlightIndex]!;
     const px = x(item.timestamp);
     const py = y(item.value);
-    ctx.fillStyle = "#059669";
+    ctx.fillStyle = "#24599c";
     ctx.beginPath();
     ctx.arc(px, py, Math.max(4, a.lineWidth * 2.5), 0, Math.PI * 2);
     ctx.fill();
@@ -243,7 +243,7 @@ function drawChart(highlightIndex: number | null = null) {
     y: y(item.value),
   }));
 
-  ctx.fillStyle = "#64748b";
+  ctx.fillStyle = "#7b7e8a";
   ctx.font = `${a.fontSizeX}px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
@@ -385,7 +385,7 @@ onUnmounted(() => {
   pointer-events: none;
   position: absolute;
   border-radius: 0.5rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #dcdcdf;
   background: rgba(255, 255, 255, 0.97);
   padding: 0.5rem 0.75rem;
   font-size: 0.75rem;

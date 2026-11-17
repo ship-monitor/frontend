@@ -34,7 +34,7 @@ const layout = computed(
 //   script.defer = true;
 //   script.setAttribute(
 //     "data-domain",
-//     import.meta.env.VITE_PLAUSIBLE_DOMAIN || "ship-monitor.ru"
+//     import.meta.env.VITE_PLAUSIBLE_DOMAIN || "coldstat.ru"
 //   );
 //   script.src = `${plausibleUrl}/js/script.js`;
 //   document.head.appendChild(script);
