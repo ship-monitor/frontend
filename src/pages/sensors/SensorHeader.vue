@@ -40,38 +40,65 @@
           </span>
         </div>
       </div>
-      <span
-        class="inline-flex items-center gap-1.5 text-xs text-ink-500"
-        role="status"
-      >
+      <div class="flex flex-col items-end gap-1.5">
         <span
-          :class="[
-            'w-1.5 h-1.5 rounded-full',
+          class="inline-flex items-center gap-1.5 text-xs text-ink-500"
+          role="status"
+        >
+          <span
+            :class="[
+              'w-1.5 h-1.5 rounded-full',
+              statusUnknown
+                ? 'bg-ink-400'
+                : isConnected
+                  ? 'bg-brand-500'
+                  : 'bg-red-400',
+            ]"
+          />
+          {{
             statusUnknown
-              ? 'bg-ink-400'
+              ? "Статус неизвестен"
               : isConnected
-                ? 'bg-brand-500'
-                : 'bg-red-400',
-          ]"
-        />
-        {{
-          statusUnknown
-            ? "Статус неизвестен"
-            : isConnected
-              ? "В сети"
-              : "Не в сети"
-        }}
-      </span>
+                ? "В сети"
+                : "Не в сети"
+          }}
+        </span>
+        <span
+          v-if="batteryLevel !== null || powerConnected !== null"
+          class="inline-flex items-center gap-3 text-xs text-ink-400"
+        >
+          <span
+            v-if="powerConnected !== null"
+            class="inline-flex items-center gap-1"
+            :class="powerConnected ? '' : 'text-amber-600'"
+          >
+            <icon-plug class="size-3.5" />
+            {{ powerConnected ? "От сети" : "От батареи" }}
+          </span>
+          <span
+            v-if="batteryLevel !== null"
+            class="inline-flex items-center gap-1"
+          >
+            <icon-battery class="size-3.5" />
+            {{ Math.round(batteryLevel ?? 0) }}%
+          </span>
+        </span>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import IconBattery from "@/components/icons/IconBattery.vue";
+import IconPlug from "@/components/icons/IconPlug.vue";
+
 defineProps<{
   name: string;
   deviceId: string;
   isConnected: boolean;
   statusUnknown?: boolean;
+  batteryLevel?: number | null;
+  powerConnected?: boolean | null;
   tags: string[];
 }>();
 </script>

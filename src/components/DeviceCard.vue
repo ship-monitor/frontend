@@ -53,6 +53,27 @@
       >
         Нет данных о температуре
       </div>
+
+      <div
+        v-if="sensor.batteryLevel !== null || sensor.powerConnected !== null"
+        class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-ink-500 mt-2"
+      >
+        <span
+          v-if="sensor.powerConnected !== null"
+          class="inline-flex items-center gap-1"
+          :class="sensor.powerConnected ? 'text-ink-500' : 'text-amber-600'"
+        >
+          <icon-plug class="size-3.5" />
+          {{ sensor.powerConnected ? "От сети" : "От батареи" }}
+        </span>
+        <span
+          v-if="sensor.batteryLevel !== null"
+          class="inline-flex items-center gap-1"
+        >
+          <icon-battery class="size-3.5" />
+          {{ Math.round(sensor.batteryLevel ?? 0) }}%
+        </span>
+      </div>
     </div>
   </RouterLink>
 </template>
@@ -60,6 +81,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { route } from "@/constants/routes";
+import IconBattery from "@/components/icons/IconBattery.vue";
+import IconPlug from "@/components/icons/IconPlug.vue";
 
 export type SensorCardStatus = "online" | "offline" | "error" | "unknown";
 
@@ -70,6 +93,8 @@ export interface SensorCard {
   status: SensorCardStatus;
   temperature: number | null;
   tempUpdatedAt: number | null;
+  batteryLevel?: number | null;
+  powerConnected?: boolean | null;
 }
 
 const props = defineProps<{

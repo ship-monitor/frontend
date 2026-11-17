@@ -6,6 +6,7 @@ import {
   getDeviceMetrics as getDeviceMetricsOp,
   getDeviceOnlineStatus as getDeviceOnlineStatusOp,
   getDevices,
+  getHealth,
   getSensors as getSensorsOp,
   removeDevice,
 } from "@/api";
@@ -291,7 +292,21 @@ export const renameSensor = async (
   return asSensor(record);
 };
 
-const asTemperature = (data: unknown): Result<DeviceTemperature, APIError> => {
+const TEMPERATURE_METRIC = "temperature";
+const BATTERY_METRIC = "battery-level";
+const POWER_METRIC = "power-connected";
+
+export type DeviceMetricsSummary = {
+  temperature: DeviceTemperature;
+  batteryLevel: number | null;
+  batteryUpdatedAt: number | null;
+  powerConnected: boolean | null;
+  powerUpdatedAt: number | null;
+};
+
+const asMetricsSummary = (
+  data: unknown
+): Result<DeviceMetricsSummary, APIError> => {
   const payload =
     data && typeof data === "object" ? (data as Record<string, unknown>) : {};
   const rawValues = payload["values"];
@@ -301,15 +316,32 @@ const asTemperature = (data: unknown): Result<DeviceTemperature, APIError> => {
   }
 
   const history: TemperaturePoint[] = [];
+  let batteryLevel: number | null = null;
+  let batteryUpdatedAt: number | null = null;
+  let powerConnected: boolean | null = null;
+  let powerUpdatedAt: number | null = null;
+
   for (const item of rawValues) {
     const record =
       item && typeof item === "object" ? (item as Record<string, unknown>) : {};
     const value = record["value"];
     const timestamp = record["timestamp"];
-    if (typeof value === "number" && typeof timestamp === "string") {
-      const parsed = Date.parse(timestamp);
-      if (Number.isNaN(parsed)) continue;
-      history.push({ value, timestamp: parsed });
+    if (typeof value !== "number" || typeof timestamp !== "string") continue;
+    const parsed = Date.parse(timestamp);
+    if (Number.isNaN(parsed)) continue;
+
+    switch (record["name"]) {
+      case TEMPERATURE_METRIC:
+        history.push({ value, timestamp: parsed });
+        break;
+      case BATTERY_METRIC:
+        batteryLevel = value;
+        batteryUpdatedAt = parsed;
+        break;
+      case POWER_METRIC:
+        powerConnected = value === 1;
+        powerUpdatedAt = parsed;
+        break;
     }
   }
 
@@ -318,15 +350,21 @@ const asTemperature = (data: unknown): Result<DeviceTemperature, APIError> => {
   const last = history.length > 0 ? history[history.length - 1] : undefined;
 
   return Result.ok({
-    current: last ? last.value : null,
-    updatedAt: last ? last.timestamp : null,
-    history,
+    temperature: {
+      current: last ? last.value : null,
+      updatedAt: last ? last.timestamp : null,
+      history,
+    },
+    batteryLevel,
+    batteryUpdatedAt,
+    powerConnected,
+    powerUpdatedAt,
   });
 };
 
-export const getDeviceTemperature = async (
+export const getDeviceMetricsSummary = async (
   deviceId: string
-): Promise<Result<DeviceTemperature, APIError>> => {
+): Promise<Result<DeviceMetricsSummary, APIError>> => {
   let response;
   try {
     response = await getDeviceMetricsOp(deviceId);
@@ -336,11 +374,30 @@ export const getDeviceTemperature = async (
 
   if (response.status !== 200) {
     return Result.err(
-      problemDetails(errorData(response), "Не удалось загрузить температуру")
+      problemDetails(errorData(response), "Не удалось загрузить метрики")
     );
   }
 
-  return asTemperature(response.data);
+  return asMetricsSummary(response.data);
+};
+
+const HEALTH_TIMEOUT_MS = 5000;
+
+export const checkServerHealth = async (): Promise<boolean> => {
+  try {
+    const response = await Promise.race([
+      getHealth(),
+      new Promise<never>((_, reject) => {
+        setTimeout(
+          () => reject(new Error("health check timeout")),
+          HEALTH_TIMEOUT_MS
+        );
+      }),
+    ]);
+    return response.status === 200 && response.data.status !== "fail";
+  } catch {
+    return false;
+  }
 };
 
 export { login, register, logout, refreshSession } from "./auth";

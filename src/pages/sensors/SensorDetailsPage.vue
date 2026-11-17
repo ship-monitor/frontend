@@ -56,6 +56,8 @@
         :device-id="deviceId"
         :is-connected="deviceIsConnected"
         :status-unknown="statusUnknown"
+        :battery-level="metrics.batteryLevel"
+        :power-connected="metrics.powerConnected"
         :tags="settings.tags"
       />
 
@@ -86,13 +88,13 @@
             <span class="text-xs font-normal text-ink-400">за последний час</span>
           </h2>
           <span
-            v-if="temperature.current !== null"
+            v-if="metrics.temperature.current !== null"
             class="text-2xl font-bold text-ink-900"
-          >{{ temperature.current.toFixed(1) }}°C</span>
+          >{{ metrics.temperature.current.toFixed(1) }}°C</span>
         </div>
         <p class="text-sm text-ink-500 mb-4">
-          <template v-if="temperature.updatedAt !== null">
-            обновлено {{ new Date(temperature.updatedAt).toLocaleTimeString("ru") }}
+          <template v-if="metrics.temperature.updatedAt !== null">
+            обновлено {{ new Date(metrics.temperature.updatedAt).toLocaleTimeString("ru") }}
           </template>
           <template v-else>
             нет данных
@@ -116,9 +118,9 @@ import {
   getDeviceById,
   disconnectDevice,
   getDeviceSensors,
-  getDeviceTemperature,
+  getDeviceMetricsSummary,
   type Sensor,
-  type DeviceTemperature,
+  type DeviceMetricsSummary,
 } from "@/data";
 import { ROUTES } from "@/constants/routes";
 import SensorHeader from "./SensorHeader.vue";
@@ -147,10 +149,16 @@ const disconnectError = ref("");
 const sensors = ref<Sensor[]>([]);
 const sensorsLoading = ref(true);
 const sensorsError = ref("");
-const temperature = ref<DeviceTemperature>({
-  current: null,
-  updatedAt: null,
-  history: [],
+const metrics = ref<DeviceMetricsSummary>({
+  temperature: {
+    current: null,
+    updatedAt: null,
+    history: [],
+  },
+  batteryLevel: null,
+  batteryUpdatedAt: null,
+  powerConnected: null,
+  powerUpdatedAt: null,
 });
 
 // Счётчик поколений: ответы от предыдущего устройства не перезаписывают новое.
@@ -259,14 +267,14 @@ function onSensorRenamed(updated: Sensor) {
   );
 }
 
-async function loadTemperature() {
-  const result = await getDeviceTemperature(deviceId.value);
+async function loadMetrics() {
+  const result = await getDeviceMetricsSummary(deviceId.value);
   result
     .map((data) => {
-      temperature.value = data;
+      metrics.value = data;
     })
     .inspectErr((err) => {
-      console.error("Faild load temperature: %s", err);
+      console.error("Faild load device metrics: %s", err);
     })
     .unwrapOr(undefined);
 }
@@ -274,7 +282,7 @@ async function loadTemperature() {
 const CHART_WINDOW_MS = 60 * 60 * 1000;
 
 const chartHistory = computed(() => {
-  const history = temperature.value.history;
+  const history = metrics.value.temperature.history;
   if (history.length === 0) return [];
   const cutoff = history[history.length - 1]!.timestamp - CHART_WINDOW_MS;
   return history
@@ -315,7 +323,7 @@ async function loadDeviceData() {
 
   sensorName.value = getDisplayName(deviceResult.value.name);
   void loadSensors();
-  void loadTemperature();
+  void loadMetrics();
   await pingAndUpdateStatus();
   loading.value = false;
 }
@@ -329,7 +337,13 @@ function resetState() {
   sensors.value = [];
   sensorsLoading.value = true;
   sensorsError.value = "";
-  temperature.value = { current: null, updatedAt: null, history: [] };
+  metrics.value = {
+    temperature: { current: null, updatedAt: null, history: [] },
+    batteryLevel: null,
+    batteryUpdatedAt: null,
+    powerConnected: null,
+    powerUpdatedAt: null,
+  };
 }
 
 // Vue Router переиспользует компонент при смене :id — перезагружаем состояние.
