@@ -6,6 +6,7 @@ import {
 } from "vue-router";
 
 import { ROUTES } from "@/constants/routes";
+import { checkServerHealth } from "@/data";
 import { useAuthStore } from "@/stores/authStore";
 import { metrikaHit } from "@/utils/metrika";
 
@@ -60,6 +61,12 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requireAuth: true, layout: "app" } as CustomRouteMeta,
   },
   {
+    path: ROUTES.SERVER_ERROR,
+    name: "ServerError",
+    component: () => import("../pages/ServerErrorPage.vue"),
+    meta: { requireAuth: false, onlyAnonymous: false, layout: "auth" } as CustomRouteMeta,
+  },
+  {
     path: "/:pathMatch(.*)*",
 
     redirect: ROUTES.LOGIN,
@@ -75,8 +82,20 @@ export const createAppRouter = () => {
 
   const authStore = useAuthStore();
 
+  let healthChecked = false;
+
   router.beforeEach(async (to) => {
     const routeMeta = to.meta as CustomRouteMeta;
+
+    if (to.path !== ROUTES.SERVER_ERROR && !healthChecked) {
+      healthChecked = true;
+      if (!(await checkServerHealth())) {
+        return {
+          path: ROUTES.SERVER_ERROR,
+          query: { redirect: to.fullPath },
+        };
+      }
+    }
 
     // Дожидаемся проверки cookie-сессии только для маршрутов,
     // где результат влияет на навигацию.

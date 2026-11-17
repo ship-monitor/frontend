@@ -5,6 +5,7 @@ export const ROUTES = {
   SENSOR_DETAILS: "/sensors/:id",
   PROFILE: "/profile",
   CONNECT_DEVICE: "/connect-device",
+  SERVER_ERROR: "/server-error",
 } as const;
 
 export type RouteKey = keyof typeof ROUTES;
@@ -16,4 +17,5 @@ export const route = {
   sensorDetails: (id: string) => ROUTES.SENSOR_DETAILS.replace(":id", id),
   profile: () => ROUTES.PROFILE,
   connectDevice: () => ROUTES.CONNECT_DEVICE,
+  serverError: () => ROUTES.SERVER_ERROR,
 } as const;
