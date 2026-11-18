@@ -33,6 +33,9 @@ export type Device = {
     ownerId: string;
 };
 export type Sensor = {
+    displayName: string;
+};
+export type SensorRead = {
     id: string;
     name: string;
     deviceId: string;
@@ -85,7 +88,7 @@ export function loginUser(body: {
     return oazapfts.fetchJson<{
         status: 200;
         data: {
-            success: boolean;
+            success?: boolean;
             token: string;
             refreshToken: string;
         };
@@ -104,7 +107,7 @@ export function refreshToken(body: {
     return oazapfts.fetchJson<{
         status: 200;
         data: {
-            success: boolean;
+            success?: boolean;
             token: string;
             refreshToken: string;
         };
@@ -195,7 +198,7 @@ export function getDeviceOnlineStatus(deviceId: string, opts?: Oazapfts.RequestO
         status: 200;
         data: {
             online: boolean;
-            lastSeen: number;
+            lastSeen: string;
         };
     } | {
         status: number;
@@ -208,7 +211,7 @@ export function getSensors(deviceId: string, opts?: Oazapfts.RequestOpts) {
     return oazapfts.fetchJson<{
         status: 200;
         data: {
-            sensors: Sensor[];
+            sensors: SensorRead[];
         };
     } | {
         status: number;
@@ -223,7 +226,7 @@ export function editSensor(deviceId: string, sensorId: string, body: {
     return oazapfts.fetchJson<{
         status: 200;
         data: {
-            sensor: Sensor;
+            sensor: SensorRead;
         };
     } | {
         status: number;
@@ -252,14 +255,21 @@ export function getSensorMetrics(deviceId: string, sensorId: string, $from: stri
         ...opts
     });
 }
-export function getDeviceMetrics(deviceId: string, opts?: Oazapfts.RequestOpts) {
+export function getDeviceMetrics(deviceId: string, $from: string, to: string, metric: string, { limit }: {
+    limit?: number;
+} = {}, opts?: Oazapfts.RequestOpts) {
     return oazapfts.fetchJson<{
         status: 200;
         data: Metrics;
     } | {
         status: number;
         data: Problem;
-    }>(`/api/v2/devices/${encodeURIComponent(deviceId)}/metrics`, {
+    }>(`/api/v2/devices/${encodeURIComponent(deviceId)}/metrics${QS.query(QS.explode({
+        "from": $from,
+        to,
+        metric,
+        limit
+    }))}`, {
         ...opts
     });
 }

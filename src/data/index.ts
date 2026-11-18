@@ -205,8 +205,11 @@ export const getDeviceOnlineStatus = async (
     const record = payload as Record<string, unknown>;
     const online = record["online"];
     const lastSeen = record["lastSeen"];
-    if (typeof online === "boolean" && typeof lastSeen === "number") {
-      return Result.ok({ online, lastSeen });
+    if (typeof online === "boolean" && typeof lastSeen === "string") {
+      const parsed = Date.parse(lastSeen);
+      if (!Number.isNaN(parsed)) {
+        return Result.ok({ online, lastSeen: parsed });
+      }
     }
   }
   return Result.err('unexpected response shape: missing "online"/"lastSeen"');
@@ -304,50 +307,91 @@ export type DeviceMetricsSummary = {
   powerUpdatedAt: number | null;
 };
 
-const asMetricsSummary = (
+const METRICS_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+const parseMetricValues = (
   data: unknown
-): Result<DeviceMetricsSummary, APIError> => {
+): Array<{ name: string; value: number; timestamp: number }> => {
   const payload =
     data && typeof data === "object" ? (data as Record<string, unknown>) : {};
   const rawValues = payload["values"];
 
-  if (!Array.isArray(rawValues)) {
-    return Result.err('unexpected response shape: missing "values"');
-  }
+  if (!Array.isArray(rawValues)) return [];
 
-  const history: TemperaturePoint[] = [];
-  let batteryLevel: number | null = null;
-  let batteryUpdatedAt: number | null = null;
-  let powerConnected: boolean | null = null;
-  let powerUpdatedAt: number | null = null;
-
+  const result: Array<{ name: string; value: number; timestamp: number }> = [];
   for (const item of rawValues) {
     const record =
       item && typeof item === "object" ? (item as Record<string, unknown>) : {};
+    const name = record["name"];
     const value = record["value"];
     const timestamp = record["timestamp"];
-    if (typeof value !== "number" || typeof timestamp !== "string") continue;
+    if (
+      typeof name !== "string" ||
+      typeof value !== "number" ||
+      typeof timestamp !== "string"
+    ) {
+      continue;
+    }
     const parsed = Date.parse(timestamp);
     if (Number.isNaN(parsed)) continue;
-
-    switch (record["name"]) {
-      case TEMPERATURE_METRIC:
-        history.push({ value, timestamp: parsed });
-        break;
-      case BATTERY_METRIC:
-        batteryLevel = value;
-        batteryUpdatedAt = parsed;
-        break;
-      case POWER_METRIC:
-        powerConnected = value === 1;
-        powerUpdatedAt = parsed;
-        break;
-    }
+    result.push({ name, value, timestamp: parsed });
   }
 
-  history.sort((a, b) => a.timestamp - b.timestamp);
+  return result;
+};
+
+export const getDeviceMetricsSummary = async (
+  deviceId: string
+): Promise<Result<DeviceMetricsSummary, APIError>> => {
+  const from = new Date(Date.now() - METRICS_WINDOW_MS).toISOString();
+  const to = new Date().toISOString();
+
+  const fetchMetric = async (
+    metric: string,
+    limit?: number
+  ): Promise<Array<{ name: string; value: number; timestamp: number }>> => {
+    const response = await getDeviceMetricsOp(
+      deviceId,
+      from,
+      to,
+      metric,
+      limit === undefined ? {} : { limit }
+    );
+    if (response.status !== 200) {
+      throw new Error(
+        problemDetails(errorData(response), "Не удалось загрузить метрики")
+      );
+    }
+    return parseMetricValues(response.data);
+  };
+
+  let temperatureValues;
+  try {
+    temperatureValues = await fetchMetric(TEMPERATURE_METRIC, 1000);
+  } catch {
+    return Result.err("Не удалось связаться с сервером");
+  }
+
+  const [batteryValues, powerValues] = await Promise.allSettled([
+    fetchMetric(BATTERY_METRIC, 10),
+    fetchMetric(POWER_METRIC, 10),
+  ]);
+
+  const history = temperatureValues
+    .filter((point) => point.name === TEMPERATURE_METRIC)
+    .map((point) => ({ value: point.value, timestamp: point.timestamp }))
+    .sort((a, b) => a.timestamp - b.timestamp);
 
   const last = history.length > 0 ? history[history.length - 1] : undefined;
+
+  const battery =
+    batteryValues.status === "fulfilled"
+      ? batteryValues.value[batteryValues.value.length - 1]
+      : undefined;
+  const power =
+    powerValues.status === "fulfilled"
+      ? powerValues.value[powerValues.value.length - 1]
+      : undefined;
 
   return Result.ok({
     temperature: {
@@ -355,30 +399,11 @@ const asMetricsSummary = (
       updatedAt: last ? last.timestamp : null,
       history,
     },
-    batteryLevel,
-    batteryUpdatedAt,
-    powerConnected,
-    powerUpdatedAt,
+    batteryLevel: battery ? battery.value : null,
+    batteryUpdatedAt: battery ? battery.timestamp : null,
+    powerConnected: power ? power.value === 1 : null,
+    powerUpdatedAt: power ? power.timestamp : null,
   });
-};
-
-export const getDeviceMetricsSummary = async (
-  deviceId: string
-): Promise<Result<DeviceMetricsSummary, APIError>> => {
-  let response;
-  try {
-    response = await getDeviceMetricsOp(deviceId);
-  } catch {
-    return Result.err("Не удалось связаться с сервером");
-  }
-
-  if (response.status !== 200) {
-    return Result.err(
-      problemDetails(errorData(response), "Не удалось загрузить метрики")
-    );
-  }
-
-  return asMetricsSummary(response.data);
 };
 
 const HEALTH_TIMEOUT_MS = 5000;
