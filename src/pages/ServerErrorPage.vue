@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { checkServerHealth } from "@/data";
 import { ROUTES } from "@/constants/routes";
@@ -91,4 +91,8 @@ const retry = async () => {
 
   void router.replace(target);
 };
+
+onMounted(() => {
+  void retry();
+});
 </script>
