@@ -41,9 +41,6 @@
           <p class="font-semibold text-ink-900 truncate">
             {{ sensor.displayName || sensor.name }}
           </p>
-          <p class="text-xs text-ink-400 font-mono truncate">
-            {{ sensor.id }}
-          </p>
           <p
             v-if="sensorErrors[sensor.id]"
             class="text-xs text-red-500 mt-0.5"

@@ -12,9 +12,6 @@
         <h3 class="font-semibold text-ink-900 text-sm sm:text-base truncate">
           {{ sensor.displayName }}
         </h3>
-        <p class="text-xs text-ink-400 font-mono truncate">
-          {{ sensor.id }}
-        </p>
       </div>
       <span
         class="inline-flex items-center gap-1.5 text-xs text-ink-500"

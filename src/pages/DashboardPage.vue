@@ -28,38 +28,6 @@
       </div>
     </div>
 
-    <!-- Счётчики -->
-    <div class="grid grid-cols-3 gap-3 sm:gap-4">
-      <div class="ship-card p-4 sm:p-5 text-center animate-fade-in-up">
-        <p class="text-2xl sm:text-3xl font-bold text-ink-900">
-          {{ stats.total }}
-        </p>
-        <p class="text-xs text-ink-500 mt-0.5">
-          Всего
-        </p>
-      </div>
-      <div
-        class="ship-card p-4 sm:p-5 text-center animate-fade-in-up delay-100"
-      >
-        <p class="text-2xl sm:text-3xl font-bold text-brand-600">
-          {{ stats.online }}
-        </p>
-        <p class="text-xs text-ink-500 mt-0.5">
-          В сети
-        </p>
-      </div>
-      <div
-        class="ship-card p-4 sm:p-5 text-center animate-fade-in-up delay-200"
-      >
-        <p class="text-2xl sm:text-3xl font-bold text-ink-400">
-          {{ stats.offline }}
-        </p>
-        <p class="text-xs text-ink-500 mt-0.5">
-          Не в сети
-        </p>
-      </div>
-    </div>
-
     <!-- Поиск и фильтры -->
     <div class="flex flex-col sm:flex-row gap-3">
       <div class="relative flex-1">
@@ -272,15 +240,6 @@ let refreshInFlight = false;
 const MIN_INTERVAL_MS = 5000;
 const MAX_INTERVAL_MS = 300000;
 const DEFAULT_INTERVAL_MS = 10000;
-
-// Счётчики: unknown не считается ни онлайн, ни офлайн.
-const stats = computed(() => ({
-  total: sensors.value.length,
-  online: sensors.value.filter((s) => s.status === "online").length,
-  offline: sensors.value.filter(
-    (s) => s.status === "offline" || s.status === "error"
-  ).length,
-}));
 
 // Фильтрация
 const filteredSensors = computed(() => {

@@ -24,9 +24,6 @@
         <h1 class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">
           {{ name }}
         </h1>
-        <p class="text-xs text-ink-400 font-mono mt-0.5">
-          ID: {{ deviceId }}
-        </p>
         <div
           v-if="tags && tags.length > 0"
           class="flex flex-wrap gap-1.5 mt-2.5"
