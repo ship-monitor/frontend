@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="min-h-full flex items-center justify-center p-4 sm:p-6 bg-ink-50"
-  >
+  <div class="min-h-full flex items-center justify-center p-4 sm:p-6 bg-ink-50">
     <div class="ship-card p-6 sm:p-8 max-w-md w-full animate-scale-in">
       <!-- Заголовок -->
       <div class="mb-6">
@@ -9,19 +7,7 @@
           class="flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-700 transition-colors mb-4"
           @click="goBack"
         >
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            />
-          </svg>
+          <icon-arrow-to-left class="size-4" />
           Назад
         </button>
         <h1 class="text-2xl font-bold text-ink-900 tracking-tight">
@@ -33,11 +19,7 @@
       </div>
 
       <!-- Форма -->
-      <form
-        class="space-y-4"
-        novalidate
-        @submit.prevent="handleSubmit"
-      >
+      <form class="space-y-4" novalidate @submit.prevent="handleSubmit">
         <!-- ID устройства -->
         <div>
           <label
@@ -56,7 +38,7 @@
             :disabled="submitting"
             :aria-invalid="errors.deviceId ? 'true' : undefined"
             aria-describedby="device-id-error"
-          >
+          />
           <p
             v-if="errors.deviceId"
             id="device-id-error"
@@ -80,12 +62,12 @@
             type="password"
             placeholder="Ключ с наклейки"
             class="ship-field"
-            :class="{ '!border-red-400': errors.securityKey }"
+            :class="{ 'border-red-400!': errors.securityKey }"
             :disabled="submitting"
             autocomplete="off"
             :aria-invalid="errors.securityKey ? 'true' : undefined"
             aria-describedby="device-security-key-error"
-          >
+          />
           <p
             v-if="errors.securityKey"
             id="device-security-key-error"
@@ -115,10 +97,7 @@
             />
           </svg>
           Запрос отправлен, устройство скоро появится!
-          <router-link
-            :to="ROUTES.DASHBOARD"
-            class="font-semibold underline"
-          >
+          <router-link :to="ROUTES.DASHBOARD" class="font-semibold underline">
             На дашборд
           </router-link>
         </div>
@@ -155,11 +134,7 @@
             v-if="submitting"
             class="flex items-center justify-center gap-2"
           >
-            <svg
-              class="w-5 h-5 animate-spin"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
+            <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle
                 class="opacity-25"
                 cx="12"
@@ -188,6 +163,7 @@ import { ref, reactive, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { addDevice } from "@/data";
 import { ROUTES } from "@/constants/routes";
+import IconArrowToLeft from "@/components/icons/IconArrowToLeft.vue";
 
 const currentRoute = useRoute();
 const router = useRouter();

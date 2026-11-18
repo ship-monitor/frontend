@@ -1,14 +1,10 @@
 <template>
-  <svg
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
+  <svg class="" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path
       stroke-linecap="round"
       stroke-linejoin="round"
       stroke-width="2"
-      d="M13 7l5 5m0 0l-5 5m5-5H6"
+      d="M10 19l-7-7m0 0l7-7m-7 7h18"
     />
   </svg>
 </template>

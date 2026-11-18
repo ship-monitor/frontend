@@ -4,19 +4,7 @@
       class="text-sm text-ink-500 hover:text-ink-700 mb-3 flex items-center gap-1 touch-target transition-colors"
       @click="$router.back()"
     >
-      <svg
-        class="w-4 h-4"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M10 19l-7-7m0 0l7-7m-7 7h18"
-        />
-      </svg>
+      <IconArrowToLeft class="size-4" />
       Назад
     </button>
     <div class="flex flex-wrap justify-between items-start gap-3">
@@ -24,18 +12,6 @@
         <h1 class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">
           {{ name }}
         </h1>
-        <div
-          v-if="tags && tags.length > 0"
-          class="flex flex-wrap gap-1.5 mt-2.5"
-        >
-          <span
-            v-for="tag in tags"
-            :key="tag"
-            class="ship-badge ship-badge-success"
-          >
-            {{ tag }}
-          </span>
-        </div>
       </div>
       <div class="flex flex-col items-end gap-1.5">
         <span
@@ -87,6 +63,7 @@
 
 <script setup lang="ts">
 import IconBattery from "@/components/icons/IconBattery.vue";
+import IconArrowToLeft from "@/components/icons/IconArrowToLeft.vue";
 import IconPlug from "@/components/icons/IconPlug.vue";
 
 defineProps<{
@@ -96,6 +73,5 @@ defineProps<{
   statusUnknown?: boolean;
   batteryLevel?: number | null;
   powerConnected?: boolean | null;
-  tags: string[];
 }>();
 </script>

@@ -1,9 +1,7 @@
 <template>
   <div class="max-w-7xl mx-auto p-4 sm:p-6">
-    <div
-      v-if="loading"
-      class="text-center py-12"
-    >
+    <div v-if="loading" class="text-center py-12">
+      <!-- TODO: Move svg to icon component -->
       <svg
         class="w-8 h-8 mx-auto text-brand-500 animate-spin mb-3"
         fill="none"
@@ -24,21 +22,14 @@
           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
         />
       </svg>
-      <p class="text-ink-400">
-        Загрузка...
-      </p>
+      <p class="text-ink-400">Загрузка...</p>
     </div>
 
-    <div
-      v-else-if="loadError"
-      class="ship-card p-8 text-center"
-    >
+    <div v-else-if="loadError" class="ship-card p-8 text-center">
       <p class="text-lg font-semibold text-ink-900 mb-1">
         {{ loadError }}
       </p>
-      <p class="text-sm text-ink-500 mb-4">
-        Проверьте соединение и повторите
-      </p>
+      <p class="text-sm text-ink-500 mb-4">Проверьте соединение и повторите</p>
       <button
         class="px-5 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-semibold"
         @click="loadDeviceData"
@@ -47,23 +38,17 @@
       </button>
     </div>
 
-    <div
-      v-else
-      class="space-y-6"
-    >
-      <SensorHeader
+    <div v-else class="space-y-6">
+      <DevicePageHeader
         :name="sensorName"
         :device-id="deviceId"
         :is-connected="deviceIsConnected"
         :status-unknown="statusUnknown"
         :battery-level="metrics.batteryLevel"
         :power-connected="metrics.powerConnected"
-        :tags="settings.tags"
       />
 
-      <!-- NOTE: вкладка «Температура» вернётся, когда в API появится
-           хранение и отдача метрик (GET .../metrics — заглушка). -->
-      <SensorInfoTab
+      <DeviceInfoTab
         :settings="settings"
         :saving="saving"
         :error="saveError"
@@ -85,26 +70,11 @@
         <div class="flex items-center justify-between mb-1">
           <h2 class="text-lg font-bold text-ink-900">
             Температура
-            <span class="text-xs font-normal text-ink-400">за последний час</span>
+            <span class="text-xs font-normal text-ink-400"
+              >за последний час</span
+            >
           </h2>
-          <span
-            v-if="metrics.temperature.current !== null"
-            class="text-2xl font-bold text-ink-900"
-          >{{ metrics.temperature.current.toFixed(1) }}°C</span>
         </div>
-        <p class="text-sm text-ink-500 mb-4">
-          <template v-if="metrics.temperature.updatedAt !== null">
-            обновлено {{ new Date(metrics.temperature.updatedAt).toLocaleTimeString("ru") }}
-          </template>
-          <template v-else>
-            нет данных
-          </template>
-        </p>
-
-        <TemperatureChart
-          :history="chartHistory"
-          :thresholds="{ min: settings.minThreshold, max: settings.maxThreshold }"
-        />
       </div>
     </div>
   </div>
@@ -123,10 +93,11 @@ import {
   type DeviceMetricsSummary,
 } from "@/data";
 import { ROUTES } from "@/constants/routes";
-import SensorHeader from "./SensorHeader.vue";
-import SensorInfoTab, { type SensorSettings } from "./SensorInfoTab.vue";
-import SensorsCard from "./SensorsCard.vue";
-import TemperatureChart from "@/components/TemperatureChart.vue";
+import DevicePageHeader from "@/components/DevicePageHeader.vue";
+import DeviceInfoTab, {
+  type SensorSettings,
+} from "@/components/DeviceInfoTab.vue";
+import SensorsCard from "@/components/SensorsCard.vue";
 import { fetchOnlineStatus } from "@/utils/utils";
 import safeStorage from "@/utils/storage";
 
@@ -150,11 +121,6 @@ const sensors = ref<Sensor[]>([]);
 const sensorsLoading = ref(true);
 const sensorsError = ref("");
 const metrics = ref<DeviceMetricsSummary>({
-  temperature: {
-    current: null,
-    updatedAt: null,
-    history: [],
-  },
   batteryLevel: null,
   batteryUpdatedAt: null,
   powerConnected: null,
@@ -164,24 +130,15 @@ const metrics = ref<DeviceMetricsSummary>({
 // Счётчик поколений: ответы от предыдущего устройства не перезаписывают новое.
 let generation = 0;
 
-const DEFAULT_THRESHOLDS = { min: -17, max: -15 };
-
 function loadSettings(): SensorSettings {
   const stored = safeStorage.getJson(`device_settings_${deviceId.value}`);
   const record =
     stored && typeof stored === "object"
       ? (stored as Record<string, unknown>)
       : {};
-  const min = record["minThreshold"];
-  const max = record["maxThreshold"];
   return {
     id: deviceId.value,
     name: typeof record["name"] === "string" ? record["name"] : "",
-    minThreshold: typeof min === "number" && Number.isFinite(min) ? min : DEFAULT_THRESHOLDS.min,
-    maxThreshold: typeof max === "number" && Number.isFinite(max) ? max : DEFAULT_THRESHOLDS.max,
-    tags: Array.isArray(record["tags"])
-      ? record["tags"].filter((t): t is string => typeof t === "string")
-      : [],
   };
 }
 
@@ -192,18 +149,12 @@ function persistLocalSettings() {
     `device_settings_${deviceId.value}`,
     JSON.stringify({
       name: settings.value.name,
-      minThreshold: settings.value.minThreshold,
-      maxThreshold: settings.value.maxThreshold,
-      tags: settings.value.tags,
     })
   );
 }
 
 function getDisplayName(apiName?: string): string {
-  if (settings.value.name && settings.value.name.trim() !== "")
-    return settings.value.name;
-  if (apiName && apiName !== "Unknown Device" && apiName !== "") return apiName;
-  return deviceId.value.substring(0, 8);
+  return apiName ?? "Unknown";
 }
 
 async function saveSettings(s: SensorSettings) {
@@ -262,9 +213,7 @@ async function loadSensors() {
 }
 
 function onSensorRenamed(updated: Sensor) {
-  sensors.value = sensors.value.map((s) =>
-    s.id === updated.id ? updated : s
-  );
+  sensors.value = sensors.value.map((s) => (s.id === updated.id ? updated : s));
 }
 
 async function loadMetrics() {
@@ -278,21 +227,6 @@ async function loadMetrics() {
     })
     .unwrapOr(undefined);
 }
-
-const CHART_WINDOW_MS = 60 * 60 * 1000;
-
-const chartHistory = computed(() => {
-  const history = metrics.value.temperature.history;
-  if (history.length === 0) return [];
-  const cutoff = history[history.length - 1]!.timestamp - CHART_WINDOW_MS;
-  return history
-    .filter((point) => point.timestamp >= cutoff)
-    .map((point) => ({
-      time: new Date(point.timestamp).toLocaleTimeString("ru"),
-      value: point.value,
-      timestamp: point.timestamp,
-    }));
-});
 
 async function pingAndUpdateStatus() {
   const currentGeneration = generation;
@@ -338,7 +272,6 @@ function resetState() {
   sensorsLoading.value = true;
   sensorsError.value = "";
   metrics.value = {
-    temperature: { current: null, updatedAt: null, history: [] },
     batteryLevel: null,
     batteryUpdatedAt: null,
     powerConnected: null,
@@ -347,14 +280,11 @@ function resetState() {
 }
 
 // Vue Router переиспользует компонент при смене :id — перезагружаем состояние.
-watch(
-  deviceId,
-  (id) => {
-    if (!id) return;
-    resetState();
-    loadDeviceData();
-  }
-);
+watch(deviceId, (id) => {
+  if (!id) return;
+  resetState();
+  loadDeviceData();
+});
 
 onMounted(() => {
   if (deviceId.value) {

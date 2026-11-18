@@ -196,7 +196,10 @@ export const getDeviceOnlineStatus = async (
 
   if (response.status !== 200) {
     return Result.err(
-      problemDetails(errorData(response), "Не удалось загрузить статус устройства")
+      problemDetails(
+        errorData(response),
+        "Не удалось загрузить статус устройства"
+      )
     );
   }
 
@@ -232,7 +235,7 @@ const asSensor = (data: unknown): Result<Sensor, APIError> => {
       });
     }
   }
-  return Result.err('unexpected response shape: missing sensor fields');
+  return Result.err("unexpected response shape: missing sensor fields");
 };
 
 export const getDeviceSensors = async (
@@ -300,7 +303,6 @@ const BATTERY_METRIC = "battery-level";
 const POWER_METRIC = "power-connected";
 
 export type DeviceMetricsSummary = {
-  temperature: DeviceTemperature;
   batteryLevel: number | null;
   batteryUpdatedAt: number | null;
   powerConnected: boolean | null;
@@ -365,24 +367,10 @@ export const getDeviceMetricsSummary = async (
     return parseMetricValues(response.data);
   };
 
-  let temperatureValues;
-  try {
-    temperatureValues = await fetchMetric(TEMPERATURE_METRIC, 1000);
-  } catch {
-    return Result.err("Не удалось связаться с сервером");
-  }
-
   const [batteryValues, powerValues] = await Promise.allSettled([
     fetchMetric(BATTERY_METRIC, 10),
     fetchMetric(POWER_METRIC, 10),
   ]);
-
-  const history = temperatureValues
-    .filter((point) => point.name === TEMPERATURE_METRIC)
-    .map((point) => ({ value: point.value, timestamp: point.timestamp }))
-    .sort((a, b) => a.timestamp - b.timestamp);
-
-  const last = history.length > 0 ? history[history.length - 1] : undefined;
 
   const battery =
     batteryValues.status === "fulfilled"
@@ -393,12 +381,7 @@ export const getDeviceMetricsSummary = async (
       ? powerValues.value[powerValues.value.length - 1]
       : undefined;
 
-  return Result.ok({
-    temperature: {
-      current: last ? last.value : null,
-      updatedAt: last ? last.timestamp : null,
-      history,
-    },
+  return Result.ok<DeviceMetricsSummary>({
     batteryLevel: battery ? battery.value : null,
     batteryUpdatedAt: battery ? battery.timestamp : null,
     powerConnected: power ? power.value === 1 : null,

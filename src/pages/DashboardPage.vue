@@ -31,17 +31,16 @@
     <!-- Поиск и фильтры -->
     <div class="flex flex-col sm:flex-row gap-3">
       <div class="relative flex-1">
-        <label
-          class="sr-only"
-          for="dashboard-search"
-        >Поиск по названию или ID устройства</label>
+        <label class="sr-only" for="dashboard-search"
+          >Поиск по названию или ID устройства</label
+        >
         <input
           id="dashboard-search"
           v-model="searchQuery"
           type="text"
           placeholder="Поиск по названию..."
           class="ship-field pl-10"
-        >
+        />
         <svg
           class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400"
           fill="none"
@@ -57,35 +56,23 @@
           />
         </svg>
       </div>
-      <label
-        class="sr-only"
-        for="dashboard-status-filter"
-      >Фильтр по статусу</label>
+      <label class="sr-only" for="dashboard-status-filter"
+        >Фильтр по статусу</label
+      >
       <select
         id="dashboard-status-filter"
         v-model="statusFilter"
         class="ship-field sm:w-44 cursor-pointer"
       >
-        <option value="all">
-          Все статусы
-        </option>
-        <option value="online">
-          В сети
-        </option>
-        <option value="offline">
-          Не в сети
-        </option>
-        <option value="error">
-          Ошибка
-        </option>
+        <option value="all">Все статусы</option>
+        <option value="online">В сети</option>
+        <option value="offline">Не в сети</option>
+        <option value="error">Ошибка</option>
       </select>
     </div>
 
     <!-- Ошибка загрузки -->
-    <div
-      v-if="loadError"
-      class="ship-card p-8 text-center animate-scale-in"
-    >
+    <div v-if="loadError" class="ship-card p-8 text-center animate-scale-in">
       <p class="text-lg font-semibold text-ink-900 mb-1">
         Не удалось загрузить устройства
       </p>
@@ -105,11 +92,7 @@
       v-else-if="loading"
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
     >
-      <div
-        v-for="i in 6"
-        :key="i"
-        class="ship-card p-5"
-      >
+      <div v-for="i in 6" :key="i" class="ship-card p-5">
         <div class="skeleton h-5 w-32 mb-3" />
         <div class="skeleton h-3 w-20 mb-6" />
         <div class="skeleton h-12 w-24 mx-auto" />
@@ -174,9 +157,7 @@
       v-else-if="filteredSensors.length === 0"
       class="ship-card p-8 text-center text-ink-500 animate-scale-in"
     >
-      <p class="text-sm">
-        Ничего не найдено
-      </p>
+      <p class="text-sm">Ничего не найдено</p>
       <button
         class="mt-2 text-brand-600 hover:text-brand-700 text-sm font-medium"
         @click="
@@ -204,7 +185,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, onActivated } from "vue";
 import { ROUTES } from "@/constants/routes";
-import { getUserDevices, getDeviceMetricsSummary, type DeviceMetricsSummary } from "@/data";
+import {
+  getUserDevices,
+  getDeviceMetricsSummary,
+  type DeviceMetricsSummary,
+} from "@/data";
 import { fetchOnlineStatus } from "@/utils/utils";
 
 async function fetchDeviceMetrics(
@@ -357,8 +342,6 @@ async function loadSensors() {
       name: device.name,
       displayName: getDisplayName(device.id, device.name),
       status,
-      temperature: metrics?.temperature.current ?? null,
-      tempUpdatedAt: metrics?.temperature.updatedAt ?? null,
       batteryLevel: metrics?.batteryLevel ?? null,
       powerConnected: metrics?.powerConnected ?? null,
     });

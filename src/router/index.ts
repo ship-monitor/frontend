@@ -43,9 +43,9 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requireAuth: true, layout: "app" } as CustomRouteMeta,
   },
   {
-    path: ROUTES.SENSOR_DETAILS,
-    name: "sensor-details",
-    component: () => import("../pages/sensors/SensorDetailsPage.vue"),
+    path: ROUTES.DEVICE_DETAILS,
+    name: "DeviceDetails",
+    component: () => import("../pages/devices/DetailsPage.vue"),
     meta: { requireAuth: true, layout: "app" } as CustomRouteMeta,
   },
   {
@@ -57,14 +57,18 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: ROUTES.CONNECT_DEVICE,
     name: "ConnectDevice",
-    component: () => import("../pages/ConnectDevicePage.vue"),
+    component: () => import("../pages/devices/ConnectPage.vue"),
     meta: { requireAuth: true, layout: "app" } as CustomRouteMeta,
   },
   {
     path: ROUTES.SERVER_ERROR,
     name: "ServerError",
     component: () => import("../pages/ServerErrorPage.vue"),
-    meta: { requireAuth: false, onlyAnonymous: false, layout: "auth" } as CustomRouteMeta,
+    meta: {
+      requireAuth: false,
+      onlyAnonymous: false,
+      layout: "auth",
+    } as CustomRouteMeta,
   },
   {
     path: "/:pathMatch(.*)*",
