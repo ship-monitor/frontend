@@ -19,7 +19,11 @@
       </div>
 
       <!-- Форма -->
-      <form class="space-y-4" novalidate @submit.prevent="handleSubmit">
+      <form
+        class="space-y-4"
+        novalidate
+        @submit.prevent="handleSubmit"
+      >
         <!-- ID устройства -->
         <div>
           <label
@@ -38,7 +42,7 @@
             :disabled="submitting"
             :aria-invalid="errors.deviceId ? 'true' : undefined"
             aria-describedby="device-id-error"
-          />
+          >
           <p
             v-if="errors.deviceId"
             id="device-id-error"
@@ -67,7 +71,7 @@
             autocomplete="off"
             :aria-invalid="errors.securityKey ? 'true' : undefined"
             aria-describedby="device-security-key-error"
-          />
+          >
           <p
             v-if="errors.securityKey"
             id="device-security-key-error"
@@ -97,7 +101,10 @@
             />
           </svg>
           Запрос отправлен, устройство скоро появится!
-          <router-link :to="ROUTES.DASHBOARD" class="font-semibold underline">
+          <router-link
+            :to="ROUTES.DASHBOARD"
+            class="font-semibold underline"
+          >
             На дашборд
           </router-link>
         </div>
@@ -134,7 +141,11 @@
             v-if="submitting"
             class="flex items-center justify-center gap-2"
           >
-            <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <svg
+              class="w-5 h-5 animate-spin"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
               <circle
                 class="opacity-25"
                 cx="12"

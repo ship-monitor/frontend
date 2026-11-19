@@ -31,7 +31,10 @@
     <!-- Поиск и фильтры -->
     <div class="flex flex-col sm:flex-row gap-3">
       <div class="relative flex-1">
-        <label class="sr-only" for="dashboard-search">
+        <label
+          class="sr-only"
+          for="dashboard-search"
+        >
           Поиск по названию или ID устройства
         </label>
         <input
@@ -56,7 +59,10 @@
           />
         </svg>
       </div>
-      <label class="sr-only" for="dashboard-status-filter">
+      <label
+        class="sr-only"
+        for="dashboard-status-filter"
+      >
         Фильтр по статусу
       </label>
       <select
@@ -64,10 +70,18 @@
         v-model="statusFilter"
         class="ship-field sm:w-44 cursor-pointer"
       >
-        <option value="all">Все статусы</option>
-        <option value="online">В сети</option>
-        <option value="offline">Не в сети</option>
-        <option value="error">Ошибка</option>
+        <option value="all">
+          Все статусы
+        </option>
+        <option value="online">
+          В сети
+        </option>
+        <option value="offline">
+          Не в сети
+        </option>
+        <option value="error">
+          Ошибка
+        </option>
       </select>
     </div>
 
@@ -95,7 +109,11 @@
       v-else-if="devicesStore.loading"
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
     >
-      <div v-for="i in 6" :key="i" class="ship-card p-5">
+      <div
+        v-for="i in 6"
+        :key="i"
+        class="ship-card p-5"
+      >
         <div class="skeleton h-5 w-32 mb-3" />
         <div class="skeleton h-3 w-20 mb-6" />
         <div class="skeleton h-12 w-24 mx-auto" />
@@ -160,7 +178,9 @@
       v-else-if="filteredDevices.length === 0"
       class="ship-card p-8 text-center text-ink-500 animate-scale-in"
     >
-      <p class="text-sm">Ничего не найдено</p>
+      <p class="text-sm">
+        Ничего не найдено
+      </p>
       <button
         class="mt-2 text-brand-600 hover:text-brand-700 text-sm font-medium"
         @click="

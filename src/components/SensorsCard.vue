@@ -1,12 +1,20 @@
 <template>
   <div class="ship-card p-6">
-    <h2 class="text-lg font-bold text-ink-900 mb-4">Датчики</h2>
+    <h2 class="text-lg font-bold text-ink-900 mb-4">
+      Датчики
+    </h2>
 
-    <div v-if="loading" class="text-sm text-ink-400 py-4 text-center">
+    <div
+      v-if="loading"
+      class="text-sm text-ink-400 py-4 text-center"
+    >
       Загрузка...
     </div>
 
-    <div v-else-if="error" class="text-sm text-red-600 py-2">
+    <div
+      v-else-if="error"
+      class="text-sm text-red-600 py-2"
+    >
       {{ error }}
     </div>
 
@@ -17,8 +25,14 @@
       Нет подключённых датчиков
     </p>
 
-    <ul v-else class="grid grid-cols-2">
-      <li v-for="sensor in sensors" :key="sensor.id">
+    <ul
+      v-else
+      class="grid grid-cols-2"
+    >
+      <li
+        v-for="sensor in sensors"
+        :key="sensor.id"
+      >
         <SensorCard :sensor="sensor" />
       </li>
     </ul>

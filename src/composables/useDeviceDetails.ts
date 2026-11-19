@@ -27,6 +27,7 @@ export interface DeviceSettings {
 }
 
 const EMPTY_METRICS: DeviceMetricsSummary = {
+  temperature: { current: null, updatedAt: null, history: [] },
   batteryLevel: null,
   batteryUpdatedAt: null,
   powerConnected: null,

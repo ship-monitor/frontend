@@ -16,6 +16,8 @@ export interface DeviceSummary {
   name: string;
   displayName: string;
   status: DeviceStatus;
+  temperature: number | null;
+  tempUpdatedAt: number | null;
   batteryLevel: number | null;
   powerConnected: boolean | null;
 }
@@ -116,6 +118,8 @@ export const useDevicesStore = defineStore("devices-store", {
           name: device.name,
           displayName: resolveDisplayName(device.id, device.name),
           status: resolveStatus(ok, pingHistory, previousStatus.get(device.id)),
+          temperature: metrics?.temperature.current ?? null,
+          tempUpdatedAt: metrics?.temperature.updatedAt ?? null,
           batteryLevel: metrics?.batteryLevel ?? null,
           powerConnected: metrics?.powerConnected ?? null,
         });

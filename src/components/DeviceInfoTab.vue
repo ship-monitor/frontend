@@ -1,7 +1,9 @@
 <template>
   <div class="space-y-6">
     <div class="ship-card p-6">
-      <h2 class="text-lg font-bold text-ink-900 mb-6">Настройки устройства</h2>
+      <h2 class="text-lg font-bold text-ink-900 mb-6">
+        Настройки устройства
+      </h2>
 
       <div class="space-y-6">
         <div>
@@ -21,7 +23,12 @@
         </div>
 
         <div class="flex justify-end gap-3 pt-4 border-t border-ink-100">
-          <ShipButton variant="secondary" @click="cancel"> Отмена </ShipButton>
+          <ShipButton
+            variant="secondary"
+            @click="cancel"
+          >
+            Отмена
+          </ShipButton>
           <ShipButton
             variant="primary"
             :disabled="saving"
@@ -31,14 +38,20 @@
           </ShipButton>
         </div>
 
-        <p v-if="error" role="alert" class="text-sm text-red-600 text-right">
+        <p
+          v-if="error"
+          role="alert"
+          class="text-sm text-red-600 text-right"
+        >
           {{ error }}
         </p>
       </div>
     </div>
 
     <div class="ship-card p-6 border-red-200">
-      <h2 class="text-lg font-bold text-red-700 mb-2">Отключение устройства</h2>
+      <h2 class="text-lg font-bold text-red-700 mb-2">
+        Отключение устройства
+      </h2>
       <p class="text-sm text-ink-500 mb-4">
         Устройство будет отвязано от аккаунта. Датчики перестанут отслеживаться,
         данные на сервере сохранятся.
@@ -50,7 +63,11 @@
       >
         {{ disconnecting ? "Отключение..." : "Отключить устройство" }}
       </ShipButton>
-      <p v-if="disconnectError" role="alert" class="text-sm text-red-600 mt-3">
+      <p
+        v-if="disconnectError"
+        role="alert"
+        class="text-sm text-red-600 mt-3"
+      >
         {{ disconnectError }}
       </p>
     </div>
