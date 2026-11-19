@@ -12,7 +12,8 @@
     "test": "vitest run",
     "lint": "eslint",
     "format": "prettier . --write",
-    "api:generate": "node scripts/generate-api.mjs"
+    "api:generate": "node scripts/generate-api.mjs",
+    "e2e:smoke": "node scripts/e2e-smoke.mjs"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",
