@@ -69,6 +69,10 @@ const handleLogin = async () => {
       class="hidden lg:flex lg:w-1/2 bg-ink-900 text-white relative overflow-hidden flex-col justify-between p-12"
     >
       <div class="absolute inset-0 bg-grid opacity-30" />
+      <div
+        class="absolute inset-0 bg-[radial-gradient(ellipse_55%_45%_at_75%_8%,rgb(53_116_188/0.25),transparent_70%)]"
+        aria-hidden="true"
+      />
 
       <!-- Логотип -->
       <div class="relative flex items-center gap-3">
@@ -90,7 +94,7 @@ const handleLogin = async () => {
         </p>
         <div class="flex items-center gap-6 pt-4">
           <div>
-            <p class="text-2xl font-bold text-brand-400">
+            <p class="text-2xl font-bold text-brand-400 font-mono num">
               24/7
             </p>
             <p class="text-xs text-ink-400">
@@ -99,7 +103,7 @@ const handleLogin = async () => {
           </div>
           <div class="w-px h-10 bg-ink-700" />
           <div>
-            <p class="text-2xl font-bold text-brand-400">
+            <p class="text-2xl font-bold text-brand-400 font-mono num">
               SMS
             </p>
             <p class="text-xs text-ink-400">
@@ -108,7 +112,7 @@ const handleLogin = async () => {
           </div>
           <div class="w-px h-10 bg-ink-700" />
           <div>
-            <p class="text-2xl font-bold text-brand-400">
+            <p class="text-2xl font-bold text-brand-400 font-mono num">
               GSM
             </p>
             <p class="text-xs text-ink-400">

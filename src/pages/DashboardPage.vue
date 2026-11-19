@@ -28,6 +28,33 @@
       </div>
     </div>
 
+    <!-- Сводка статусов -->
+    <div
+      v-if="!devicesStore.loading && !devicesStore.loadError && devicesStore.devices.length > 0"
+      class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm"
+    >
+      <span class="text-ink-500">
+        Всего
+        <span class="font-mono font-semibold text-ink-900 num">{{ devicesStore.devices.length }}</span>
+      </span>
+      <span class="inline-flex items-center gap-2 text-ink-500">
+        <span class="size-2 rounded-sm bg-ok-500" />
+        В сети
+        <span class="font-mono font-semibold text-ok-700 num">{{ statusCounts.online }}</span>
+      </span>
+      <span
+        class="inline-flex items-center gap-2 text-ink-500"
+        :class="{ 'text-red-600': statusCounts.alarm > 0 }"
+      >
+        <span :class="['size-2 rounded-sm', statusCounts.alarm > 0 ? 'bg-red-500' : 'bg-ink-300']" />
+        Проблемы
+        <span
+          class="font-mono font-semibold num"
+          :class="statusCounts.alarm > 0 ? 'text-red-600' : 'text-ink-400'"
+        >{{ statusCounts.alarm }}</span>
+      </span>
+    </div>
+
     <!-- Поиск и фильтры -->
     <div class="flex flex-col sm:flex-row gap-3">
       <div class="relative flex-1">
@@ -97,7 +124,7 @@
         {{ devicesStore.loadError }}
       </p>
       <button
-        class="px-5 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-semibold"
+        class="px-5 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-semibold active:scale-[0.98]"
         @click="devicesStore.load()"
       >
         Повторить
@@ -215,6 +242,14 @@ const devicesStore = useDevicesStore();
 
 const searchQuery = ref("");
 const statusFilter = ref("all");
+
+const statusCounts = computed(() => {
+  const online = devicesStore.devices.filter((d) => d.status === "online").length;
+  return {
+    online,
+    alarm: devicesStore.devices.length - online,
+  };
+});
 
 const filteredDevices = computed(() => {
   let result = devicesStore.devices;

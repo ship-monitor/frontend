@@ -13,6 +13,8 @@
    ============================================================ */
 
 @theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
   --font-accent: Dobryak;
 
   --color-cotton: #f4f3f1;
@@ -42,6 +44,16 @@
   --color-ink-800: #262938;
   --color-ink-900: #020822;
   --color-ink-950: #01040f;
+
+  /* ===== Статус «норма» (приборный зелёный) ===== */
+  --color-ok-50: #eef7f0;
+  --color-ok-100: #d6ecdc;
+  --color-ok-200: #aed9bc;
+  --color-ok-300: #7cc093;
+  --color-ok-400: #4ca56e;
+  --color-ok-500: #2f8a53;
+  --color-ok-600: #257044;
+  --color-ok-700: #1e5937;
 
   /* ===== Семантические радиусы ===== */
   --radius-card: 1.625rem;
@@ -118,6 +130,24 @@
     animation: none;
     mix-blend-mode: normal;
   }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply outline-none ring-2 ring-brand-500/50 ring-offset-2 ring-offset-ink-50;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
 /* ============================================================
@@ -161,7 +191,7 @@
   }
 
   .app-badge-success {
-    @apply bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-200;
+    @apply bg-ok-50 text-ok-700 ring-1 ring-inset ring-ok-200;
   }
 
   .app-badge-danger {
@@ -177,6 +207,10 @@
    УТИЛИТЫ
    ============================================================ */
 @layer utilities {
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }

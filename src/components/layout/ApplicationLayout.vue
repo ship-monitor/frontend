@@ -3,7 +3,7 @@ import { type Component } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
 import { ROUTES } from "@/constants/routes";
-import { LANDING_URL } from "@/constants/contacts";
+import { LANDING_URL, SUPPORT_EMAIL } from "@/constants/contacts";
 import IconLogout from "@/components/icons/IconLogout.vue";
 import IconPulse from "@/components/icons/IconPulse.vue";
 import IconPerson from "@/components/icons/IconPerson.vue";
@@ -68,12 +68,15 @@ const logoutHandler = async () => {
 
       <!-- Навигация -->
       <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+        <p class="px-4 pt-2 pb-2 text-[11px] font-semibold uppercase tracking-widest text-ink-500">
+          Разделы
+        </p>
         <router-link
           v-for="item in NAVIGATION_ITEMS"
           :key="item.link"
           :to="item.link"
           class="flex items-center gap-3 px-4 py-3 rounded-xl text-ink-300 hover:bg-ink-800 hover:text-white transition-all duration-150 touch-target group"
-          active-class="!bg-brand-500/15 !text-brand-300 font-medium"
+          active-class="!bg-brand-500/15 !text-brand-300 font-semibold"
         >
           <component
             :is="item.icon"
@@ -85,20 +88,42 @@ const logoutHandler = async () => {
 
       <!-- Поддержка внизу -->
       <div class="p-4 border-t border-ink-800">
-        <div class="flex items-center gap-3 px-2">
-          <div
-            class="w-9 h-9 rounded-full bg-ink-700 flex items-center justify-center text-sm font-semibold"
+        <div class="rounded-xl bg-ink-800/60 ring-1 ring-inset ring-ink-700 p-3.5">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-9 h-9 rounded-full bg-ink-700 flex items-center justify-center text-sm font-semibold shrink-0"
+            >
+              А
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm text-white truncate">
+                Поддержка
+              </p>
+              <p class="text-xs text-ink-400 truncate">
+                Шевцов А.
+              </p>
+            </div>
+          </div>
+          <a
+            :href="'mailto:' + SUPPORT_EMAIL"
+            class="mt-3 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-ink-700/60 text-xs font-medium text-brand-300 hover:bg-ink-700 hover:text-brand-200 transition-colors touch-target"
           >
-            А
-          </div>
-          <div class="min-w-0">
-            <p class="text-sm text-white truncate">
-              Поддержка
-            </p>
-            <p class="text-xs text-ink-400 truncate">
-              Шевцов А.
-            </p>
-          </div>
+            <svg
+              class="size-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+              />
+            </svg>
+            {{ SUPPORT_EMAIL }}
+          </a>
         </div>
       </div>
     </aside>
