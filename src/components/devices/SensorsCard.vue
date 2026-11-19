@@ -1,5 +1,5 @@
 <template>
-  <div class="ship-card p-6">
+  <div class="app-card p-6">
     <h2 class="text-lg font-bold text-ink-900 mb-4">
       Датчики
     </h2>
@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import { type Sensor } from "@/data";
-import SensorCard from "@/components/SensorCard.vue";
+import SensorCard from "@/components/devices/SensorCard.vue";
 
 defineProps<{
   sensors: Sensor[];

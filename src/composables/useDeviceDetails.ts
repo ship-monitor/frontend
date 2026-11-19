@@ -8,18 +8,12 @@ import {
   disconnectDevice,
   getDeviceById,
   getDeviceMetricsSummary,
+  getDeviceOnlineStatus,
   getDeviceSensors,
   updateDevice,
   type DeviceMetricsSummary,
   type Sensor,
 } from "@/data";
-import { fetchOnlineStatus } from "@/utils/utils";
-import {
-  clearDeviceSettings,
-  readStoredDeviceName,
-  resolveDisplayName,
-  saveStoredDeviceName,
-} from "@/utils/deviceSettings";
 
 export interface DeviceSettings {
   id: string;
@@ -53,13 +47,6 @@ export function useDeviceDetails(deviceId: ComputedRef<string>) {
   // Счётчик поколений: ответы от предыдущего устройства не перезаписывают новое.
   let generation = 0;
 
-  function loadSettings(): DeviceSettings {
-    return {
-      id: deviceId.value,
-      name: readStoredDeviceName(deviceId.value),
-    };
-  }
-
   async function loadSensors() {
     sensorsLoading.value = true;
     const result = await getDeviceSensors(deviceId.value);
@@ -88,21 +75,23 @@ export function useDeviceDetails(deviceId: ComputedRef<string>) {
   }
 
   async function pingStatus(currentGeneration: number) {
-    const ok = await fetchOnlineStatus(deviceId.value);
+    const result = await getDeviceOnlineStatus(deviceId.value);
     if (currentGeneration !== generation) return;
-    if (ok === null) {
-      statusUnknown.value = true;
-    } else {
-      statusUnknown.value = false;
-      deviceIsConnected.value = ok;
-    }
+    result
+      .map((status) => {
+        statusUnknown.value = false;
+        deviceIsConnected.value = status.online;
+      })
+      .inspectErr(() => {
+        statusUnknown.value = true;
+      })
+      .unwrapOr(undefined);
   }
 
   async function load() {
     const currentGeneration = ++generation;
     loading.value = true;
     loadError.value = "";
-    settings.value = loadSettings();
 
     const deviceResult = await getDeviceById(deviceId.value);
     if (currentGeneration !== generation) return;
@@ -112,10 +101,13 @@ export function useDeviceDetails(deviceId: ComputedRef<string>) {
       return;
     }
 
-    deviceName.value = resolveDisplayName(
-      deviceId.value,
-      deviceResult.value.name
-    );
+    const name =
+      deviceResult.value.name && deviceResult.value.name !== "Unknown Device"
+        ? deviceResult.value.name
+        : deviceId.value.substring(0, 8);
+    deviceName.value = name;
+    settings.value = { id: deviceId.value, name };
+
     void loadSensors();
     void loadMetrics();
     await pingStatus(currentGeneration);
@@ -138,7 +130,6 @@ export function useDeviceDetails(deviceId: ComputedRef<string>) {
     result
       .map(() => {
         settings.value = { ...updated, name };
-        saveStoredDeviceName(deviceId.value, name);
         deviceName.value = name;
       })
       .inspectErr((err) => {
@@ -156,7 +147,6 @@ export function useDeviceDetails(deviceId: ComputedRef<string>) {
     result
       .map(() => {
         ok = true;
-        clearDeviceSettings(deviceId.value);
       })
       .inspectErr((err) => {
         disconnectError.value = err;

@@ -31,7 +31,7 @@
 
     <div
       v-else-if="loadError"
-      class="ship-card p-8 text-center"
+      class="app-card p-8 text-center"
     >
       <p class="text-lg font-semibold text-ink-900 mb-1">
         {{ loadError }}
@@ -76,7 +76,7 @@
         :error="sensorsError"
       />
 
-      <div class="ship-card p-6">
+      <div class="app-card p-6">
         <div class="flex items-center justify-between mb-1">
           <h2 class="text-lg font-bold text-ink-900">
             Температура
@@ -106,10 +106,10 @@
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ROUTES } from "@/constants/routes";
-import DevicePageHeader from "@/components/DevicePageHeader.vue";
-import DeviceInfoTab from "@/components/DeviceInfoTab.vue";
-import SensorsCard from "@/components/SensorsCard.vue";
-import TemperatureChart from "@/components/TemperatureChart.vue";
+import DevicePageHeader from "@/components/devices/DevicePageHeader.vue";
+import DeviceInfoTab from "@/components/devices/DeviceInfoTab.vue";
+import SensorsCard from "@/components/devices/SensorsCard.vue";
+import TemperatureChart from "@/components/devices/TemperatureChart.vue";
 import { useDeviceDetails } from "@/composables/useDeviceDetails";
 
 const route = useRoute();

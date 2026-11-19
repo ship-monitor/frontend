@@ -1,12 +1,11 @@
 import { defineStore } from "pinia";
 import {
   getDeviceMetricsSummary,
+  getDeviceOnlineStatus,
   getUserDevices,
   type DeviceMetricsSummary,
 } from "@/data";
 import { useAuthStore } from "@/stores/authStore";
-import { fetchOnlineStatus } from "@/utils/utils";
-import { resolveDisplayName } from "@/utils/deviceSettings";
 import safeStorage from "@/utils/storage";
 
 export type DeviceStatus = "online" | "offline" | "error" | "unknown";
@@ -14,7 +13,6 @@ export type DeviceStatus = "online" | "offline" | "error" | "unknown";
 export interface DeviceSummary {
   id: string;
   name: string;
-  displayName: string;
   status: DeviceStatus;
   temperature: number | null;
   tempUpdatedAt: number | null;
@@ -31,47 +29,36 @@ const PING_HISTORY_LENGTH = 10;
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 let refreshInFlight = false;
 
-async function fetchMetrics(
-  deviceId: string
-): Promise<DeviceMetricsSummary | null> {
-  return (await getDeviceMetricsSummary(deviceId))
-    .inspectErr((err) => console.error("Failed to load device metrics: %s", err))
-    .unwrapOr(null);
-}
-
-function readPingHistory(deviceId: string): boolean[] {
-  const stored = safeStorage.getJson(`device_pings_${deviceId}`);
-  if (Array.isArray(stored)) {
-    const history = stored.filter((p): p is boolean => typeof p === "boolean");
-    if (history.length > 0) return history.slice(-PING_HISTORY_LENGTH);
-  }
-  return [];
-}
+// История пингов живёт в памяти сессии: переживает навигацию, но не
+// переносится между запусками браузера.
+const pingHistory = new Map<string, boolean[]>();
 
 function appendPingResult(deviceId: string, ok: boolean): boolean[] {
-  const history = readPingHistory(deviceId);
-  history.push(ok);
-  if (history.length > PING_HISTORY_LENGTH) history.shift();
-  safeStorage.setItem(
-    `device_pings_${deviceId}`,
-    JSON.stringify(history.slice(-PING_HISTORY_LENGTH))
+  const history = [...(pingHistory.get(deviceId) ?? []), ok].slice(
+    -PING_HISTORY_LENGTH
   );
+  pingHistory.set(deviceId, history);
   return history;
 }
 
 function resolveStatus(
   ok: boolean | null,
-  pingHistory: boolean[],
+  history: boolean[],
   previous: DeviceStatus | undefined
 ): DeviceStatus {
   if (ok === null) {
     return previous ?? "unknown";
   }
-  const lastPings = pingHistory.slice(-5);
+  const lastPings = history.slice(-5);
   if (lastPings.length >= 3 && lastPings.every((p) => !p)) {
     return "error";
   }
   return ok ? "online" : "offline";
+}
+
+function displayName(id: string, name: string): string {
+  if (name && name !== "Unknown Device") return name;
+  return id.substring(0, 8);
 }
 
 export const useDevicesStore = defineStore("devices-store", {
@@ -96,36 +83,40 @@ export const useDevicesStore = defineStore("devices-store", {
       this.loadError = null;
 
       const snapshot = await Promise.all(
-        devicesResult.value.map(async (device) => ({
-          device,
-          ok: await fetchOnlineStatus(device.id),
-          metrics: await fetchMetrics(device.id),
-        }))
+        devicesResult.value.map(async (device) => {
+          const [status, metrics] = await Promise.all([
+            getDeviceOnlineStatus(device.id),
+            getDeviceMetricsSummary(device.id).then((r) =>
+              r.isErr
+                ? (console.error("Failed to load device metrics: %s", r.error),
+                  null)
+                : r.value
+            ),
+          ]);
+          return { device, status, metrics };
+        })
       );
 
       const previousStatus = new Map(
         this.devices.map((device) => [device.id, device.status])
       );
 
-      const nextDevices: DeviceSummary[] = [];
-      for (const { device, ok, metrics } of snapshot) {
-        const pingHistory =
-          ok !== null
-            ? appendPingResult(device.id, ok)
-            : readPingHistory(device.id);
-        nextDevices.push({
+      this.devices = snapshot.map(({ device, status, metrics }) => {
+        const ok = status.isErr ? null : status.value.online;
+        const history =
+          ok !== null ? appendPingResult(device.id, ok) : (pingHistory.get(device.id) ?? []);
+        const summary: DeviceMetricsSummary | null = metrics;
+        return {
           id: device.id,
-          name: device.name,
-          displayName: resolveDisplayName(device.id, device.name),
-          status: resolveStatus(ok, pingHistory, previousStatus.get(device.id)),
-          temperature: metrics?.temperature.current ?? null,
-          tempUpdatedAt: metrics?.temperature.updatedAt ?? null,
-          batteryLevel: metrics?.batteryLevel ?? null,
-          powerConnected: metrics?.powerConnected ?? null,
-        });
-      }
+          name: displayName(device.id, device.name),
+          status: resolveStatus(ok, history, previousStatus.get(device.id)),
+          temperature: summary?.temperature.current ?? null,
+          tempUpdatedAt: summary?.temperature.updatedAt ?? null,
+          batteryLevel: summary?.batteryLevel ?? null,
+          powerConnected: summary?.powerConnected ?? null,
+        };
+      });
 
-      this.devices = nextDevices;
       refreshInFlight = false;
       this.loading = false;
     },

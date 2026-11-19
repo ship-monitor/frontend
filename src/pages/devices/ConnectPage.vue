@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-full flex items-center justify-center p-4 sm:p-6 bg-ink-50">
-    <div class="ship-card p-6 sm:p-8 max-w-md w-full animate-scale-in">
+    <div class="app-card p-6 sm:p-8 max-w-md w-full animate-scale-in">
       <!-- Заголовок -->
       <div class="mb-6">
         <button
@@ -37,7 +37,7 @@
             v-model="form.deviceId"
             type="text"
             placeholder="UUID устройства"
-            class="ship-field font-mono text-sm"
+            class="app-field font-mono text-sm"
             :class="{ '!border-red-400': errors.deviceId }"
             :disabled="submitting"
             :aria-invalid="errors.deviceId ? 'true' : undefined"
@@ -65,7 +65,7 @@
             v-model="form.securityKey"
             type="password"
             placeholder="Ключ с наклейки"
-            class="ship-field"
+            class="app-field"
             :class="{ 'border-red-400!': errors.securityKey }"
             :disabled="submitting"
             autocomplete="off"

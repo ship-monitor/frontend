@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen flex items-center justify-center p-4">
-    <div class="ship-card p-8 sm:p-10 max-w-md w-full text-center animate-scale-in">
+    <div class="app-card p-8 sm:p-10 max-w-md w-full text-center animate-scale-in">
       <span
         class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-red-50 text-red-500 mb-4"
       >

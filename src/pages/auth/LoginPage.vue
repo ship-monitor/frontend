@@ -5,7 +5,7 @@ import { login } from "@/data/auth";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
 
-import ShipInput from "@/components/ShipInput.vue";
+import AppInput from "@/components/ui/AppInput.vue";
 import { isValidEmail } from "@/utils/validators";
 
 const email = ref("");
@@ -192,7 +192,7 @@ const handleLogin = async () => {
               class="block text-sm font-medium text-ink-700 mb-1.5"
               for="login-email"
             >Email</label>
-            <ship-input
+            <app-input
               id="login-email"
               v-model="email"
               placeholder="you@example.com"
@@ -217,7 +217,7 @@ const handleLogin = async () => {
               for="login-password"
             >Пароль</label>
             <div class="relative">
-              <ship-input
+              <app-input
                 id="login-password"
                 v-model="password"
                 placeholder="••••••••"

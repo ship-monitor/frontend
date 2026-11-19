@@ -1,16 +1,16 @@
 <template>
   <RouterLink
     :to="route.deviceDetails(device.id)"
-    class="ship-card ship-card-hover p-4 sm:p-5 block active:scale-[0.98]"
+    class="app-card app-card-hover p-4 sm:p-5 block active:scale-[0.98]"
     :class="{
       'opacity-60': device.status === 'offline' || device.status === 'error',
     }"
-    :aria-label="`Устройство ${device.displayName}: ${statusLabel}`"
+    :aria-label="`Устройство ${device.name}: ${statusLabel}`"
   >
     <div class="flex justify-between items-start mb-4">
       <div class="min-w-0 flex-1 mr-2">
         <h3 class="font-semibold text-ink-900 text-sm sm:text-base truncate">
-          {{ device.displayName }}
+          {{ device.name }}
         </h3>
       </div>
       <span

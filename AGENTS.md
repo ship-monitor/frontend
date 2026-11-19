@@ -53,15 +53,13 @@ src/
 ├── main.ts             # App entrypoint
 ├── App.vue             # Root component (auth/app layout switch)
 ├── styles.css          # Global styles + Tailwind import
-├── components/         # Reusable UI components
+├── components/         # Split by kind: devices/ (domain), ui/, icons/, layout/
 ├── composables/        # Page-level data orchestration (e.g. useDeviceDetails)
 ├── constants/          # routes.ts, contacts.ts (incl. LANDING_URL)
 ├── data/               # Data-access layer returning true-myth Results
-├── i18n/               # vue-i18n (ru only; keys for CookieBanner)
-├── models/             # Domain models / interfaces
-├── pages/              # Route-level views (auth/, sensors/, dashboard…)
+├── pages/              # Route-level views (auth/, devices/, dashboard…)
 ├── router/             # Vue Router setup
-├── stores/             # Pinia stores
+├── stores/             # Pinia stores (authStore, devicesStore)
 └── utils/              # Pure helper functions
 ```
 
@@ -96,7 +94,7 @@ src/
 A `.env` file is required for the dev server and build (values are baked into
 the bundle at build time; Docker passes them as build args):
 
-- `VITE_API_URL` — Coldstat backend base URL (consumed in `src/api.ts`).
+- `VITE_API_URL` — Coldstat backend base URL (consumed in `src/api/client.ts`).
 - `VITE_PLAUSIBLE_URL` / `VITE_PLAUSIBLE_DOMAIN` — optional analytics
   (currently disabled; see README.md).
 

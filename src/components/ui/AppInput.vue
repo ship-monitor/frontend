@@ -1,7 +1,7 @@
 <template>
   <input
     v-model="model"
-    class="ship-field"
+    class="app-field"
   >
 </template>
 

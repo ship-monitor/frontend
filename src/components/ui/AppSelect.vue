@@ -3,7 +3,7 @@
     <select
       v-model="model"
       v-bind="$attrs"
-      class="ship-field appearance-none pr-10 cursor-pointer"
+      class="app-field appearance-none pr-10 cursor-pointer"
     >
       <option
         v-for="option in options"

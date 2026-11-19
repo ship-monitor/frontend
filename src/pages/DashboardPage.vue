@@ -42,7 +42,7 @@
           v-model="searchQuery"
           type="text"
           placeholder="Поиск по названию..."
-          class="ship-field pl-10"
+          class="app-field pl-10"
         >
         <svg
           class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400"
@@ -68,7 +68,7 @@
       <select
         id="dashboard-status-filter"
         v-model="statusFilter"
-        class="ship-field sm:w-44 cursor-pointer"
+        class="app-field sm:w-44 cursor-pointer"
       >
         <option value="all">
           Все статусы
@@ -88,7 +88,7 @@
     <!-- Ошибка загрузки -->
     <div
       v-if="devicesStore.loadError"
-      class="ship-card p-8 text-center animate-scale-in"
+      class="app-card p-8 text-center animate-scale-in"
     >
       <p class="text-lg font-semibold text-ink-900 mb-1">
         Не удалось загрузить устройства
@@ -112,7 +112,7 @@
       <div
         v-for="i in 6"
         :key="i"
-        class="ship-card p-5"
+        class="app-card p-5"
       >
         <div class="skeleton h-5 w-32 mb-3" />
         <div class="skeleton h-3 w-20 mb-6" />
@@ -125,7 +125,7 @@
       v-else-if="
         filteredDevices.length === 0 && !searchQuery && statusFilter === 'all'
       "
-      class="ship-card p-8 sm:p-12 text-center animate-scale-in"
+      class="app-card p-8 sm:p-12 text-center animate-scale-in"
     >
       <div
         class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-ink-100 flex items-center justify-center"
@@ -176,7 +176,7 @@
     <!-- Ничего не найдено -->
     <div
       v-else-if="filteredDevices.length === 0"
-      class="ship-card p-8 text-center text-ink-500 animate-scale-in"
+      class="app-card p-8 text-center text-ink-500 animate-scale-in"
     >
       <p class="text-sm">
         Ничего не найдено
@@ -209,7 +209,7 @@
 import { ref, computed, onMounted, onUnmounted, onActivated } from "vue";
 import { ROUTES } from "@/constants/routes";
 import { useDevicesStore } from "@/stores/devicesStore";
-import DeviceCard from "@/components/DeviceCard.vue";
+import DeviceCard from "@/components/devices/DeviceCard.vue";
 
 const devicesStore = useDevicesStore();
 
@@ -233,7 +233,7 @@ const filteredDevices = computed(() => {
   if (query) {
     result = result.filter(
       (d) =>
-        d.displayName.toLowerCase().includes(query) ||
+        d.name.toLowerCase().includes(query) ||
         d.id.toLowerCase().includes(query)
     );
   }

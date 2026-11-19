@@ -125,50 +125,50 @@
    ============================================================ */
 @layer components {
   /* --- Карточка --- */
-  .ship-card {
+  .app-card {
     @apply bg-white rounded-[var(--radius-card)] border border-ink-200 transition-all duration-200;
     box-shadow: var(--shadow-card);
   }
 
-  .ship-card-hover {
+  .app-card-hover {
     @apply hover:border-ink-300 hover:-translate-y-0.5;
     box-shadow: var(--shadow-card);
   }
 
-  .ship-card-hover:hover {
+  .app-card-hover:hover {
     box-shadow: var(--shadow-card-hover);
   }
 
   /* --- Поле ввода (база) --- */
-  .ship-field {
+  .app-field {
     @apply w-full px-4 py-3 rounded-xl border border-ink-200 bg-white text-ink-900
            outline-none transition-all duration-150
            focus:border-brand-500;
     box-shadow: var(--shadow-card);
   }
 
-  .ship-field:focus {
+  .app-field:focus {
     box-shadow: var(--shadow-glow);
   }
 
-  .ship-field::placeholder {
+  .app-field::placeholder {
     @apply text-ink-400;
   }
 
   /* --- Бейдж статуса --- */
-  .ship-badge {
+  .app-badge {
     @apply inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full;
   }
 
-  .ship-badge-success {
+  .app-badge-success {
     @apply bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-200;
   }
 
-  .ship-badge-danger {
+  .app-badge-danger {
     @apply bg-red-50 text-red-700 ring-1 ring-inset ring-red-200;
   }
 
-  .ship-badge-muted {
+  .app-badge-muted {
     @apply bg-ink-100 text-ink-500 ring-1 ring-inset ring-ink-200;
   }
 }

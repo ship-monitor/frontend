@@ -14,7 +14,7 @@
 
 При сборке Docker-образа значения передаются как build-args (см. `build.args` в `docker-compose.yml`): `VITE_API_URL` берётся из `CLOUD_BACKEND_URL` (обязателен — без него сборка упадёт), Plausible-переменные из соответствующих `PLAUSIBLE_*`.
 
-- `VITE_API_URL` — базовый URL бэкенда Coldstat (используется в `src/api.ts`)
+- `VITE_API_URL` — базовый URL бэкенда Coldstat (используется в `src/api/client.ts`)
 - `VITE_PLAUSIBLE_URL` — URL сервера Plausible для трекинга (`src/App.vue`). Аналитика временно отключена, см. примечание ниже
 - `VITE_PLAUSIBLE_DOMAIN` — домен сайта, отображаемый в Plausible (`src/App.vue`)
 

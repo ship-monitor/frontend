@@ -76,7 +76,7 @@
               class="block text-sm font-medium text-ink-700 mb-1.5"
               for="register-name"
             >Имя</label>
-            <ship-input
+            <app-input
               id="register-name"
               v-model="name"
               placeholder="Иван"
@@ -90,7 +90,7 @@
               class="block text-sm font-medium text-ink-700 mb-1.5"
               for="register-email"
             >Email</label>
-            <ship-input
+            <app-input
               id="register-email"
               v-model="email"
               placeholder="you@example.com"
@@ -115,7 +115,7 @@
               for="register-password"
             >Пароль</label>
             <div class="relative">
-              <ship-input
+              <app-input
                 id="register-password"
                 v-model="password"
                 placeholder="••••••••"
@@ -201,7 +201,7 @@ import { ROUTES } from "@/constants/routes";
 import { register } from "@/data/auth";
 import { useRouter } from "vue-router";
 
-import ShipInput from "@/components/ShipInput.vue";
+import AppInput from "@/components/ui/AppInput.vue";
 import { isValidEmail } from "@/utils/validators";
 
 const name = ref("");

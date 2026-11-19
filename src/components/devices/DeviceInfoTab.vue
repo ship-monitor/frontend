@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-6">
-    <div class="ship-card p-6">
+    <div class="app-card p-6">
       <h2 class="text-lg font-bold text-ink-900 mb-6">
         Настройки устройства
       </h2>
@@ -13,7 +13,7 @@
           >
             Название устройства
           </label>
-          <ShipInput
+          <AppInput
             id="device-name"
             v-model="local.name"
             type="text"
@@ -23,19 +23,19 @@
         </div>
 
         <div class="flex justify-end gap-3 pt-4 border-t border-ink-100">
-          <ShipButton
+          <AppButton
             variant="secondary"
             @click="cancel"
           >
             Отмена
-          </ShipButton>
-          <ShipButton
+          </AppButton>
+          <AppButton
             variant="primary"
             :disabled="saving"
             @click="$emit('save', local)"
           >
             {{ saving ? "Сохранение..." : "Сохранить" }}
-          </ShipButton>
+          </AppButton>
         </div>
 
         <p
@@ -48,7 +48,7 @@
       </div>
     </div>
 
-    <div class="ship-card p-6 border-red-200">
+    <div class="app-card p-6 border-red-200">
       <h2 class="text-lg font-bold text-red-700 mb-2">
         Отключение устройства
       </h2>
@@ -56,13 +56,13 @@
         Устройство будет отвязано от аккаунта. Датчики перестанут отслеживаться,
         данные на сервере сохранятся.
       </p>
-      <ShipButton
+      <AppButton
         variant="danger"
         :disabled="disconnecting"
         @click="confirmDisconnect"
       >
         {{ disconnecting ? "Отключение..." : "Отключить устройство" }}
-      </ShipButton>
+      </AppButton>
       <p
         v-if="disconnectError"
         role="alert"
@@ -76,8 +76,8 @@
 
 <script setup lang="ts">
 import { reactive, watch } from "vue";
-import ShipInput from "@/components/ShipInput.vue";
-import ShipButton from "@/components/ShipButton.vue";
+import AppInput from "@/components/ui/AppInput.vue";
+import AppButton from "@/components/ui/AppButton.vue";
 import type { DeviceSettings } from "@/composables/useDeviceDetails";
 
 const props = defineProps<{

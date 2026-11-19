@@ -14,7 +14,7 @@ import { computed } from "vue";
 import { useRoute } from "vue-router";
 import type { CustomRouteMeta } from "@/router";
 import ApplicationLayout from "@/components/layout/ApplicationLayout.vue";
-import CookieBanner from "./components/CookieBanner.vue";
+import CookieBanner from "./components/ui/CookieBanner.vue";
 
 const route = useRoute();
 
