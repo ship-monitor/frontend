@@ -22,30 +22,10 @@
       </span>
     </div>
 
-    <div class="text-center py-2">
-      <div
-        v-if="device.temperature !== null"
-        class="mb-1"
-      >
-        <span class="text-4xl font-bold text-ink-900 tabular-nums">
-          {{ device.temperature.toFixed(1) }}°
-        </span>
-        <p
-          v-if="device.tempUpdatedAt !== null"
-          class="text-xs text-ink-400 mt-1"
-        >
-          обновлено {{ new Date(device.tempUpdatedAt).toLocaleTimeString("ru") }}
-        </p>
-      </div>
-      <p
-        v-else
-        class="text-sm text-ink-400"
-      >
-        нет данных
-      </p>
+    <div class="py-2">
       <div
         v-if="device.batteryLevel !== null || device.powerConnected !== null"
-        class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-ink-500 mt-2"
+        class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-500"
       >
         <span
           v-if="device.powerConnected !== null"

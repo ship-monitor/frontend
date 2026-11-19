@@ -75,29 +75,6 @@
         :loading="sensorsLoading"
         :error="sensorsError"
       />
-
-      <div class="app-card p-6">
-        <div class="flex items-center justify-between mb-1">
-          <h2 class="text-lg font-bold text-ink-900">
-            Температура
-            <span class="text-xs font-normal text-ink-400">за последний час</span>
-          </h2>
-          <span
-            v-if="metrics.temperature.current !== null"
-            class="text-2xl font-bold text-ink-900"
-          >{{ metrics.temperature.current.toFixed(1) }}°C</span>
-        </div>
-        <p class="text-sm text-ink-500 mb-4">
-          <template v-if="metrics.temperature.updatedAt !== null">
-            обновлено {{ new Date(metrics.temperature.updatedAt).toLocaleTimeString("ru") }}
-          </template>
-          <template v-else>
-            нет данных
-          </template>
-        </p>
-
-        <TemperatureChart :history="chartHistory" />
-      </div>
     </div>
   </div>
 </template>
@@ -109,7 +86,6 @@ import { ROUTES } from "@/constants/routes";
 import DevicePageHeader from "@/components/devices/DevicePageHeader.vue";
 import DeviceInfoTab from "@/components/devices/DeviceInfoTab.vue";
 import SensorsCard from "@/components/devices/SensorsCard.vue";
-import TemperatureChart from "@/components/devices/TemperatureChart.vue";
 import { useDeviceDetails } from "@/composables/useDeviceDetails";
 
 const route = useRoute();
@@ -145,19 +121,4 @@ async function onDisconnect() {
     void router.push(ROUTES.DASHBOARD);
   }
 }
-
-const CHART_WINDOW_MS = 60 * 60 * 1000;
-
-const chartHistory = computed(() => {
-  const history = metrics.value.temperature.history;
-  if (history.length === 0) return [];
-  const cutoff = history[history.length - 1]!.timestamp - CHART_WINDOW_MS;
-  return history
-    .filter((point) => point.timestamp >= cutoff)
-    .map((point) => ({
-      time: new Date(point.timestamp).toLocaleTimeString("ru"),
-      value: point.value,
-      timestamp: point.timestamp,
-    }));
-});
 </script>

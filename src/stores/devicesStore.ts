@@ -3,7 +3,6 @@ import {
   getDeviceMetricsSummary,
   getDeviceOnlineStatus,
   getUserDevices,
-  type DeviceMetricsSummary,
 } from "@/data";
 import { useAuthStore } from "@/stores/authStore";
 import safeStorage from "@/utils/storage";
@@ -14,8 +13,6 @@ export interface DeviceSummary {
   id: string;
   name: string;
   status: DeviceStatus;
-  temperature: number | null;
-  tempUpdatedAt: number | null;
   batteryLevel: number | null;
   powerConnected: boolean | null;
 }
@@ -105,15 +102,12 @@ export const useDevicesStore = defineStore("devices-store", {
         const ok = status.isErr ? null : status.value.online;
         const history =
           ok !== null ? appendPingResult(device.id, ok) : (pingHistory.get(device.id) ?? []);
-        const summary: DeviceMetricsSummary | null = metrics;
         return {
           id: device.id,
           name: displayName(device.id, device.name),
           status: resolveStatus(ok, history, previousStatus.get(device.id)),
-          temperature: summary?.temperature.current ?? null,
-          tempUpdatedAt: summary?.temperature.updatedAt ?? null,
-          batteryLevel: summary?.batteryLevel ?? null,
-          powerConnected: summary?.powerConnected ?? null,
+          batteryLevel: metrics?.batteryLevel ?? null,
+          powerConnected: metrics?.powerConnected ?? null,
         };
       });
 
