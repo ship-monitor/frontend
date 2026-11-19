@@ -3,20 +3,29 @@ import {
   editDevice,
   editSensor as editSensorOp,
   getDevice,
-  getDeviceMetrics as getDeviceMetricsOp,
+  getDeviceMetricsByName as getDeviceMetricsByNameOp,
   getDeviceOnlineStatus as getDeviceOnlineStatusOp,
   getDevices,
   getHealth,
+  getSensorMetricsByName as getSensorMetricsByNameOp,
   getSensors as getSensorsOp,
   removeDevice,
 } from "@/api";
 import { Result, Unit } from "true-myth";
 import { problemDetails } from "@/utils/problem";
 
+export type Firmware = {
+  manufacturer: string;
+  model: string;
+  revision: string;
+  software: string;
+};
+
 export type Device = {
   id: string;
   name: string;
   ownerId?: string;
+  firmware?: Firmware;
 };
 
 export type DeviceOnlineStatus = {
@@ -29,6 +38,7 @@ export type Sensor = {
   name: string;
   deviceId: string;
   displayName: string;
+  firmware?: Firmware;
 };
 
 export type TemperaturePoint = {
@@ -47,6 +57,24 @@ export type APIError = string;
 const errorData = (response: { status: number }): unknown =>
   "data" in response ? (response as { data?: unknown }).data : undefined;
 
+const asFirmware = (
+  record: Record<string, unknown>
+): Firmware | undefined => {
+  const manufacturer = record["manufacturer"];
+  const model = record["model"];
+  const revision = record["revision"];
+  const software = record["software"];
+  if (
+    typeof manufacturer === "string" &&
+    typeof model === "string" &&
+    typeof revision === "string" &&
+    typeof software === "string"
+  ) {
+    return { manufacturer, model, revision, software };
+  }
+  return undefined;
+};
+
 const asDevice = (data: unknown): Result<Device, APIError> => {
   if (data && typeof data === "object") {
     const record = data as Record<string, unknown>;
@@ -57,6 +85,7 @@ const asDevice = (data: unknown): Result<Device, APIError> => {
         name: typeof record["name"] === "string" ? record["name"] : "",
         ownerId:
           typeof record["ownerId"] === "string" ? record["ownerId"] : undefined,
+        firmware: asFirmware(record),
       });
     }
   }
@@ -229,6 +258,7 @@ const asSensor = (data: unknown): Result<Sensor, APIError> => {
         name: record["name"],
         deviceId: record["deviceId"],
         displayName: record["displayName"],
+        firmware: asFirmware(record),
       });
     }
   }
@@ -340,23 +370,23 @@ const parseMetricValues = (
   return result;
 };
 
+// Температура хранится в метриках датчиков, батарея и питание — в метриках
+// устройства. Summary берёт температуру первого датчика с данными.
 export const getDeviceMetricsSummary = async (
   deviceId: string
 ): Promise<Result<DeviceMetricsSummary, APIError>> => {
   const from = new Date(Date.now() - METRICS_WINDOW_MS).toISOString();
   const to = new Date().toISOString();
 
-  const fetchMetric = async (
+  const fetchDeviceMetric = async (
     metric: string,
     limit?: number
   ): Promise<Array<{ name: string; value: number; timestamp: number }>> => {
-    const response = await getDeviceMetricsOp(
-      deviceId,
-      from,
+    const response = await getDeviceMetricsByNameOp(deviceId, metric, {
+      $from: from,
       to,
-      metric,
-      limit === undefined ? {} : { limit }
-    );
+      ...(limit === undefined ? {} : { limit }),
+    });
     if (response.status !== 200) {
       throw new Error(
         problemDetails(errorData(response), "Не удалось загрузить метрики")
@@ -365,24 +395,59 @@ export const getDeviceMetricsSummary = async (
     return parseMetricValues(response.data);
   };
 
-  let temperatureValues;
-  try {
-    temperatureValues = await fetchMetric(TEMPERATURE_METRIC, 1000);
-  } catch {
-    return Result.err("Не удалось связаться с сервером");
-  }
+  const fetchSensorTemperature = async (
+    sensorId: string
+  ): Promise<TemperaturePoint[]> => {
+    const response = await getSensorMetricsByNameOp(
+      deviceId,
+      sensorId,
+      TEMPERATURE_METRIC,
+      { $from: from, to, limit: 1000 }
+    );
+    if (response.status !== 200) {
+      throw new Error(
+        problemDetails(errorData(response), "Не удалось загрузить метрики")
+      );
+    }
+    return parseMetricValues(response.data)
+      .filter((point) => point.name === TEMPERATURE_METRIC)
+      .map((point) => ({ value: point.value, timestamp: point.timestamp }))
+      .sort((a, b) => a.timestamp - b.timestamp);
+  };
 
-  const [batteryValues, powerValues] = await Promise.allSettled([
-    fetchMetric(BATTERY_METRIC, 10),
-    fetchMetric(POWER_METRIC, 10),
+  const deviceMetricsPromise = Promise.allSettled([
+    fetchDeviceMetric(BATTERY_METRIC, 10),
+    fetchDeviceMetric(POWER_METRIC, 10),
   ]);
 
-  const history = temperatureValues
-    .filter((point) => point.name === TEMPERATURE_METRIC)
-    .map((point) => ({ value: point.value, timestamp: point.timestamp }))
-    .sort((a, b) => a.timestamp - b.timestamp);
+  const sensorsResult = await getDeviceSensors(deviceId);
+  if (sensorsResult.isErr) {
+    return Result.err(sensorsResult.error);
+  }
 
-  const last = history.length > 0 ? history[history.length - 1] : undefined;
+  let temperature: DeviceTemperature = {
+    current: null,
+    updatedAt: null,
+    history: [],
+  };
+  for (const sensor of sensorsResult.value) {
+    try {
+      const history = await fetchSensorTemperature(sensor.id);
+      if (history.length > 0) {
+        const last = history[history.length - 1]!;
+        temperature = {
+          current: last.value,
+          updatedAt: last.timestamp,
+          history,
+        };
+        break;
+      }
+    } catch {
+      // Ошибка метрик одного датчика не валит весь summary.
+    }
+  }
+
+  const [batteryValues, powerValues] = await deviceMetricsPromise;
 
   const battery =
     batteryValues.status === "fulfilled"
@@ -394,11 +459,7 @@ export const getDeviceMetricsSummary = async (
       : undefined;
 
   return Result.ok({
-    temperature: {
-      current: last ? last.value : null,
-      updatedAt: last ? last.timestamp : null,
-      history,
-    },
+    temperature,
     batteryLevel: battery ? battery.value : null,
     batteryUpdatedAt: battery ? battery.timestamp : null,
     powerConnected: power ? power.value === 1 : null,

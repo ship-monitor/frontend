@@ -31,15 +31,30 @@ export type Device = {
     id: string;
     name: string;
     ownerId: string;
+    manufacturer: string;
+    model: string;
+    revision: string;
+    /** Software name and version */
+    software: string;
 };
 export type Sensor = {
     displayName: string;
+    manufacturer: string;
+    model: string;
+    revision: string;
+    /** Software name and version */
+    software: string;
 };
 export type SensorRead = {
     id: string;
     name: string;
     deviceId: string;
     displayName: string;
+    manufacturer: string;
+    model: string;
+    revision: string;
+    /** Software name and version */
+    software: string;
 };
 export type MetricType = "GAUGE" | "COUNTER" | "HISTOGRAM";
 export type Metric = {
@@ -237,7 +252,47 @@ export function editSensor(deviceId: string, sensorId: string, body: {
         body
     }));
 }
-export function getSensorMetrics(deviceId: string, sensorId: string, $from: string, to: string, metric: string, { limit }: {
+export function getDeviceMetricsByName(deviceId: string, metric: string, { $from, to, limit }: {
+    $from?: string;
+    to?: string;
+    limit?: number;
+} = {}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.fetchJson<{
+        status: 200;
+        data: Metrics;
+    } | {
+        status: number;
+        data: Problem;
+    }>(`/api/v2/devices/${encodeURIComponent(deviceId)}/metrics/${encodeURIComponent(metric)}${QS.query(QS.explode({
+        "from": $from,
+        to,
+        limit
+    }))}`, {
+        ...opts
+    });
+}
+export function getSensorMetricsByName(deviceId: string, sensorId: string, metric: string, { $from, to, limit }: {
+    $from?: string;
+    to?: string;
+    limit?: number;
+} = {}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.fetchJson<{
+        status: 200;
+        data: Metrics;
+    } | {
+        status: number;
+        data: Problem;
+    }>(`/api/v2/devices/${encodeURIComponent(deviceId)}/sensors/${encodeURIComponent(sensorId)}/metrics/${encodeURIComponent(metric)}${QS.query(QS.explode({
+        "from": $from,
+        to,
+        limit
+    }))}`, {
+        ...opts
+    });
+}
+export function getSensorMetrics(deviceId: string, sensorId: string, metric: string, { $from, to, limit }: {
+    $from?: string;
+    to?: string;
     limit?: number;
 } = {}, opts?: Oazapfts.RequestOpts) {
     return oazapfts.fetchJson<{
@@ -255,7 +310,9 @@ export function getSensorMetrics(deviceId: string, sensorId: string, $from: stri
         ...opts
     });
 }
-export function getDeviceMetrics(deviceId: string, $from: string, to: string, metric: string, { limit }: {
+export function getDeviceMetrics(deviceId: string, metric: string, { $from, to, limit }: {
+    $from?: string;
+    to?: string;
     limit?: number;
 } = {}, opts?: Oazapfts.RequestOpts) {
     return oazapfts.fetchJson<{
