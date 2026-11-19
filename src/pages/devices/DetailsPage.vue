@@ -1,7 +1,6 @@
 <template>
   <div class="max-w-7xl mx-auto p-4 sm:p-6">
     <div v-if="loading" class="text-center py-12">
-      <!-- TODO: Move svg to icon component -->
       <svg
         class="w-8 h-8 mx-auto text-brand-500 animate-spin mb-3"
         fill="none"
@@ -32,7 +31,7 @@
       <p class="text-sm text-ink-500 mb-4">Проверьте соединение и повторите</p>
       <button
         class="px-5 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-semibold"
-        @click="loadDeviceData"
+        @click="reload"
       >
         Повторить
       </button>
@@ -40,7 +39,7 @@
 
     <div v-else class="space-y-6">
       <DevicePageHeader
-        :name="sensorName"
+        :name="deviceName"
         :device-id="deviceId"
         :is-connected="deviceIsConnected"
         :status-unknown="statusUnknown"
@@ -55,243 +54,58 @@
         :disconnecting="disconnecting"
         :disconnect-error="disconnectError"
         @save="saveSettings"
-        @disconnect="disconnectSensor"
+        @disconnect="onDisconnect"
       />
 
       <SensorsCard
-        :device-id="deviceId"
         :sensors="sensors"
         :loading="sensorsLoading"
         :error="sensorsError"
-        @renamed="onSensorRenamed"
       />
-
-      <div class="ship-card p-6">
-        <div class="flex items-center justify-between mb-1">
-          <h2 class="text-lg font-bold text-ink-900">
-            Температура
-            <span class="text-xs font-normal text-ink-400"
-              >за последний час</span
-            >
-          </h2>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue";
+import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import {
-  updateDevice,
-  getDeviceById,
-  disconnectDevice,
-  getDeviceSensors,
-  getDeviceMetricsSummary,
-  type Sensor,
-  type DeviceMetricsSummary,
-} from "@/data";
 import { ROUTES } from "@/constants/routes";
 import DevicePageHeader from "@/components/DevicePageHeader.vue";
-import DeviceInfoTab, {
-  type SensorSettings,
-} from "@/components/DeviceInfoTab.vue";
+import DeviceInfoTab from "@/components/DeviceInfoTab.vue";
 import SensorsCard from "@/components/SensorsCard.vue";
-import { fetchOnlineStatus } from "@/utils/utils";
-import safeStorage from "@/utils/storage";
+import { useDeviceDetails } from "@/composables/useDeviceDetails";
 
 const route = useRoute();
 const router = useRouter();
+
 const deviceId = computed(() => {
   const id = route.params.id;
   return typeof id === "string" ? id : "";
 });
 
-const loading = ref(true);
-const saving = ref(false);
-const deviceIsConnected = ref(false);
-const sensorName = ref("");
-const statusUnknown = ref(true);
-const saveError = ref("");
-const loadError = ref("");
-const disconnecting = ref(false);
-const disconnectError = ref("");
-const sensors = ref<Sensor[]>([]);
-const sensorsLoading = ref(true);
-const sensorsError = ref("");
-const metrics = ref<DeviceMetricsSummary>({
-  batteryLevel: null,
-  batteryUpdatedAt: null,
-  powerConnected: null,
-  powerUpdatedAt: null,
-});
+const {
+  loading,
+  loadError,
+  reload,
+  deviceName,
+  deviceIsConnected,
+  statusUnknown,
+  metrics,
+  sensors,
+  sensorsLoading,
+  sensorsError,
+  settings,
+  saving,
+  saveError,
+  saveSettings,
+  disconnecting,
+  disconnectError,
+  disconnect,
+} = useDeviceDetails(deviceId);
 
-// Счётчик поколений: ответы от предыдущего устройства не перезаписывают новое.
-let generation = 0;
-
-function loadSettings(): SensorSettings {
-  const stored = safeStorage.getJson(`device_settings_${deviceId.value}`);
-  const record =
-    stored && typeof stored === "object"
-      ? (stored as Record<string, unknown>)
-      : {};
-  return {
-    id: deviceId.value,
-    name: typeof record["name"] === "string" ? record["name"] : "",
-  };
-}
-
-const settings = ref<SensorSettings>(loadSettings());
-
-function persistLocalSettings() {
-  safeStorage.setItem(
-    `device_settings_${deviceId.value}`,
-    JSON.stringify({
-      name: settings.value.name,
-    })
-  );
-}
-
-function getDisplayName(apiName?: string): string {
-  return apiName ?? "Unknown";
-}
-
-async function saveSettings(s: SensorSettings) {
-  saveError.value = "";
-  const name = s.name.trim();
-  if (name === settings.value.name.trim()) return;
-  if (!name) {
-    saveError.value = "Название не может быть пустым";
-    return;
-  }
-
-  saving.value = true;
-  const result = await updateDevice(deviceId.value, name);
-  result
-    .map(() => {
-      settings.value = { ...s, name };
-      persistLocalSettings();
-      sensorName.value = getDisplayName();
-    })
-    .inspectErr((err) => {
-      saveError.value = err;
-    })
-    .unwrapOr(undefined);
-  saving.value = false;
-}
-
-async function disconnectSensor() {
-  disconnecting.value = true;
-  const result = await disconnectDevice(deviceId.value);
-  disconnecting.value = false;
-
-  result
-    .map(() => {
-      safeStorage.removeItem(`device_settings_${deviceId.value}`);
-      void router.push(ROUTES.DASHBOARD);
-    })
-    .inspectErr((err) => {
-      disconnectError.value = err;
-    })
-    .unwrapOr(undefined);
-}
-
-async function loadSensors() {
-  sensorsLoading.value = true;
-  const result = await getDeviceSensors(deviceId.value);
-  result
-    .map((list) => {
-      sensors.value = list;
-      sensorsError.value = "";
-    })
-    .inspectErr((err) => {
-      sensorsError.value = err;
-    })
-    .unwrapOr(undefined);
-  sensorsLoading.value = false;
-}
-
-function onSensorRenamed(updated: Sensor) {
-  sensors.value = sensors.value.map((s) => (s.id === updated.id ? updated : s));
-}
-
-async function loadMetrics() {
-  const result = await getDeviceMetricsSummary(deviceId.value);
-  result
-    .map((data) => {
-      metrics.value = data;
-    })
-    .inspectErr((err) => {
-      console.error("Faild load device metrics: %s", err);
-    })
-    .unwrapOr(undefined);
-}
-
-async function pingAndUpdateStatus() {
-  const currentGeneration = generation;
-  const ok = await fetchOnlineStatus(deviceId.value);
-  if (currentGeneration !== generation) return;
-  if (ok === null) {
-    // Сбой проверки: оставляем прежний статус и помечаем неизвестность.
-    statusUnknown.value = true;
-  } else {
-    statusUnknown.value = false;
-    deviceIsConnected.value = ok;
+async function onDisconnect() {
+  if (await disconnect()) {
+    void router.push(ROUTES.DASHBOARD);
   }
 }
-
-async function loadDeviceData() {
-  const currentGeneration = ++generation;
-  loading.value = true;
-  loadError.value = "";
-  settings.value = loadSettings();
-
-  const deviceResult = await getDeviceById(deviceId.value);
-  if (currentGeneration !== generation) return;
-  if (deviceResult.isErr) {
-    loadError.value = deviceResult.error;
-    loading.value = false;
-    return;
-  }
-
-  sensorName.value = getDisplayName(deviceResult.value.name);
-  void loadSensors();
-  void loadMetrics();
-  await pingAndUpdateStatus();
-  loading.value = false;
-}
-
-function resetState() {
-  generation++;
-  saveError.value = "";
-  statusUnknown.value = true;
-  deviceIsConnected.value = false;
-  sensorName.value = "";
-  sensors.value = [];
-  sensorsLoading.value = true;
-  sensorsError.value = "";
-  metrics.value = {
-    batteryLevel: null,
-    batteryUpdatedAt: null,
-    powerConnected: null,
-    powerUpdatedAt: null,
-  };
-}
-
-// Vue Router переиспользует компонент при смене :id — перезагружаем состояние.
-watch(deviceId, (id) => {
-  if (!id) return;
-  resetState();
-  loadDeviceData();
-});
-
-onMounted(() => {
-  if (deviceId.value) {
-    loadDeviceData();
-  } else {
-    loadError.value = "Некорректный идентификатор устройства";
-    loading.value = false;
-  }
-});
 </script>

@@ -1,9 +1,6 @@
 <template>
   <div class="ship-card p-6">
-    <h2 class="text-lg font-bold text-ink-900 mb-1">Датчики</h2>
-    <p class="text-sm text-ink-500 mb-4">
-      Датчики, задекларированные устройством
-    </p>
+    <h2 class="text-lg font-bold text-ink-900 mb-4">Датчики</h2>
 
     <div v-if="loading" class="text-sm text-ink-400 py-4 text-center">
       Загрузка...
@@ -17,7 +14,7 @@
       v-else-if="sensors.length === 0"
       class="text-sm text-ink-400 py-4 text-center"
     >
-      Устройство пока не задекларировало ни одного датчика
+      Нет подключённых датчиков
     </p>
 
     <ul v-else class="grid grid-cols-2">
@@ -32,14 +29,9 @@
 import { type Sensor } from "@/data";
 import SensorCard from "@/components/SensorCard.vue";
 
-const props = defineProps<{
-  deviceId: string;
+defineProps<{
   sensors: Sensor[];
   loading: boolean;
   error?: string;
-}>();
-
-const emit = defineEmits<{
-  renamed: [sensor: Sensor];
 }>();
 </script>

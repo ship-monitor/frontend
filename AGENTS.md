@@ -54,6 +54,7 @@ src/
 ├── App.vue             # Root component (auth/app layout switch)
 ├── styles.css          # Global styles + Tailwind import
 ├── components/         # Reusable UI components
+├── composables/        # Page-level data orchestration (e.g. useDeviceDetails)
 ├── constants/          # routes.ts, contacts.ts (incl. LANDING_URL)
 ├── data/               # Data-access layer returning true-myth Results
 ├── i18n/               # vue-i18n (ru only; keys for CookieBanner)

@@ -9,11 +9,11 @@
           Мониторинг
         </h1>
         <p class="text-sm text-ink-500 mt-0.5">
-          Контроль температуры в реальном времени
+          Статус ваших устройств в реальном времени
         </p>
       </div>
       <div
-        v-if="autoRefreshActive"
+        v-if="devicesStore.autoRefreshActive"
         class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 text-brand-700 text-xs font-medium ring-1 ring-inset ring-brand-200 w-fit"
       >
         <span class="relative flex h-2 w-2">
@@ -31,16 +31,16 @@
     <!-- Поиск и фильтры -->
     <div class="flex flex-col sm:flex-row gap-3">
       <div class="relative flex-1">
-        <label class="sr-only" for="dashboard-search"
-          >Поиск по названию или ID устройства</label
-        >
+        <label class="sr-only" for="dashboard-search">
+          Поиск по названию или ID устройства
+        </label>
         <input
           id="dashboard-search"
           v-model="searchQuery"
           type="text"
           placeholder="Поиск по названию..."
           class="ship-field pl-10"
-        />
+        >
         <svg
           class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400"
           fill="none"
@@ -56,9 +56,9 @@
           />
         </svg>
       </div>
-      <label class="sr-only" for="dashboard-status-filter"
-        >Фильтр по статусу</label
-      >
+      <label class="sr-only" for="dashboard-status-filter">
+        Фильтр по статусу
+      </label>
       <select
         id="dashboard-status-filter"
         v-model="statusFilter"
@@ -72,16 +72,19 @@
     </div>
 
     <!-- Ошибка загрузки -->
-    <div v-if="loadError" class="ship-card p-8 text-center animate-scale-in">
+    <div
+      v-if="devicesStore.loadError"
+      class="ship-card p-8 text-center animate-scale-in"
+    >
       <p class="text-lg font-semibold text-ink-900 mb-1">
         Не удалось загрузить устройства
       </p>
       <p class="text-sm text-red-600 mb-4">
-        {{ loadError }}
+        {{ devicesStore.loadError }}
       </p>
       <button
         class="px-5 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-colors text-sm font-semibold"
-        @click="loadSensors"
+        @click="devicesStore.load()"
       >
         Повторить
       </button>
@@ -89,7 +92,7 @@
 
     <!-- Загрузка (skeleton) -->
     <div
-      v-else-if="loading"
+      v-else-if="devicesStore.loading"
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
     >
       <div v-for="i in 6" :key="i" class="ship-card p-5">
@@ -102,7 +105,7 @@
     <!-- Пусто -->
     <div
       v-else-if="
-        filteredSensors.length === 0 && !searchQuery && statusFilter === 'all'
+        filteredDevices.length === 0 && !searchQuery && statusFilter === 'all'
       "
       class="ship-card p-8 sm:p-12 text-center animate-scale-in"
     >
@@ -154,7 +157,7 @@
 
     <!-- Ничего не найдено -->
     <div
-      v-else-if="filteredSensors.length === 0"
+      v-else-if="filteredDevices.length === 0"
       class="ship-card p-8 text-center text-ink-500 animate-scale-in"
     >
       <p class="text-sm">Ничего не найдено</p>
@@ -175,9 +178,9 @@
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
     >
       <device-card
-        v-for="device in filteredSensors"
+        v-for="device in filteredDevices"
         :key="device.id"
-        :sensor="device"
+        :device="device"
       />
     </div>
   </div>
@@ -185,212 +188,50 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, onActivated } from "vue";
 import { ROUTES } from "@/constants/routes";
-import {
-  getUserDevices,
-  getDeviceMetricsSummary,
-  type DeviceMetricsSummary,
-} from "@/data";
-import { fetchOnlineStatus } from "@/utils/utils";
+import { useDevicesStore } from "@/stores/devicesStore";
+import DeviceCard from "@/components/DeviceCard.vue";
 
-async function fetchDeviceMetrics(
-  deviceId: string
-): Promise<DeviceMetricsSummary | null> {
-  return (await getDeviceMetricsSummary(deviceId))
-    .inspectErr((err) => console.error("Faild load device metrics: %s", err))
-    .unwrapOr(null);
-}
-import { useAuthStore } from "@/stores/authStore";
-import safeStorage from "@/utils/storage";
-import DeviceCard, {
-  type SensorCard,
-  type SensorCardStatus,
-} from "@/components/DeviceCard.vue";
+const devicesStore = useDevicesStore();
 
-interface SensorDisplay extends SensorCard {
-  displayName: string;
-}
-
-const authStore = useAuthStore();
-
-const sensors = ref<SensorDisplay[]>([]);
-const loading = ref(true);
-const loadError = ref<string | null>(null);
-const autoRefreshActive = ref(false);
 const searchQuery = ref("");
 const statusFilter = ref("all");
 
-let refreshTimer: ReturnType<typeof setInterval> | null = null;
-let refreshInFlight = false;
-
-const MIN_INTERVAL_MS = 5000;
-const MAX_INTERVAL_MS = 300000;
-const DEFAULT_INTERVAL_MS = 10000;
-
-// Фильтрация
-const filteredSensors = computed(() => {
-  let result: SensorDisplay[] = sensors.value;
+const filteredDevices = computed(() => {
+  let result = devicesStore.devices;
 
   if (statusFilter.value === "online") {
-    result = result.filter((s) => s.status === "online");
+    result = result.filter((d) => d.status === "online");
   } else if (statusFilter.value === "offline") {
-    // Как и счётчик «Не в сети», фильтр включает error-устройства.
     result = result.filter(
-      (s) => s.status === "offline" || s.status === "error"
+      (d) => d.status === "offline" || d.status === "error"
     );
   } else if (statusFilter.value === "error") {
-    result = result.filter((s) => s.status === "error");
+    result = result.filter((d) => d.status === "error");
   }
 
   const query = searchQuery.value.toLowerCase().trim();
   if (query) {
     result = result.filter(
-      (s) =>
-        s.displayName.toLowerCase().includes(query) ||
-        s.id.toLowerCase().includes(query)
+      (d) =>
+        d.displayName.toLowerCase().includes(query) ||
+        d.id.toLowerCase().includes(query)
     );
   }
 
   return result;
 });
 
-// Вспомогательные функции
-function asRecord(value: unknown): Record<string, unknown> | null {
-  return value && typeof value === "object"
-    ? (value as Record<string, unknown>)
-    : null;
-}
-
-function getDisplayName(deviceId: string, apiName: string): string {
-  const settings = asRecord(safeStorage.getJson(`device_settings_${deviceId}`));
-  const name = settings?.["name"];
-  if (typeof name === "string" && name.trim() !== "") {
-    return name;
-  }
-  if (apiName && apiName !== "Unknown Device" && apiName !== "") return apiName;
-  return deviceId.substring(0, 8);
-}
-
-function loadPingHistory(deviceId: string): boolean[] {
-  const stored = safeStorage.getJson(`device_pings_${deviceId}`);
-  if (Array.isArray(stored)) {
-    const history = stored.filter((p): p is boolean => typeof p === "boolean");
-    if (history.length > 0) return history.slice(-10);
-  }
-  return [];
-}
-
-function savePingHistory(deviceId: string, history: boolean[]) {
-  safeStorage.setItem(
-    `device_pings_${deviceId}`,
-    JSON.stringify(history.slice(-10))
-  );
-}
-
-async function loadSensors() {
-  if (refreshInFlight) return;
-  refreshInFlight = true;
-
-  const devicesResult = await getUserDevices();
-  if (devicesResult.isErr) {
-    loadError.value = devicesResult.error;
-    refreshInFlight = false;
-    loading.value = false;
-    return;
-  }
-  loadError.value = null;
-
-  // Единый снапшот: на каждое устройство — статус параллельно.
-  // NOTE: температура вернётся вместе со схемой ответа /api/v2/devices/{id}/metrics.
-  const snapshot = await Promise.all(
-    devicesResult.value.map(async (device) => ({
-      device,
-      ok: await fetchOnlineStatus(device.id),
-      metrics: await fetchDeviceMetrics(device.id),
-    }))
-  );
-
-  const allSensors: SensorDisplay[] = [];
-  const previousStatus = new Map(
-    sensors.value.map((sensor) => [sensor.id, sensor.status])
-  );
-
-  for (const { device, ok, metrics } of snapshot) {
-    const pingHistory = loadPingHistory(device.id);
-    if (ok !== null) {
-      pingHistory.push(ok);
-      if (pingHistory.length > 10) pingHistory.shift();
-      savePingHistory(device.id, pingHistory);
-    }
-
-    let status: SensorCardStatus;
-
-    if (ok === null) {
-      // Статус неизвестен (сбой запроса): сохраняем прежнее состояние,
-      // а не показываем устройство отключённым.
-      status = previousStatus.get(device.id) ?? "unknown";
-    } else {
-      const lastPings = pingHistory.slice(-5);
-      const allOffline = lastPings.length >= 3 && lastPings.every((p) => !p);
-      status = ok ? "online" : "offline";
-      if (allOffline && lastPings.length >= 3) {
-        status = "error";
-      }
-    }
-
-    allSensors.push({
-      id: device.id,
-      name: device.name,
-      displayName: getDisplayName(device.id, device.name),
-      status,
-      batteryLevel: metrics?.batteryLevel ?? null,
-      powerConnected: metrics?.powerConnected ?? null,
-    });
-  }
-
-  sensors.value = allSensors;
-  refreshInFlight = false;
-  loading.value = false;
-}
-
-function startAutoRefresh() {
-  stopAutoRefresh();
-  if (!authStore.isAuthenticated) return;
-
-  const parsed = asRecord(safeStorage.getJson("app-settings")) ?? {};
-  const autoRefresh = parsed["autoRefresh"] !== false;
-  const rawInterval = Number(parsed["interval"]);
-  const interval =
-    Number.isFinite(rawInterval) && rawInterval > 0
-      ? Math.min(Math.max(rawInterval, MIN_INTERVAL_MS), MAX_INTERVAL_MS)
-      : DEFAULT_INTERVAL_MS;
-
-  if (autoRefresh) {
-    autoRefreshActive.value = true;
-    refreshTimer = setInterval(() => {
-      loadSensors();
-    }, interval);
-  }
-}
-
-function stopAutoRefresh() {
-  if (refreshTimer) {
-    clearInterval(refreshTimer);
-    refreshTimer = null;
-  }
-  autoRefreshActive.value = false;
-}
-
 onMounted(async () => {
-  await loadSensors();
-  startAutoRefresh();
+  await devicesStore.load();
+  devicesStore.startAutoRefresh();
 });
 
 onActivated(async () => {
-  await loadSensors();
-  startAutoRefresh();
+  await devicesStore.load();
+  devicesStore.startAutoRefresh();
 });
 
 onUnmounted(() => {
-  stopAutoRefresh();
+  devicesStore.stopAutoRefresh();
 });
 </script>

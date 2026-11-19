@@ -1,7 +1,6 @@
 import {
   connectDevice,
   editDevice,
-  editSensor as editSensorOp,
   getDevice,
   getDeviceMetrics as getDeviceMetricsOp,
   getDeviceOnlineStatus as getDeviceOnlineStatusOp,
@@ -29,17 +28,6 @@ export type Sensor = {
   name: string;
   deviceId: string;
   displayName: string;
-};
-
-export type TemperaturePoint = {
-  value: number;
-  timestamp: number;
-};
-
-export type DeviceTemperature = {
-  current: number | null;
-  updatedAt: number | null;
-  history: TemperaturePoint[];
 };
 
 export type APIError = string;
@@ -272,33 +260,6 @@ export const getDeviceSensors = async (
   return Result.ok(sensors);
 };
 
-export const renameSensor = async (
-  deviceId: string,
-  sensorId: string,
-  displayName: string
-): Promise<Result<Sensor, APIError>> => {
-  let response;
-  try {
-    response = await editSensorOp(deviceId, sensorId, { displayName });
-  } catch {
-    return Result.err("Не удалось связаться с сервером");
-  }
-
-  if (response.status !== 200) {
-    return Result.err(
-      problemDetails(errorData(response), "Не удалось переименовать датчик")
-    );
-  }
-
-  const payload: unknown = response.data;
-  const record =
-    payload && typeof payload === "object"
-      ? (payload as Record<string, unknown>)["sensor"]
-      : null;
-  return asSensor(record);
-};
-
-const TEMPERATURE_METRIC = "temperature";
 const BATTERY_METRIC = "battery-level";
 const POWER_METRIC = "power-connected";
 

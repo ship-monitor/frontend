@@ -9,7 +9,7 @@ describe("route builders", () => {
     expect(route.connectDevice()).toBe(ROUTES.CONNECT_DEVICE);
   });
 
-  it("substitutes the sensor id", () => {
-    expect(route.sensorDetails("abc-123")).toBe(`/sensors/abc-123`);
+  it("substitutes the device id", () => {
+    expect(route.deviceDetails("abc-123")).toBe(`/devices/abc-123`);
   });
 });

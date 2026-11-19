@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import { type Sensor } from "@/api";
-defineProps<{ sensor: Sensor }>();
-</script>
 <template>
   <div class="py-3 flex items-center justify-between gap-4">
     <div class="min-w-0">
@@ -11,3 +7,9 @@ defineProps<{ sensor: Sensor }>();
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { type Sensor } from "@/data";
+
+defineProps<{ sensor: Sensor }>();
+</script>

@@ -7,11 +7,12 @@
         <div>
           <label
             class="block text-sm font-medium text-ink-700 mb-1.5"
-            for="sensor-name"
-            >Название устройства</label
+            for="device-name"
           >
+            Название устройства
+          </label>
           <ShipInput
-            id="sensor-name"
+            id="device-name"
             v-model="local.name"
             type="text"
             placeholder="Введите новое название"
@@ -60,14 +61,10 @@
 import { reactive, watch } from "vue";
 import ShipInput from "@/components/ShipInput.vue";
 import ShipButton from "@/components/ShipButton.vue";
-
-export interface SensorSettings {
-  id: string;
-  name: string;
-}
+import type { DeviceSettings } from "@/composables/useDeviceDetails";
 
 const props = defineProps<{
-  settings: SensorSettings;
+  settings: DeviceSettings;
   saving: boolean;
   error?: string;
   disconnecting?: boolean;
@@ -75,7 +72,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  save: [settings: SensorSettings];
+  save: [settings: DeviceSettings];
   disconnect: [deviceId: string];
 }>();
 
@@ -89,7 +86,7 @@ const confirmDisconnect = () => {
   }
 };
 
-const local = reactive<SensorSettings>({ ...props.settings });
+const local = reactive<DeviceSettings>({ ...props.settings });
 
 watch(
   () => props.settings,

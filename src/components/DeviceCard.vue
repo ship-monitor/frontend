@@ -1,16 +1,16 @@
 <template>
   <RouterLink
-    :to="route.deviceDetails(sensor.id)"
+    :to="route.deviceDetails(device.id)"
     class="ship-card ship-card-hover p-4 sm:p-5 block active:scale-[0.98]"
     :class="{
-      'opacity-60': sensor.status === 'offline' || sensor.status === 'error',
+      'opacity-60': device.status === 'offline' || device.status === 'error',
     }"
-    :aria-label="`Устройство ${sensor.displayName}: ${statusLabel}`"
+    :aria-label="`Устройство ${device.displayName}: ${statusLabel}`"
   >
     <div class="flex justify-between items-start mb-4">
       <div class="min-w-0 flex-1 mr-2">
         <h3 class="font-semibold text-ink-900 text-sm sm:text-base truncate">
-          {{ sensor.displayName }}
+          {{ device.displayName }}
         </h3>
       </div>
       <span
@@ -24,23 +24,23 @@
 
     <div class="text-center py-2">
       <div
-        v-if="sensor.batteryLevel !== null || sensor.powerConnected !== null"
+        v-if="device.batteryLevel !== null || device.powerConnected !== null"
         class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-ink-500 mt-2"
       >
         <span
-          v-if="sensor.powerConnected !== null"
+          v-if="device.powerConnected !== null"
           class="inline-flex items-center gap-1"
-          :class="sensor.powerConnected ? 'text-ink-500' : 'text-amber-600'"
+          :class="device.powerConnected ? 'text-ink-500' : 'text-amber-600'"
         >
           <icon-plug class="size-3.5" />
-          {{ sensor.powerConnected ? "От сети" : "От батареи" }}
+          {{ device.powerConnected ? "От сети" : "От батареи" }}
         </span>
         <span
-          v-if="sensor.batteryLevel !== null"
+          v-if="device.batteryLevel !== null"
           class="inline-flex items-center gap-1"
         >
           <icon-battery class="size-3.5" />
-          {{ Math.round(sensor.batteryLevel ?? 0) }}%
+          {{ Math.round(device.batteryLevel ?? 0) }}%
         </span>
       </div>
     </div>
@@ -52,24 +52,14 @@ import { computed } from "vue";
 import { route } from "@/constants/routes";
 import IconBattery from "@/components/icons/IconBattery.vue";
 import IconPlug from "@/components/icons/IconPlug.vue";
-
-export type SensorCardStatus = "online" | "offline" | "error" | "unknown";
-
-export interface SensorCard {
-  id: string;
-  name: string;
-  displayName: string;
-  status: SensorCardStatus;
-  batteryLevel?: number | null;
-  powerConnected?: boolean | null;
-}
+import type { DeviceSummary } from "@/stores/devicesStore";
 
 const props = defineProps<{
-  sensor: SensorCard;
+  device: DeviceSummary;
 }>();
 
 const statusLabel = computed(() => {
-  switch (props.sensor.status) {
+  switch (props.device.status) {
     case "online":
       return "В сети";
     case "offline":
@@ -82,7 +72,7 @@ const statusLabel = computed(() => {
 });
 
 const dotClass = computed(() => {
-  switch (props.sensor.status) {
+  switch (props.device.status) {
     case "online":
       return "bg-brand-500";
     case "offline":

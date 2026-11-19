@@ -21,18 +21,9 @@ const point = (name: string, value: number, timestamp: string) => ({
   timestamp,
 });
 
-const mockMetricsByname = () =>
+const mockMetrics = () =>
   mockedGetDeviceMetrics.mockImplementation(
     async (_deviceId: string, _from: string, _to: string, metric: string) => {
-      if (metric === "temperature") {
-        return response(200, {
-          name: "temperature",
-          values: [
-            point("temperature", -16.5, "2026-11-17T10:00:00Z"),
-            point("temperature", -16.8, "2026-11-17T10:00:30Z"),
-          ],
-        }) as never;
-      }
       if (metric === "battery-level") {
         return response(200, {
           name: "battery-level",
@@ -51,31 +42,25 @@ describe("device metrics summary", () => {
     mockedGetDeviceMetrics.mockReset();
   });
 
-  it("fetches each metric separately and builds the summary", async () => {
-    mockMetricsByname();
+  it("fetches battery and power metrics and builds the summary", async () => {
+    mockMetrics();
 
     const result = await getDeviceMetricsSummary("d1");
     expect(result.isOk).toBe(true);
     result.map((summary) => {
-      expect(summary.temperature.history).toHaveLength(2);
-      expect(summary.temperature.current).toBe(-16.8);
       expect(summary.batteryLevel).toBe(87.5);
       expect(summary.powerConnected).toBe(false);
     });
-    expect(mockedGetDeviceMetrics).toHaveBeenCalledTimes(3);
+    expect(mockedGetDeviceMetrics).toHaveBeenCalledTimes(2);
   });
 
-  it("passes the metric name and time range to the server", async () => {
-    mockMetricsByname();
+  it("passes the metric names and time range to the server", async () => {
+    mockMetrics();
 
     await getDeviceMetricsSummary("d1");
     const names = mockedGetDeviceMetrics.mock.calls.map((c) => c[3]);
     expect(names).toEqual(
-      expect.arrayContaining([
-        "temperature",
-        "battery-level",
-        "power-connected",
-      ])
+      expect.arrayContaining(["battery-level", "power-connected"])
     );
     for (const call of mockedGetDeviceMetrics.mock.calls) {
       expect(Number.isNaN(Date.parse(call[1]))).toBe(false);
@@ -85,44 +70,14 @@ describe("device metrics summary", () => {
 
   it("keeps nulls for battery and power when those requests fail", async () => {
     mockedGetDeviceMetrics.mockImplementation(
-      async (_deviceId: string, _from: string, _to: string, metric: string) => {
-        if (metric !== "temperature") {
-          return response(500, null) as never;
-        }
-        return response(200, {
-          name: "temperature",
-          values: [point("temperature", -16.1, "2026-11-17T10:00:00Z")],
-        }) as never;
-      }
+      async () => response(500, null) as never
     );
 
     const result = await getDeviceMetricsSummary("d1");
     expect(result.isOk).toBe(true);
     result.map((summary) => {
-      expect(summary.temperature.current).toBe(-16.1);
       expect(summary.batteryLevel).toBeNull();
       expect(summary.powerConnected).toBeNull();
     });
-  });
-
-  it("returns Err when the temperature request fails on transport", async () => {
-    mockedGetDeviceMetrics.mockRejectedValue(new Error("network down") as never);
-
-    const result = await getDeviceMetricsSummary("d1");
-    expect(result.isErr).toBe(true);
-  });
-
-  it("returns Err when the temperature request fails with a problem", async () => {
-    mockedGetDeviceMetrics.mockImplementation(
-      async (_deviceId: string, _from: string, _to: string, metric: string) => {
-        if (metric !== "temperature") {
-          return response(200, { values: [] }) as never;
-        }
-        return response(503, null) as never;
-      }
-    );
-
-    const result = await getDeviceMetricsSummary("d1");
-    expect(result.isErr).toBe(true);
   });
 });
