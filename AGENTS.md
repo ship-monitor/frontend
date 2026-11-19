@@ -13,6 +13,20 @@ Guidance for AI agents working in this repository.
 него — константа `LANDING_URL` в `src/constants/contacts.ts`. «Coldstat» —
 название продукта.
 
+## Ecosystem
+
+Полная карта экосистемы (репозитории, поток данных, подъём стенда, грабли
+окружения) — `docs/ecosystem.md`. Критичное:
+
+- `../cloud` — зона Петрова: локальные правки не коммитить; pull только по
+  протоколу stash → `pull --ff-only` → stash pop (в дереве живут локальные
+  фиксы `docker-compose.yml` и `internal/v2/di/connector.go`).
+- После изменений `../cloud/specs/openapi.yml` — регенерировать клиент
+  (`npm run api:generate`).
+- Стенд: WSL; контейнеры cloud → `go run ./cmd/server` (:6767) → хаб
+  (`../hub-service`, `go run ./cmd/service`) → `npm run dev` (:5173).
+  После остановки wsl-обёрток: `pkill -f exe/server` внутри WSL.
+
 ## Cabinet (корень репозитория)
 
 SPA на **Vue 3** (Composition API, `<script setup lang="ts">`), TypeScript
