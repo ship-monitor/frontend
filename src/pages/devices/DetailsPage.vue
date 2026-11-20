@@ -60,6 +60,35 @@
         :power-connected="metrics.powerConnected"
       />
 
+      <div class="flex justify-end -mt-3 -mb-3 relative z-10">
+        <button
+          type="button"
+          class="text-sm text-brand-600 hover:text-brand-700 inline-flex items-center gap-1.5 transition-colors active:translate-y-px"
+          @click="firmwareOpen = true"
+        >
+          <svg
+            class="size-4"
+            viewBox="0 0 16 16"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M8 7.5v3M8 5.2v.4"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+            />
+            <path
+              d="M6.8 2.6a1.8 1.8 0 0 1 2.4 0l4.2 3.8a1.8 1.8 0 0 1 .6 1.35V13A1.5 1.5 0 0 1 12.5 14.5h-9A1.5 1.5 0 0 1 2 13V7.75c0-.51.22-1 .6-1.35l4.2-3.8Z"
+              stroke="currentColor"
+              stroke-width="1.4"
+              stroke-linejoin="round"
+            />
+          </svg>
+          Прошивка
+        </button>
+      </div>
+
       <DeviceInfoTab
         :settings="settings"
         :saving="saving"
@@ -75,16 +104,25 @@
         :loading="sensorsLoading"
         :error="sensorsError"
       />
+
+      <FirmwareModal
+        :open="firmwareOpen"
+        :device-name="deviceName"
+        :device-firmware="deviceFirmware ?? undefined"
+        :sensors="sensors"
+        @close="firmwareOpen = false"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ROUTES } from "@/constants/routes";
 import DevicePageHeader from "@/components/devices/DevicePageHeader.vue";
 import DeviceInfoTab from "@/components/devices/DeviceInfoTab.vue";
+import FirmwareModal from "@/components/devices/FirmwareModal.vue";
 import SensorsCard from "@/components/devices/SensorsCard.vue";
 import { useDeviceDetails } from "@/composables/useDeviceDetails";
 
@@ -101,6 +139,7 @@ const {
   loadError,
   reload,
   deviceName,
+  deviceFirmware,
   deviceIsConnected,
   statusUnknown,
   metrics,
@@ -121,4 +160,6 @@ async function onDisconnect() {
     void router.push(ROUTES.DASHBOARD);
   }
 }
+
+const firmwareOpen = ref(false);
 </script>

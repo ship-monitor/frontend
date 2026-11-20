@@ -12,6 +12,7 @@ import {
   getDeviceSensors,
   updateDevice,
   type DeviceMetricsSummary,
+  type Firmware,
   type Sensor,
 } from "@/data";
 
@@ -31,6 +32,7 @@ export function useDeviceDetails(deviceId: ComputedRef<string>) {
   const loading = ref(true);
   const loadError = ref("");
   const deviceName = ref("");
+  const deviceFirmware = ref<Firmware | null>(null);
   const deviceIsConnected = ref(false);
   const statusUnknown = ref(true);
   const metrics = ref<DeviceMetricsSummary>({ ...EMPTY_METRICS });
@@ -105,6 +107,7 @@ export function useDeviceDetails(deviceId: ComputedRef<string>) {
         ? deviceResult.value.name
         : deviceId.value.substring(0, 8);
     deviceName.value = name;
+    deviceFirmware.value = deviceResult.value.firmware ?? null;
     settings.value = { id: deviceId.value, name };
 
     void loadSensors();
@@ -160,6 +163,7 @@ export function useDeviceDetails(deviceId: ComputedRef<string>) {
     statusUnknown.value = true;
     deviceIsConnected.value = false;
     deviceName.value = "";
+    deviceFirmware.value = null;
     sensors.value = [];
     sensorsLoading.value = true;
     sensorsError.value = "";
@@ -187,6 +191,7 @@ export function useDeviceDetails(deviceId: ComputedRef<string>) {
     loadError,
     reload: load,
     deviceName,
+    deviceFirmware,
     deviceIsConnected,
     statusUnknown,
     metrics,
