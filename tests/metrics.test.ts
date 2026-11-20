@@ -2,12 +2,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/api", () => ({
   getDeviceMetricsByName: vi.fn(),
+  getSensorMetricsByName: vi.fn(),
 }));
 
-import { getDeviceMetricsByName } from "@/api";
-import { getDeviceMetricsSummary } from "@/data";
+import {
+  getDeviceMetricsByName,
+  getSensorMetricsByName,
+} from "@/api";
+import { getDeviceMetricsSummary, getSensorTemperature } from "@/data";
 
 const mockedDeviceMetrics = vi.mocked(getDeviceMetricsByName);
+const mockedSensorMetrics = vi.mocked(getSensorMetricsByName);
 
 const response = (status: number, data: unknown) => ({
   status,
@@ -104,5 +109,82 @@ describe("device metrics summary", () => {
       expect(summary.batteryLevel).toBeNull();
       expect(summary.powerConnected).toBeNull();
     });
+  });
+});
+
+describe("sensor temperature", () => {
+  beforeEach(() => {
+    mockedSensorMetrics.mockReset();
+  });
+
+  it("returns sorted history with the last point as current", async () => {
+    mockedSensorMetrics.mockImplementation(
+      async () =>
+        response(200, {
+          name: "temperature",
+          values: [
+            point("temperature", -16.5, "2026-11-17T10:01:00Z"),
+            point("temperature", -16.8, "2026-11-17T10:00:00Z"),
+            point("temperature", -16.2, "2026-11-17T10:02:00Z"),
+          ],
+        }) as never
+    );
+
+    const result = await getSensorTemperature("d1", "s1");
+    expect(result.isOk).toBe(true);
+    result.map((temperature) => {
+      expect(temperature.history).toHaveLength(3);
+      expect(temperature.history[0]!.value).toBe(-16.8);
+      expect(temperature.current).toBe(-16.2);
+      expect(temperature.updatedAt).toBe(Date.parse("2026-11-17T10:02:00Z"));
+    });
+  });
+
+  it("filters out other metrics from the response", async () => {
+    mockedSensorMetrics.mockImplementation(
+      async () =>
+        response(200, {
+          values: [
+            point("battery-level", 100, "2026-11-17T10:00:00Z"),
+            point("temperature", -16.0, "2026-11-17T10:00:30Z"),
+          ],
+        }) as never
+    );
+
+    const result = await getSensorTemperature("d1", "s1");
+    expect(result.isOk).toBe(true);
+    result.map((temperature) => {
+      expect(temperature.history).toHaveLength(1);
+      expect(temperature.current).toBe(-16.0);
+    });
+  });
+
+  it("returns empty temperature when there are no points", async () => {
+    mockedSensorMetrics.mockImplementation(
+      async () => response(200, { values: [] }) as never
+    );
+
+    const result = await getSensorTemperature("d1", "s1");
+    expect(result.isOk).toBe(true);
+    result.map((temperature) => {
+      expect(temperature.current).toBeNull();
+      expect(temperature.history).toHaveLength(0);
+    });
+  });
+
+  it("returns Err when the request fails on transport", async () => {
+    mockedSensorMetrics.mockRejectedValue(new Error("network down") as never);
+
+    const result = await getSensorTemperature("d1", "s1");
+    expect(result.isErr).toBe(true);
+  });
+
+  it("returns Err on a problem response", async () => {
+    mockedSensorMetrics.mockImplementation(
+      async () => response(503, null) as never
+    );
+
+    const result = await getSensorTemperature("d1", "s1");
+    expect(result.isErr).toBe(true);
   });
 });

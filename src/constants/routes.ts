@@ -3,6 +3,7 @@ export const ROUTES = {
   REGISTER: "/auth/register",
   DASHBOARD: "/dashboard",
   DEVICE_DETAILS: "/devices/:id",
+  SENSOR_DETAILS: "/devices/:deviceId/sensors/:sensorId",
   PROFILE: "/profile",
   CONNECT_DEVICE: "/connect-device",
   SERVER_ERROR: "/server-error",
@@ -15,6 +16,11 @@ export const route = {
   register: () => ROUTES.REGISTER,
   dashboard: () => ROUTES.DASHBOARD,
   deviceDetails: (id: string) => ROUTES.DEVICE_DETAILS.replace(":id", id),
+  sensorDetails: (deviceId: string, sensorId: string) =>
+    ROUTES.SENSOR_DETAILS.replace(":deviceId", deviceId).replace(
+      ":sensorId",
+      sensorId
+    ),
   profile: () => ROUTES.PROFILE,
   connectDevice: () => ROUTES.CONNECT_DEVICE,
   serverError: () => ROUTES.SERVER_ERROR,

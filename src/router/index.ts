@@ -49,6 +49,12 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requireAuth: true, layout: "app" } as CustomRouteMeta,
   },
   {
+    path: ROUTES.SENSOR_DETAILS,
+    name: "SensorDetails",
+    component: () => import("../pages/devices/SensorDetailsPage.vue"),
+    meta: { requireAuth: true, layout: "app" } as CustomRouteMeta,
+  },
+  {
     path: ROUTES.PROFILE,
     name: "Profile",
     component: () => import("../pages/ProfilePage.vue"),

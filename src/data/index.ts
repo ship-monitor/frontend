@@ -6,6 +6,7 @@ import {
   getDeviceOnlineStatus as getDeviceOnlineStatusOp,
   getDevices,
   getHealth,
+  getSensorMetricsByName as getSensorMetricsByNameOp,
   getSensors as getSensorsOp,
   removeDevice,
 } from "@/api";
@@ -380,9 +381,61 @@ export const getDeviceMetricsSummary = async (
   });
 };
 
-const HEALTH_TIMEOUT_MS = 5000;
+const TEMPERATURE_METRIC = "temperature";
 
-export const checkServerHealth = async (): Promise<boolean> => {
+export type TemperaturePoint = {
+  value: number;
+  timestamp: number;
+};
+
+export type SensorTemperature = {
+  current: number | null;
+  updatedAt: number | null;
+  history: TemperaturePoint[];
+};
+
+const SENSOR_METRICS_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+// Температура — метрика датчика: окно 24 часа, на графике показываем
+// последний час.
+export const getSensorTemperature = async (
+  deviceId: string,
+  sensorId: string
+): Promise<Result<SensorTemperature, APIError>> => {
+  const from = new Date(Date.now() - SENSOR_METRICS_WINDOW_MS).toISOString();
+  const to = new Date().toISOString();
+
+  let response;
+  try {
+    response = await getSensorMetricsByNameOp(deviceId, sensorId, TEMPERATURE_METRIC, {
+      $from: from,
+      to,
+      limit: 1000,
+    });
+  } catch {
+    return Result.err("Не удалось связаться с сервером");
+  }
+
+  if (response.status !== 200) {
+    return Result.err(
+      problemDetails(errorData(response), "Не удалось загрузить метрики датчика")
+    );
+  }
+
+  const history = parseMetricValues(response.data)
+    .filter((point) => point.name === TEMPERATURE_METRIC)
+    .map((point) => ({ value: point.value, timestamp: point.timestamp }))
+    .sort((a, b) => a.timestamp - b.timestamp);
+
+  const last = history[history.length - 1];
+  return Result.ok({
+    current: last ? last.value : null,
+    updatedAt: last ? last.timestamp : null,
+    history,
+  });
+};
+
+const HEALTH_TIMEOUT_MS = 5000;export const checkServerHealth = async (): Promise<boolean> => {
   try {
     const response = await Promise.race([
       getHealth(),
