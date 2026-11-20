@@ -45,13 +45,29 @@ npm run dev                                            # Vite :5173, proxy /api 
 Go lives in `/usr/local/go/bin` — PATH is empty in non-login shells, always
 `bash -c "cd … && /usr/local/go/bin/go run …"`.
 
+## Extra hubs (multi-device stand)
+
+`hub-service` reads `device-id` / `security-key` / `firmware.json` from its
+working directory. To emulate more hubs:
+
+```bash
+cd /mnt/e/code/hub-service && /usr/local/go/bin/go build -o /tmp/hubs/hub ./cmd/service
+# per instance: /tmp/hubs/instN with uuidgen > device-id, openssl rand -hex 16
+# > security-key, firmware.json; run from that dir (MODE=DEVELOPMENT)
+```
+
+Connect each via API (`POST /api/v2/devices` {deviceId, securityKey}, Bearer
+token from login; hub auto-approves, device appears after approval). Identity
+files of instance N are printed by the setup script; keep them to reconnect
+after restarts.
+
 ## Cloud pull protocol (mandatory)
 
 `../cloud` is Petrov's repo; local uncommitted fixes live in its tree
 (docker-compose.yml named volumes, error-logging handler). Pull:
 
 ```bash
-git stash push -m "local fixes" -- docker-compose.yml internal/v2/di/connector.go
+git stash push -m "local fixes" -- docker-compose.yml internal/v2/di/connector.go internal/v2/repositories/device/device.go
 git pull --ff-only origin main
 git stash pop   # on conflict prefer cloud's version, drop local duplicates
 ```

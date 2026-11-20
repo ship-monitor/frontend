@@ -5,8 +5,12 @@ import {
   type ComputedRef,
 } from "vue";
 import {
+  emptyMetricsSummary,
   getDeviceSensors,
+  getSensorMetricsSummary,
   getSensorTemperature,
+  renameSensor,
+  type MetricsSummary,
   type Sensor,
   type SensorTemperature,
 } from "@/data";
@@ -26,9 +30,28 @@ export function useSensorDetails(
   const sensor = ref<Sensor | null>(null);
   const temperature = ref<SensorTemperature>({ ...EMPTY_TEMPERATURE });
   const temperatureError = ref("");
+  const metrics = ref<MetricsSummary>({ ...emptyMetricsSummary });
+  const saving = ref(false);
+  const saveError = ref("");
 
   // Счётчик поколений: ответы по прошлому датчику не перезаписывают новый.
   let generation = 0;
+
+  async function loadMetrics(currentGeneration: number) {
+    const result = await getSensorMetricsSummary(
+      deviceId.value,
+      sensorId.value
+    );
+    if (currentGeneration !== generation) return;
+    result
+      .map((data) => {
+        metrics.value = data;
+      })
+      .inspectErr((err) => {
+        console.error("Failed to load sensor metrics: %s", err);
+      })
+      .unwrapOr(undefined);
+  }
 
   async function loadTemperature(currentGeneration: number) {
     temperatureError.value = "";
@@ -71,6 +94,7 @@ export function useSensorDetails(
     }
     sensor.value = found;
 
+    void loadMetrics(currentGeneration);
     await loadTemperature(currentGeneration);
     loading.value = false;
   }
@@ -80,6 +104,32 @@ export function useSensorDetails(
     sensor.value = null;
     temperature.value = { ...EMPTY_TEMPERATURE };
     temperatureError.value = "";
+    metrics.value = { ...emptyMetricsSummary };
+    saveError.value = "";
+  }
+
+  async function saveSensorName(name: string) {
+    if (!sensor.value) return;
+    const trimmed = name.trim();
+    saveError.value = "";
+    if (!trimmed) {
+      saveError.value = "Название не может быть пустым";
+      return;
+    }
+    if (trimmed === sensor.value.displayName) return;
+
+    saving.value = true;
+    const result = await renameSensor(deviceId.value, sensorId.value, trimmed);
+    saving.value = false;
+
+    result
+      .map((updated) => {
+        sensor.value = updated;
+      })
+      .inspectErr((err) => {
+        saveError.value = err;
+      })
+      .unwrapOr(undefined);
   }
 
   // Vue Router переиспользует компонент при смене :deviceId/:sensorId.
@@ -101,5 +151,9 @@ export function useSensorDetails(
     temperature,
     temperatureError,
     reloadTemperature: () => void loadTemperature(generation),
+    metrics,
+    saving,
+    saveError,
+    saveSensorName,
   };
 }

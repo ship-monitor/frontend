@@ -2,7 +2,9 @@ import { defineStore } from "pinia";
 import {
   getDeviceMetricsSummary,
   getDeviceOnlineStatus,
+  getDeviceSensors,
   getUserDevices,
+  type Sensor,
 } from "@/data";
 import { useAuthStore } from "@/stores/authStore";
 import safeStorage from "@/utils/storage";
@@ -64,6 +66,8 @@ export const useDevicesStore = defineStore("devices-store", {
     loading: true,
     loadError: null as string | null,
     autoRefreshActive: false,
+    sensorsByDevice: {} as Record<string, Sensor[]>,
+    sensorsLoaded: false,
   }),
   actions: {
     async load() {
@@ -113,6 +117,31 @@ export const useDevicesStore = defineStore("devices-store", {
 
       refreshInFlight = false;
       this.loading = false;
+    },
+
+    // Список датчиков меняется редко: грузим отдельно от авто-обновления
+    // статусов, повторно — при смене набора устройств.
+    async loadSensors() {
+      const results = await Promise.all(
+        this.devices.map(async (device) => {
+          const result = await getDeviceSensors(device.id);
+          return { id: device.id, result } as const;
+        })
+      );
+
+      const map: Record<string, Sensor[]> = {};
+      for (const { id, result } of results) {
+        result
+          .map((list) => {
+            map[id] = list;
+          })
+          .inspectErr((err) => {
+            console.error("Failed to load device sensors: %s", err);
+          })
+          .unwrapOr(undefined);
+      }
+      this.sensorsByDevice = map;
+      this.sensorsLoaded = true;
     },
 
     startAutoRefresh() {

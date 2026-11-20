@@ -7,14 +7,15 @@
         role="dialog"
         aria-modal="true"
         aria-label="Информация о прошивке"
-        @click.self="emit('close')"
-        @keydown.esc="emit('close')"
       >
-        <div class="absolute inset-0 bg-moonless-night/40 backdrop-blur-[2px]" />
-        <div class="app-card relative w-full max-w-md p-6 max-h-[85dvh] overflow-y-auto">
+        <div
+          class="absolute inset-0 bg-moonless-night/40 backdrop-blur-[2px]"
+          @click="emit('close')"
+        />
+        <div class="app-card relative w-full max-w-md p-6 max-h-[85dvh] overflow-y-auto shadow-[0_24px_48px_-16px_rgb(2_8_34/0.3)]">
           <div class="flex items-start justify-between gap-4 mb-5">
             <h2 class="text-lg font-bold text-ink-900">
-              Прошивка
+              {{ title }}
             </h2>
             <button
               type="button"
@@ -38,84 +39,49 @@
             </button>
           </div>
 
-          <section class="mb-5">
-            <h3 class="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-2">
-              Устройство · {{ deviceName }}
-            </h3>
-            <dl
-              v-if="deviceFirmware"
-              class="text-sm space-y-1.5"
-            >
-              <div class="flex justify-between gap-4">
-                <dt class="text-ink-500">
-                  Производитель
-                </dt>
-                <dd class="text-ink-900 font-medium text-right">
-                  {{ deviceFirmware.manufacturer }}
-                </dd>
-              </div>
-              <div class="flex justify-between gap-4">
-                <dt class="text-ink-500">
-                  Модель
-                </dt>
-                <dd class="text-ink-900 font-medium text-right">
-                  {{ deviceFirmware.model }}
-                </dd>
-              </div>
-              <div class="flex justify-between gap-4">
-                <dt class="text-ink-500">
-                  Ревизия
-                </dt>
-                <dd class="text-ink-900 font-medium text-right">
-                  {{ deviceFirmware.revision }}
-                </dd>
-              </div>
-              <div class="flex justify-between gap-4">
-                <dt class="text-ink-500">
-                  ПО
-                </dt>
-                <dd class="text-ink-900 font-medium text-right">
-                  {{ deviceFirmware.software }}
-                </dd>
-              </div>
-            </dl>
-            <p
-              v-else
-              class="text-sm text-ink-400"
-            >
-              Устройство не передало данные о прошивке.
-            </p>
-          </section>
-
-          <section v-if="sensors.length > 0">
-            <h3 class="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-2">
-              Датчики
-            </h3>
-            <ul class="text-sm divide-y divide-ink-100">
-              <li
-                v-for="item in sensors"
-                :key="item.id"
-                class="py-2.5"
-              >
-                <p class="font-medium text-ink-900 mb-0.5">
-                  {{ item.displayName }}
-                </p>
-                <p
-                  v-if="item.firmware"
-                  class="text-ink-500"
-                >
-                  {{ item.firmware.manufacturer }} · {{ item.firmware.model }}
-                  · {{ item.firmware.software }}
-                </p>
-                <p
-                  v-else
-                  class="text-ink-400"
-                >
-                  Нет данных о прошивке
-                </p>
-              </li>
-            </ul>
-          </section>
+          <dl
+            v-if="firmware"
+            class="text-sm space-y-2"
+          >
+            <div class="flex justify-between gap-4">
+              <dt class="text-ink-500">
+                Производитель
+              </dt>
+              <dd class="text-ink-900 font-medium text-right">
+                {{ firmware.manufacturer }}
+              </dd>
+            </div>
+            <div class="flex justify-between gap-4">
+              <dt class="text-ink-500">
+                Модель
+              </dt>
+              <dd class="text-ink-900 font-medium text-right">
+                {{ firmware.model }}
+              </dd>
+            </div>
+            <div class="flex justify-between gap-4">
+              <dt class="text-ink-500">
+                Ревизия
+              </dt>
+              <dd class="text-ink-900 font-medium text-right">
+                {{ firmware.revision }}
+              </dd>
+            </div>
+            <div class="flex justify-between gap-4">
+              <dt class="text-ink-500">
+                ПО
+              </dt>
+              <dd class="text-ink-900 font-medium text-right">
+                {{ firmware.software }}
+              </dd>
+            </div>
+          </dl>
+          <p
+            v-else
+            class="text-sm text-ink-400"
+          >
+            {{ emptyText }}
+          </p>
         </div>
       </div>
     </Transition>
@@ -124,14 +90,21 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted } from "vue";
-import type { Firmware, Sensor } from "@/data";
+import type { Firmware } from "@/data";
 
-defineProps<{
-  open: boolean;
-  deviceName: string;
-  deviceFirmware?: Firmware;
-  sensors: Sensor[];
-}>();
+withDefaults(
+  defineProps<{
+    open: boolean;
+    firmware?: Firmware;
+    title?: string;
+    emptyText?: string;
+  }>(),
+  {
+    firmware: undefined,
+    title: "Прошивка устройства",
+    emptyText: "Устройство не передало данные о прошивке.",
+  }
+);
 
 const emit = defineEmits<{ close: [] }>();
 

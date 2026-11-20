@@ -58,45 +58,20 @@
         :status-unknown="statusUnknown"
         :battery-level="metrics.batteryLevel"
         :power-connected="metrics.powerConnected"
-      />
-
-      <div class="flex justify-end -mt-3 -mb-3 relative z-10">
-        <button
-          type="button"
-          class="text-sm text-brand-600 hover:text-brand-700 inline-flex items-center gap-1.5 transition-colors active:translate-y-px"
-          @click="firmwareOpen = true"
-        >
-          <svg
-            class="size-4"
-            viewBox="0 0 16 16"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M8 7.5v3M8 5.2v.4"
-              stroke="currentColor"
-              stroke-width="1.6"
-              stroke-linecap="round"
-            />
-            <path
-              d="M6.8 2.6a1.8 1.8 0 0 1 2.4 0l4.2 3.8a1.8 1.8 0 0 1 .6 1.35V13A1.5 1.5 0 0 1 12.5 14.5h-9A1.5 1.5 0 0 1 2 13V7.75c0-.51.22-1 .6-1.35l4.2-3.8Z"
-              stroke="currentColor"
-              stroke-width="1.4"
-              stroke-linejoin="round"
-            />
-          </svg>
-          Прошивка
-        </button>
-      </div>
+      >
+        <template #actions>
+          <AppMenu
+            :items="menuItems"
+            @select="onMenuSelect"
+          />
+        </template>
+      </DevicePageHeader>
 
       <DeviceInfoTab
         :settings="settings"
         :saving="saving"
         :error="saveError"
-        :disconnecting="disconnecting"
-        :disconnect-error="disconnectError"
         @save="saveSettings"
-        @disconnect="onDisconnect"
       />
 
       <SensorsCard
@@ -107,10 +82,17 @@
 
       <FirmwareModal
         :open="firmwareOpen"
-        :device-name="deviceName"
-        :device-firmware="deviceFirmware ?? undefined"
-        :sensors="sensors"
+        :firmware="deviceFirmware ?? undefined"
         @close="firmwareOpen = false"
+      />
+
+      <DisconnectModal
+        :open="disconnectOpen"
+        :name="deviceName"
+        :disconnecting="disconnecting"
+        :error="disconnectError"
+        @close="disconnectOpen = false"
+        @confirm="onDisconnect"
       />
     </div>
   </div>
@@ -123,7 +105,9 @@ import { ROUTES } from "@/constants/routes";
 import DevicePageHeader from "@/components/devices/DevicePageHeader.vue";
 import DeviceInfoTab from "@/components/devices/DeviceInfoTab.vue";
 import FirmwareModal from "@/components/devices/FirmwareModal.vue";
+import DisconnectModal from "@/components/devices/DisconnectModal.vue";
 import SensorsCard from "@/components/devices/SensorsCard.vue";
+import AppMenu, { type AppMenuItem } from "@/components/ui/AppMenu.vue";
 import { useDeviceDetails } from "@/composables/useDeviceDetails";
 
 const route = useRoute();
@@ -162,4 +146,18 @@ async function onDisconnect() {
 }
 
 const firmwareOpen = ref(false);
+const disconnectOpen = ref(false);
+
+const menuItems: AppMenuItem[] = [
+  { key: "firmware", label: "Прошивка" },
+  { key: "disconnect", label: "Отключить устройство", danger: true },
+];
+
+function onMenuSelect(key: string) {
+  if (key === "firmware") {
+    firmwareOpen.value = true;
+  } else if (key === "disconnect") {
+    disconnectOpen.value = true;
+  }
+}
 </script>

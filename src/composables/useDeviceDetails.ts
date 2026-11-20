@@ -6,13 +6,14 @@ import {
 } from "vue";
 import {
   disconnectDevice,
+  emptyMetricsSummary,
   getDeviceById,
   getDeviceMetricsSummary,
   getDeviceOnlineStatus,
   getDeviceSensors,
   updateDevice,
-  type DeviceMetricsSummary,
   type Firmware,
+  type MetricsSummary,
   type Sensor,
 } from "@/data";
 
@@ -21,13 +22,6 @@ export interface DeviceSettings {
   name: string;
 }
 
-const EMPTY_METRICS: DeviceMetricsSummary = {
-  batteryLevel: null,
-  batteryUpdatedAt: null,
-  powerConnected: null,
-  powerUpdatedAt: null,
-};
-
 export function useDeviceDetails(deviceId: ComputedRef<string>) {
   const loading = ref(true);
   const loadError = ref("");
@@ -35,7 +29,7 @@ export function useDeviceDetails(deviceId: ComputedRef<string>) {
   const deviceFirmware = ref<Firmware | null>(null);
   const deviceIsConnected = ref(false);
   const statusUnknown = ref(true);
-  const metrics = ref<DeviceMetricsSummary>({ ...EMPTY_METRICS });
+  const metrics = ref<MetricsSummary>({ ...emptyMetricsSummary });
   const sensors = ref<Sensor[]>([]);
   const sensorsLoading = ref(true);
   const sensorsError = ref("");
@@ -167,7 +161,7 @@ export function useDeviceDetails(deviceId: ComputedRef<string>) {
     sensors.value = [];
     sensorsLoading.value = true;
     sensorsError.value = "";
-    metrics.value = { ...EMPTY_METRICS };
+    metrics.value = { ...emptyMetricsSummary };
   }
 
   // Vue Router переиспользует компонент при смене :id — перезагружаем состояние.

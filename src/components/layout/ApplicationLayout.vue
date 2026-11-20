@@ -79,7 +79,7 @@ const logoutHandler = async () => {
             :is="item.icon"
             class="size-5 transition-transform group-hover:scale-110"
           />
-          <span class="text-[15px]">{{ item.label }}</span>
+          <span class="text-base">{{ item.label }}</span>
         </router-link>
       </nav>
 
@@ -144,14 +144,14 @@ const logoutHandler = async () => {
             :is="item.icon"
             class="size-6"
           />
-          <span class="text-[10px] font-medium">{{ item.label }}</span>
+          <span class="text-xs font-medium">{{ item.label }}</span>
         </router-link>
         <button
           class="flex flex-col items-center gap-0.5 px-3 py-1 text-ink-400 hover:text-red-500 transition-colors touch-target"
           @click="logoutHandler"
         >
           <icon-logout class="size-6" />
-          <span class="text-[10px] font-medium">Выйти</span>
+          <span class="text-xs font-medium">Выйти</span>
         </button>
       </nav>
     </div>

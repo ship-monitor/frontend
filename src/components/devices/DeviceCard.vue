@@ -14,6 +14,7 @@
         </h3>
       </div>
       <span
+        v-if="device.status === 'offline' || device.status === 'error'"
         class="inline-flex items-center gap-1.5 text-xs text-ink-500"
         role="status"
       >
@@ -22,18 +23,14 @@
       </span>
     </div>
 
-    <div class="py-2">
-      <div
-        v-if="device.batteryLevel !== null || device.powerConnected !== null"
-        class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-500"
-      >
-        <span
-          v-if="device.powerConnected !== null"
-          class="inline-flex items-center gap-1"
-          :class="device.powerConnected ? 'text-ink-500' : 'text-amber-600'"
-        >
+    <div
+      v-if="device.powerConnected === false"
+      class="py-2"
+    >
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-500">
+        <span class="inline-flex items-center gap-1 text-amber-600">
           <icon-plug class="size-3.5" />
-          {{ device.powerConnected ? "От сети" : "От батареи" }}
+          От батареи
         </span>
         <span
           v-if="device.batteryLevel !== null"

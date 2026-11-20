@@ -41,11 +41,37 @@
           <IconArrowToLeft class="size-4" />
           {{ sensor?.displayName ? "К устройству" : "Назад" }}
         </RouterLink>
-        <h1
-          class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight"
-        >
-          {{ sensor?.displayName || "Датчик" }}
-        </h1>
+        <div class="flex flex-wrap justify-between items-center gap-3">
+          <h1
+            class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight"
+          >
+            {{ sensor?.displayName || "Датчик" }}
+          </h1>
+          <div class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+            <div
+              v-if="metrics.powerConnected === false"
+              class="flex flex-col items-end text-xs text-ink-400"
+            >
+              <span class="inline-flex items-center gap-1 text-amber-600">
+                <IconPlug class="size-4" />
+                От батареи
+              </span>
+              <span
+                v-if="metrics.batteryLevel !== null"
+                class="inline-flex items-center gap-1"
+              >
+                <IconBattery class="size-4" />
+                {{ Math.round(metrics.batteryLevel ?? 0) }}%
+              </span>
+            </div>
+            <AppButton
+              variant="secondary"
+              @click="firmwareOpen = true"
+            >
+              Прошивка
+            </AppButton>
+          </div>
+        </div>
       </div>
 
       <div class="app-card p-6">
@@ -101,57 +127,75 @@
         />
       </div>
 
-      <div
-        v-if="sensor?.firmware"
-        class="app-card p-6"
-      >
-        <h2 class="text-lg font-bold text-ink-900 mb-4">
-          О датчике
+      <div class="app-card p-6">
+        <h2 class="text-lg font-bold text-ink-900 mb-6">
+          Настройки датчика
         </h2>
-        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-          <div class="flex justify-between sm:block">
-            <dt class="text-ink-500">
-              Производитель
-            </dt>
-            <dd class="text-ink-900 font-medium">
-              {{ sensor.firmware.manufacturer }}
-            </dd>
+
+        <div class="space-y-6">
+          <div>
+            <label
+              class="block text-sm font-medium text-ink-700 mb-1.5"
+              for="sensor-name"
+            >
+              Название датчика
+            </label>
+            <AppInput
+              id="sensor-name"
+              v-model="localName"
+              type="text"
+              placeholder="Введите новое название"
+              class="w-full"
+            />
           </div>
-          <div class="flex justify-between sm:block">
-            <dt class="text-ink-500">
-              Модель
-            </dt>
-            <dd class="text-ink-900 font-medium">
-              {{ sensor.firmware.model }}
-            </dd>
+
+          <div class="flex justify-end gap-3 pt-4 border-t border-ink-100">
+            <AppButton
+              variant="secondary"
+              @click="resetName"
+            >
+              Отмена
+            </AppButton>
+            <AppButton
+              variant="primary"
+              :disabled="saving"
+              @click="onSaveName"
+            >
+              {{ saving ? "Сохранение..." : "Сохранить" }}
+            </AppButton>
           </div>
-          <div class="flex justify-between sm:block">
-            <dt class="text-ink-500">
-              Ревизия
-            </dt>
-            <dd class="text-ink-900 font-medium">
-              {{ sensor.firmware.revision }}
-            </dd>
-          </div>
-          <div class="flex justify-between sm:block">
-            <dt class="text-ink-500">
-              ПО
-            </dt>
-            <dd class="text-ink-900 font-medium">
-              {{ sensor.firmware.software }}
-            </dd>
-          </div>
-        </dl>
+
+          <p
+            v-if="saveError"
+            role="alert"
+            class="text-sm text-red-600 text-right"
+          >
+            {{ saveError }}
+          </p>
+        </div>
       </div>
+
+      <FirmwareModal
+        :open="firmwareOpen"
+        :firmware="sensor?.firmware"
+        title="Прошивка датчика"
+        empty-text="Датчик не передал данные о прошивке."
+        @close="firmwareOpen = false"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import IconArrowToLeft from "@/components/icons/IconArrowToLeft.vue";
+import IconBattery from "@/components/icons/IconBattery.vue";
+import IconPlug from "@/components/icons/IconPlug.vue";
 import TemperatureChart from "@/components/devices/TemperatureChart.vue";
+import FirmwareModal from "@/components/devices/FirmwareModal.vue";
+import AppInput from "@/components/ui/AppInput.vue";
+import AppButton from "@/components/ui/AppButton.vue";
 import { route } from "@/constants/routes";
 import { useSensorDetails } from "@/composables/useSensorDetails";
 
@@ -175,7 +219,31 @@ const {
   temperature,
   temperatureError,
   reloadTemperature,
+  metrics,
+  saving,
+  saveError,
+  saveSensorName,
 } = useSensorDetails(deviceId, sensorId);
+
+const firmwareOpen = ref(false);
+
+const localName = ref("");
+
+watch(
+  () => sensor.value?.displayName,
+  (name) => {
+    localName.value = name ?? "";
+  },
+  { immediate: true }
+);
+
+const resetName = () => {
+  localName.value = sensor.value?.displayName ?? "";
+};
+
+const onSaveName = () => {
+  void saveSensorName(localName.value);
+};
 
 const CHART_WINDOW_MS = 60 * 60 * 1000;
 

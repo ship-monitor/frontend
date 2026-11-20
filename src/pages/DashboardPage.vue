@@ -192,24 +192,32 @@
       </button>
     </div>
 
-    <!-- Сетка устройств -->
-    <div
-      v-else
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
-    >
-      <device-card
-        v-for="device in filteredDevices"
-        :key="device.id"
-        :device="device"
+    <!-- Сетка устройств + датчики -->
+    <div v-else>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <device-card
+          v-for="device in filteredDevices"
+          :key="device.id"
+          :device="device"
+        />
+      </div>
+
+      <SensorsPanel
+        class="mt-6"
+        :devices="devicesStore.devices"
+        :sensors-by-device="devicesStore.sensorsByDevice"
+        :loading="!devicesStore.sensorsLoaded"
+        @reload="devicesStore.loadSensors()"
       />
     </div>
   </div>
 </template>
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, onActivated } from "vue";
+import { ref, computed, onMounted, onUnmounted, onActivated, watch } from "vue";
 import { ROUTES } from "@/constants/routes";
 import { useDevicesStore } from "@/stores/devicesStore";
 import DeviceCard from "@/components/devices/DeviceCard.vue";
+import SensorsPanel from "@/components/devices/SensorsPanel.vue";
 
 const devicesStore = useDevicesStore();
 
@@ -243,15 +251,27 @@ const filteredDevices = computed(() => {
 
 onMounted(async () => {
   await devicesStore.load();
+  void devicesStore.loadSensors();
   devicesStore.startAutoRefresh();
 });
 
 onActivated(async () => {
   await devicesStore.load();
+  void devicesStore.loadSensors();
   devicesStore.startAutoRefresh();
 });
 
 onUnmounted(() => {
   devicesStore.stopAutoRefresh();
 });
+
+// Появился новый хаб — догружаем его датчики.
+watch(
+  () => devicesStore.devices.map((device) => device.id).join(","),
+  () => {
+    if (devicesStore.sensorsLoaded) {
+      void devicesStore.loadSensors();
+    }
+  }
+);
 </script>

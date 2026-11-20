@@ -14,6 +14,15 @@
 
 @theme {
   --font-accent: Dobryak;
+  /* Системный шрифт в духе Apple: SF на macOS/iOS, Segoe UI на Windows */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI Variable",
+    "Segoe UI", system-ui, sans-serif;
+
+  /* Минимальный размер текста — 16px: xs и sm подняты до base */
+  --text-xs: 1rem;
+  --text-xs--line-height: 1.5rem;
+  --text-sm: 1rem;
+  --text-sm--line-height: 1.5rem;
 
   --color-cotton: #f4f3f1;
   --color-electric-blue: #2b66b0;

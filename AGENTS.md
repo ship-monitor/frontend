@@ -116,7 +116,8 @@ Do not commit secrets or real credentials.
 
 ## Agent rules
 
-- Do **not** commit unless explicitly asked.
+- Do **not** commit and especially do **not** push without explicit user
+  permission for each change. Show the result locally (dev server) and wait.
 - Do **not** add comments unless requested.
 - Follow existing file/style conventions; mimic nearby code.
 - When adding dependencies, confirm they are compatible with the versions in

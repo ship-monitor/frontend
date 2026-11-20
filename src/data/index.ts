@@ -1,6 +1,7 @@
 import {
   connectDevice,
   editDevice,
+  editSensor as editSensorOp,
   getDevice,
   getDeviceMetricsByName as getDeviceMetricsByNameOp,
   getDeviceOnlineStatus as getDeviceOnlineStatusOp,
@@ -290,14 +291,47 @@ export const getDeviceSensors = async (
   return Result.ok(sensors);
 };
 
+export const renameSensor = async (
+  deviceId: string,
+  sensorId: string,
+  displayName: string
+): Promise<Result<Sensor, APIError>> => {
+  let response;
+  try {
+    response = await editSensorOp(deviceId, sensorId, { displayName });
+  } catch {
+    return Result.err("Не удалось связаться с сервером");
+  }
+
+  if (response.status !== 200) {
+    return Result.err(
+      problemDetails(errorData(response), "Не удалось переименовать датчик")
+    );
+  }
+
+  const payload: unknown = response.data;
+  const record =
+    payload && typeof payload === "object"
+      ? (payload as Record<string, unknown>)["sensor"]
+      : null;
+  return asSensor(record);
+};
+
 const BATTERY_METRIC = "battery-level";
 const POWER_METRIC = "power-connected";
 
-export type DeviceMetricsSummary = {
+export type MetricsSummary = {
   batteryLevel: number | null;
   batteryUpdatedAt: number | null;
   powerConnected: boolean | null;
   powerUpdatedAt: number | null;
+};
+
+export const emptyMetricsSummary: MetricsSummary = {
+  batteryLevel: null,
+  batteryUpdatedAt: null,
+  powerConnected: null,
+  powerUpdatedAt: null,
 };
 
 const METRICS_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -333,52 +367,77 @@ const parseMetricValues = (
   return result;
 };
 
+type MetricValues = Array<{ name: string; value: number; timestamp: number }>;
+
+type MetricResponse = Promise<{ status: number; data?: unknown }>;
+
+const readMetricWindow = async (run: () => MetricResponse): Promise<MetricValues> => {
+  const response = await run();
+  if (response.status !== 200) {
+    throw new Error(
+      problemDetails(errorData(response), "Не удалось загрузить метрики")
+    );
+  }
+  return parseMetricValues(response.data);
+};
+
+const summarizeMetrics = (
+  battery: PromiseSettledResult<MetricValues>,
+  power: PromiseSettledResult<MetricValues>
+): Result<MetricsSummary, APIError> => {
+  const lastOf = (result: PromiseSettledResult<MetricValues>) =>
+    result.status === "fulfilled" ? result.value[result.value.length - 1] : undefined;
+  const batteryLast = lastOf(battery);
+  const powerLast = lastOf(power);
+
+  return Result.ok({
+    batteryLevel: batteryLast ? batteryLast.value : null,
+    batteryUpdatedAt: batteryLast ? batteryLast.timestamp : null,
+    powerConnected: powerLast ? powerLast.value === 1 : null,
+    powerUpdatedAt: powerLast ? powerLast.timestamp : null,
+  });
+};
+
+const metricsWindow = () => {
+  const from = new Date(Date.now() - METRICS_WINDOW_MS).toISOString();
+  const to = new Date().toISOString();
+  return { $from: from, to, limit: 10 };
+};
+
 // У хаба нет температуры: summary агрегирует только метрики устройства
 // (батарея, питание). Температура — метрика датчика и запрашивается
 // отдельно по /sensors/{id}/metrics/{metric}.
 export const getDeviceMetricsSummary = async (
   deviceId: string
-): Promise<Result<DeviceMetricsSummary, APIError>> => {
-  const from = new Date(Date.now() - METRICS_WINDOW_MS).toISOString();
-  const to = new Date().toISOString();
-
-  const fetchDeviceMetric = async (
-    metric: string,
-    limit: number
-  ): Promise<Array<{ name: string; value: number; timestamp: number }>> => {
-    const response = await getDeviceMetricsByNameOp(deviceId, metric, {
-      $from: from,
-      to,
-      limit,
-    });
-    if (response.status !== 200) {
-      throw new Error(
-        problemDetails(errorData(response), "Не удалось загрузить метрики")
-      );
-    }
-    return parseMetricValues(response.data);
-  };
-
+): Promise<Result<MetricsSummary, APIError>> => {
+  const query = metricsWindow();
   const [batteryValues, powerValues] = await Promise.allSettled([
-    fetchDeviceMetric(BATTERY_METRIC, 10),
-    fetchDeviceMetric(POWER_METRIC, 10),
+    readMetricWindow(() =>
+      getDeviceMetricsByNameOp(deviceId, BATTERY_METRIC, query)
+    ),
+    readMetricWindow(() => getDeviceMetricsByNameOp(deviceId, POWER_METRIC, query)),
   ]);
 
-  const battery =
-    batteryValues.status === "fulfilled"
-      ? batteryValues.value[batteryValues.value.length - 1]
-      : undefined;
-  const power =
-    powerValues.status === "fulfilled"
-      ? powerValues.value[powerValues.value.length - 1]
-      : undefined;
+  return summarizeMetrics(batteryValues, powerValues);
+};
 
-  return Result.ok({
-    batteryLevel: battery ? battery.value : null,
-    batteryUpdatedAt: battery ? battery.timestamp : null,
-    powerConnected: power ? power.value === 1 : null,
-    powerUpdatedAt: power ? power.timestamp : null,
-  });
+// Батарея и питание публикуются и датчиками — тот же профиль метрик,
+// но по /sensors/{id}/metrics/{metric}.
+export const getSensorMetricsSummary = async (
+  deviceId: string,
+  sensorId: string
+): Promise<Result<MetricsSummary, APIError>> => {
+  const query = metricsWindow();
+  const [batteryValues, powerValues] = await Promise.allSettled([
+    readMetricWindow(() =>
+      getSensorMetricsByNameOp(deviceId, sensorId, BATTERY_METRIC, query)
+    ),
+    readMetricWindow(() =>
+      getSensorMetricsByNameOp(deviceId, sensorId, POWER_METRIC, query)
+    ),
+  ]);
+
+  return summarizeMetrics(batteryValues, powerValues);
 };
 
 const TEMPERATURE_METRIC = "temperature";

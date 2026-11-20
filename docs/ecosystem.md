@@ -71,11 +71,13 @@ npm run dev
 ## Протокол pull cloud (обязателен)
 
 В рабочем дереве cloud живут локальные незакоммиченные правки (named volumes
-в `docker-compose.yml`; логирующий error handler в `internal/v2/di/connector.go`
-— Петров официальный чинить отказался). Поэтому:
+в `docker-compose.yml`; логирующий error handler в
+`internal/v2/di/connector.go`; NULL-плейсхолдер `updated_at` в INSERT
+устройства в `internal/v2/repositories/device/device.go` — баг Петрова,
+ожидает апстрима). Поэтому:
 
 ```bash
-git stash push -m "local fixes" -- docker-compose.yml internal/v2/di/connector.go
+git stash push -m "local fixes" -- docker-compose.yml internal/v2/di/connector.go internal/v2/repositories/device/device.go
 git pull --ff-only origin main
 git stash pop   # при конфликте — версию cloud поверх, свои дубли отбросить
 ```
