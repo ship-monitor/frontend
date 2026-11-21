@@ -192,22 +192,18 @@
       </button>
     </div>
 
-    <!-- Сетка устройств + датчики -->
-    <div v-else>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-        <device-card
-          v-for="device in filteredDevices"
-          :key="device.id"
-          :device="device"
-        />
-      </div>
-
-      <SensorsPanel
-        class="mt-6"
-        :devices="devicesStore.devices"
-        :sensors-by-device="devicesStore.sensorsByDevice"
-        :loading="!devicesStore.sensorsLoaded"
-        @reload="devicesStore.loadSensors()"
+    <!-- Сетка устройств -->
+    <div
+      v-else
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+    >
+      <device-card
+        v-for="device in filteredDevices"
+        :key="device.id"
+        :device="device"
+        :sensors="devicesStore.sensorsByDevice[device.id]"
+        :sensors-loading="!devicesStore.sensorsLoaded"
+        @reload-sensors="devicesStore.loadSensors()"
       />
     </div>
   </div>
@@ -217,7 +213,6 @@ import { ref, computed, onMounted, onUnmounted, onActivated, watch } from "vue";
 import { ROUTES } from "@/constants/routes";
 import { useDevicesStore } from "@/stores/devicesStore";
 import DeviceCard from "@/components/devices/DeviceCard.vue";
-import SensorsPanel from "@/components/devices/SensorsPanel.vue";
 
 const devicesStore = useDevicesStore();
 
