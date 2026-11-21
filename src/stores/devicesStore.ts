@@ -2,9 +2,9 @@ import { defineStore } from "pinia";
 import {
   getDeviceMetricsSummary,
   getDeviceOnlineStatus,
-  getDeviceSensors,
+  getSensorsWithTemperatures,
   getUserDevices,
-  type Sensor,
+  type SensorWithTemperature,
 } from "@/data";
 import { useAuthStore } from "@/stores/authStore";
 import safeStorage from "@/utils/storage";
@@ -66,7 +66,7 @@ export const useDevicesStore = defineStore("devices-store", {
     loading: true,
     loadError: null as string | null,
     autoRefreshActive: false,
-    sensorsByDevice: {} as Record<string, Sensor[]>,
+    sensorsByDevice: {} as Record<string, SensorWithTemperature[]>,
     sensorsLoaded: false,
   }),
   actions: {
@@ -124,12 +124,12 @@ export const useDevicesStore = defineStore("devices-store", {
     async loadSensors() {
       const results = await Promise.all(
         this.devices.map(async (device) => {
-          const result = await getDeviceSensors(device.id);
+          const result = await getSensorsWithTemperatures(device.id);
           return { id: device.id, result } as const;
         })
       );
 
-      const map: Record<string, Sensor[]> = {};
+      const map: Record<string, SensorWithTemperature[]> = {};
       for (const { id, result } of results) {
         result
           .map((list) => {

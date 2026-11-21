@@ -9,14 +9,21 @@
         {{ sensor.displayName }}
       </p>
     </div>
-    <IconArrowToLeft class="size-4 text-ink-300 shrink-0 rotate-180" />
+    <span
+      v-if="sensor.temperature !== null"
+      class="font-semibold text-ink-900 tabular-nums shrink-0"
+    >{{ sensor.temperature.toFixed(1) }}°C</span>
+    <span
+      v-else
+      class="text-ink-300 shrink-0"
+      aria-label="Нет данных о температуре"
+    >—</span>
   </RouterLink>
 </template>
 
 <script setup lang="ts">
-import { type Sensor } from "@/data";
+import { type SensorWithTemperature } from "@/data";
 import { route } from "@/constants/routes";
-import IconArrowToLeft from "@/components/icons/IconArrowToLeft.vue";
 
-defineProps<{ sensor: Sensor }>();
+defineProps<{ sensor: SensorWithTemperature }>();
 </script>

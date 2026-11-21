@@ -128,7 +128,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import type { Sensor } from "@/data";
+import type { SensorWithTemperature } from "@/data";
 import { route } from "@/constants/routes";
 import IconBattery from "@/components/icons/IconBattery.vue";
 import IconPlug from "@/components/icons/IconPlug.vue";
@@ -138,7 +138,7 @@ import type { DeviceSummary } from "@/stores/devicesStore";
 
 const props = defineProps<{
   device: DeviceSummary;
-  sensors?: Sensor[];
+  sensors?: SensorWithTemperature[];
   sensorsLoading?: boolean;
 }>();
 

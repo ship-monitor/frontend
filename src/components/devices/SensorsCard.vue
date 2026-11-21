@@ -27,7 +27,7 @@
 
     <ul
       v-else
-      class="grid grid-cols-2"
+      class="grid grid-cols-2 gap-2"
     >
       <li
         v-for="sensor in sensors"
@@ -40,11 +40,11 @@
 </template>
 
 <script setup lang="ts">
-import { type Sensor } from "@/data";
+import { type SensorWithTemperature } from "@/data";
 import SensorCard from "@/components/devices/SensorCard.vue";
 
 defineProps<{
-  sensors: Sensor[];
+  sensors: SensorWithTemperature[];
   loading: boolean;
   error?: string;
 }>();

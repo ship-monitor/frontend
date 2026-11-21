@@ -10,11 +10,11 @@ import {
   getDeviceById,
   getDeviceMetricsSummary,
   getDeviceOnlineStatus,
-  getDeviceSensors,
+  getSensorsWithTemperatures,
   updateDevice,
   type Firmware,
   type MetricsSummary,
-  type Sensor,
+  type SensorWithTemperature,
 } from "@/data";
 
 export interface DeviceSettings {
@@ -30,7 +30,7 @@ export function useDeviceDetails(deviceId: ComputedRef<string>) {
   const deviceIsConnected = ref(false);
   const statusUnknown = ref(true);
   const metrics = ref<MetricsSummary>({ ...emptyMetricsSummary });
-  const sensors = ref<Sensor[]>([]);
+  const sensors = ref<SensorWithTemperature[]>([]);
   const sensorsLoading = ref(true);
   const sensorsError = ref("");
   const settings = ref<DeviceSettings>({ id: "", name: "" });
@@ -44,7 +44,7 @@ export function useDeviceDetails(deviceId: ComputedRef<string>) {
 
   async function loadSensors() {
     sensorsLoading.value = true;
-    const result = await getDeviceSensors(deviceId.value);
+    const result = await getSensorsWithTemperatures(deviceId.value);
     result
       .map((list) => {
         sensors.value = list;

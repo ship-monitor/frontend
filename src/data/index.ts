@@ -454,6 +454,50 @@ export type SensorTemperature = {
 };
 
 const SENSOR_METRICS_WINDOW_MS = 24 * 60 * 60 * 1000;
+const LATEST_METRIC_LIMIT = 10;
+
+export type SensorWithTemperature = Sensor & { temperature: number | null };
+
+// Последняя температура одного датчика (для списков, без истории).
+const getSensorLatestTemperature = async (
+  deviceId: string,
+  sensorId: string
+): Promise<number | null> => {
+  const from = new Date(Date.now() - SENSOR_METRICS_WINDOW_MS).toISOString();
+  const to = new Date().toISOString();
+  try {
+    const response = await getSensorMetricsByNameOp(
+      deviceId,
+      sensorId,
+      TEMPERATURE_METRIC,
+      { $from: from, to, limit: LATEST_METRIC_LIMIT }
+    );
+    if (response.status !== 200) return null;
+    const points = parseMetricValues(response.data).filter(
+      (point) => point.name === TEMPERATURE_METRIC
+    );
+    const last = points[points.length - 1];
+    return last ? last.value : null;
+  } catch {
+    return null;
+  }
+};
+
+// Датчики устройства с текущей температурой для карточек-списков.
+export const getSensorsWithTemperatures = async (
+  deviceId: string
+): Promise<Result<SensorWithTemperature[], APIError>> => {
+  const result = await getDeviceSensors(deviceId);
+  if (result.isErr) return Result.err(result.error);
+
+  const sensors = await Promise.all(
+    result.value.map(async (sensor) => ({
+      ...sensor,
+      temperature: await getSensorLatestTemperature(deviceId, sensor.id),
+    }))
+  );
+  return Result.ok(sensors);
+};
 
 // Температура — метрика датчика: окно 24 часа, на графике показываем
 // последний час.
