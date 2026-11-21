@@ -84,10 +84,10 @@
     <!-- Загрузка (skeleton) -->
     <div
       v-else-if="devicesStore.loading"
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+      class="flex flex-col gap-3 sm:gap-4"
     >
       <div
-        v-for="i in 6"
+        v-for="i in 3"
         :key="i"
         class="app-card p-5"
       >
@@ -169,10 +169,10 @@
       </button>
     </div>
 
-    <!-- Сетка устройств -->
+    <!-- Список устройств -->
     <div
       v-else
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+      class="flex flex-col gap-3 sm:gap-4"
     >
       <device-card
         v-for="device in filteredDevices"

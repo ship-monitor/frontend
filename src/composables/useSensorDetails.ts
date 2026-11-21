@@ -6,6 +6,7 @@ import {
 } from "vue";
 import {
   emptyMetricsSummary,
+  getDeviceOnlineStatus,
   getDeviceSensors,
   getSensorMetricsSummary,
   getSensorTemperature,
@@ -31,6 +32,7 @@ export function useSensorDetails(
   const temperature = ref<SensorTemperature>({ ...EMPTY_TEMPERATURE });
   const temperatureError = ref("");
   const metrics = ref<MetricsSummary>({ ...emptyMetricsSummary });
+  const deviceOffline = ref(false);
   const saving = ref(false);
   const saveError = ref("");
 
@@ -49,6 +51,18 @@ export function useSensorDetails(
       })
       .inspectErr((err) => {
         console.error("Failed to load sensor metrics: %s", err);
+      })
+      .unwrapOr(undefined);
+  }
+
+  // Статус хаба нужен только для метки устаревших данных: показываем
+  // «обновлено …», когда хаб оффлайн и непонятно, когда данные приходили.
+  async function pingDeviceStatus(currentGeneration: number) {
+    const result = await getDeviceOnlineStatus(deviceId.value);
+    if (currentGeneration !== generation) return;
+    result
+      .map((status) => {
+        deviceOffline.value = !status.online;
       })
       .unwrapOr(undefined);
   }
@@ -94,6 +108,7 @@ export function useSensorDetails(
     }
     sensor.value = found;
 
+    void pingDeviceStatus(currentGeneration);
     void loadMetrics(currentGeneration);
     await loadTemperature(currentGeneration);
     loading.value = false;
@@ -105,6 +120,7 @@ export function useSensorDetails(
     temperature.value = { ...EMPTY_TEMPERATURE };
     temperatureError.value = "";
     metrics.value = { ...emptyMetricsSummary };
+    deviceOffline.value = false;
     saveError.value = "";
   }
 
@@ -152,6 +168,7 @@ export function useSensorDetails(
     temperatureError,
     reloadTemperature: () => void loadTemperature(generation),
     metrics,
+    deviceOffline,
     saving,
     saveError,
     saveSensorName,

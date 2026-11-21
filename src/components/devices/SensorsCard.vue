@@ -25,23 +25,16 @@
       Нет подключённых датчиков
     </p>
 
-    <ul
+    <SensorTiles
       v-else
-      class="flex flex-col gap-2"
-    >
-      <li
-        v-for="sensor in sensors"
-        :key="sensor.id"
-      >
-        <SensorCard :sensor="sensor" />
-      </li>
-    </ul>
+      :sensors="sensors"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { type SensorWithTemperature } from "@/data";
-import SensorCard from "@/components/devices/SensorCard.vue";
+import SensorTiles from "@/components/devices/SensorTiles.vue";
 
 defineProps<{
   sensors: SensorWithTemperature[];

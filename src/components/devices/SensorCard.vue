@@ -1,19 +1,30 @@
 <template>
   <RouterLink
     :to="route.sensorDetails(sensor.deviceId, sensor.id)"
-    class="py-3 flex items-center border-1 border-gray-300 rounded-2xl justify-between gap-3 -mx-2 px-2 transition-colors hover:bg-ink-50 active:scale-[0.98]"
+    :class="[
+      'block rounded-xl border border-ink-200 bg-white px-3 py-3 transition-all hover:border-ink-300 hover:shadow-sm active:scale-[0.98]',
+      stacked ? 'flex flex-col items-center gap-1 text-center' : 'flex items-center gap-3',
+    ]"
     :aria-label="`Датчик ${sensor.displayName}`"
   >
-    <p class="font-semibold text-ink-900 truncate min-w-0">
+    <p
+      :class="[
+        'font-semibold text-ink-900 truncate',
+        stacked ? 'w-full' : 'min-w-0',
+      ]"
+    >
       {{ sensor.displayName }}
     </p>
     <span
       v-if="sensor.temperature !== null"
-      class="font-semibold text-ink-900 tabular-nums shrink-0"
+      :class="[
+        'font-bold text-ink-900 tabular-nums shrink-0',
+        stacked ? 'text-2xl' : 'font-semibold',
+      ]"
     >{{ sensor.temperature.toFixed(1) }}°C</span>
     <span
       v-else
-      class="text-ink-300 shrink-0"
+      :class="['shrink-0', stacked ? 'text-ink-300 text-2xl font-bold' : 'text-ink-300']"
       aria-label="Нет данных о температуре"
     >—</span>
   </RouterLink>
@@ -23,5 +34,8 @@
 import { type SensorWithTemperature } from "@/data";
 import { route } from "@/constants/routes";
 
-defineProps<{ sensor: SensorWithTemperature }>();
+defineProps<{
+  sensor: SensorWithTemperature;
+  stacked?: boolean;
+}>();
 </script>

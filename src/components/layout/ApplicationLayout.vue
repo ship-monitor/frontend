@@ -41,7 +41,7 @@ const logoutHandler = async () => {
       </router-link>
       <router-link
         :to="ROUTES.CONNECT_DEVICE"
-        class="px-3 py-1.5 bg-brand-600 text-white rounded-lg text-sm font-medium touch-target transition-colors hover:bg-brand-600"
+        class="px-2 py-1.5 bg-brand-600 content-center text-white rounded-lg text-sm font-medium touch-target transition-colors hover:bg-brand-600"
       >
         Подключить устройство
       </router-link>

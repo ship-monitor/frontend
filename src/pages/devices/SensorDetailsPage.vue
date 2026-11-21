@@ -82,7 +82,7 @@
               <span class="text-xs font-normal text-ink-400">за последний час</span>
             </h2>
             <p
-              v-if="temperature.updatedAt !== null"
+              v-if="deviceOffline && temperature.updatedAt !== null"
               class="text-sm text-ink-500 mt-1"
             >
               обновлено {{ new Date(temperature.updatedAt).toLocaleTimeString("ru") }}
@@ -223,6 +223,7 @@ const {
   temperatureError,
   reloadTemperature,
   metrics,
+  deviceOffline,
   saving,
   saveError,
   saveSensorName,
