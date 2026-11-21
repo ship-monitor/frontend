@@ -21,7 +21,10 @@
         />
       </div>
 
-      <div class="flex justify-end gap-3 pt-4 border-t border-ink-100">
+      <div
+        v-if="nameDirty"
+        class="flex justify-end gap-3 pt-4 border-t border-ink-100"
+      >
         <AppButton
           variant="secondary"
           @click="cancel"
@@ -49,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, watch } from "vue";
+import { computed, reactive, watch } from "vue";
 import AppInput from "@/components/ui/AppInput.vue";
 import AppButton from "@/components/ui/AppButton.vue";
 import type { DeviceSettings } from "@/composables/useDeviceDetails";
@@ -63,6 +66,10 @@ const props = defineProps<{
 defineEmits<{ save: [settings: DeviceSettings] }>();
 
 const local = reactive<DeviceSettings>({ ...props.settings });
+
+const nameDirty = computed(
+  () => local.name.trim() !== props.settings.name.trim()
+);
 
 watch(
   () => props.settings,

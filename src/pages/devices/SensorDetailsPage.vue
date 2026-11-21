@@ -65,7 +65,7 @@
               </span>
             </div>
             <AppButton
-              variant="secondary"
+              variant="primary"
               @click="firmwareOpen = true"
             >
               Прошивка
@@ -149,7 +149,10 @@
             />
           </div>
 
-          <div class="flex justify-end gap-3 pt-4 border-t border-ink-100">
+          <div
+            v-if="nameDirty"
+            class="flex justify-end gap-3 pt-4 border-t border-ink-100"
+          >
             <AppButton
               variant="secondary"
               @click="resetName"
@@ -240,6 +243,10 @@ watch(
 const resetName = () => {
   localName.value = sensor.value?.displayName ?? "";
 };
+
+const nameDirty = computed(
+  () => localName.value.trim() !== (sensor.value?.displayName ?? "").trim()
+);
 
 const onSaveName = () => {
   void saveSensorName(localName.value);

@@ -43,7 +43,7 @@ const logoutHandler = async () => {
         :to="ROUTES.CONNECT_DEVICE"
         class="px-3 py-1.5 bg-brand-600 text-white rounded-lg text-sm font-medium touch-target transition-colors hover:bg-brand-600"
       >
-        + Устройство
+        Подключить устройство
       </router-link>
     </header>
 
@@ -67,7 +67,7 @@ const logoutHandler = async () => {
       </div>
 
       <!-- Навигация -->
-      <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+      <nav class="p-4 space-y-1.5 overflow-y-auto">
         <router-link
           v-for="item in NAVIGATION_ITEMS"
           :key="item.link"
@@ -83,9 +83,28 @@ const logoutHandler = async () => {
         </router-link>
       </nav>
 
-      <!-- Поддержка внизу -->
-      <div class="p-4 border-t border-ink-800">
-        <div class="flex items-center gap-3 px-2">
+      <div class="flex-1" />
+
+      <!-- Действие -->
+      <div class="p-4">
+        <router-link
+          :to="ROUTES.CONNECT_DEVICE"
+          class="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-brand-600 text-white font-medium hover:bg-brand-700 transition-colors touch-target"
+        >
+          Подключить устройство
+        </router-link>
+      </div>
+
+      <!-- Низ: выход и поддержка -->
+      <div class="p-4 border-t border-ink-800 space-y-3">
+        <button
+          class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-ink-300 hover:text-red-400 hover:bg-ink-800 transition-colors touch-target"
+          @click="logoutHandler"
+        >
+          <icon-logout class="size-5" />
+          <span class="text-base font-medium">Выйти</span>
+        </button>
+        <div class="flex items-center gap-3 px-2 pt-1">
           <div
             class="w-9 h-9 rounded-full bg-ink-700 flex items-center justify-center text-sm font-semibold"
           >
@@ -105,25 +124,6 @@ const logoutHandler = async () => {
 
     <!-- ====== Правая часть (контент) ====== -->
     <div class="flex-1 flex flex-col min-h-screen">
-      <!-- Десктопный хедер -->
-      <header
-        class="hidden lg:flex bg-white/80 backdrop-blur-md border-b border-ink-200 px-6 py-3 justify-end items-center gap-4 sticky top-0 z-20"
-      >
-        <router-link
-          :to="ROUTES.CONNECT_DEVICE"
-          class="px-4 py-2 bg-brand-600 text-white rounded-xl font-medium text-sm hover:bg-brand-700 transition-colors touch-target"
-        >
-          + Подключить устройство
-        </router-link>
-        <button
-          class="px-4 flex py-2 gap-2.5 text-ink-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors font-medium text-sm"
-          @click="logoutHandler"
-        >
-          <span>Выйти</span>
-          <icon-logout class="size-5" />
-        </button>
-      </header>
-
       <!-- Основной контент -->
       <main class="flex-1 overflow-hidden p-3 sm:p-4 lg:p-8">
         <slot />

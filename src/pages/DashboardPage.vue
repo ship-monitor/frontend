@@ -1,32 +1,9 @@
 <template>
   <div class="space-y-5 sm:space-y-6 animate-fade-in">
     <!-- Заголовок -->
-    <div
-      class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3"
-    >
-      <div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">
-          Мониторинг
-        </h1>
-        <p class="text-sm text-ink-500 mt-0.5">
-          Статус ваших устройств в реальном времени
-        </p>
-      </div>
-      <div
-        v-if="devicesStore.autoRefreshActive"
-        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 text-brand-700 text-xs font-medium ring-1 ring-inset ring-brand-200 w-fit"
-      >
-        <span class="relative flex h-2 w-2">
-          <span
-            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"
-          />
-          <span
-            class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"
-          />
-        </span>
-        Автообновление активно
-      </div>
-    </div>
+    <h1 class="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">
+      Мониторинг
+    </h1>
 
     <!-- Поиск и фильтры -->
     <div class="flex flex-col sm:flex-row gap-3">

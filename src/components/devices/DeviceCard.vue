@@ -113,7 +113,7 @@
 
       <ul
         v-else
-        class="divide-y divide-ink-100"
+        class="divide-y divide-ink-100 flex flex-col gap-1"
       >
         <li
           v-for="sensor in sensors"

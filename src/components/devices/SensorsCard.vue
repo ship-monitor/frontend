@@ -27,7 +27,7 @@
 
     <ul
       v-else
-      class="grid grid-cols-2 gap-2"
+      class="flex flex-col gap-2"
     >
       <li
         v-for="sensor in sensors"
