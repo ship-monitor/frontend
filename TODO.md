@@ -30,8 +30,6 @@ Priorities:
 
 ### Deployment and quality gates
 
-- [x] **Upgrade and pin service images.** PostgreSQL 13 is EOL, `postgis:13-master` and `directus:latest` are mutable, and `redis:6` is broadly pinned. Plan migrations and use tested immutable versions or digests. (`docker-compose.yml`)
-- [x] **Replace predictable database credentials with a required secret.** The committed `directus` password is shared between PostgreSQL and Directus. (`docker-compose.yml`)
 - [x] **Fail fast for missing deployment variables.** Use required Compose interpolation for secrets, admin credentials, and public URLs rather than silently substituting empty strings. (`docker-compose.yml`)
 - [x] **Declare required Vite environment variables.** Add typed `VITE_API_URL` and `VITE_CMS_URL` declarations, then ensure the CMS variable is actually consumed. (`env.d.ts`)
 - [x] **Make ESLint a reliable quality gate.** Exclude generated lockfiles from JSON content rules and enable the Vue essential/recommended rules rather than only the parser/base preset. (`eslint.config.ts`)
