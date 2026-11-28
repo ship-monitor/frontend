@@ -104,8 +104,8 @@ describe("data layer on generated client", () => {
     expect(result.isErr).toBe(true);
   });
 
-  it("addDevice resolves Ok for 201 and maps 409 to a dedicated error", async () => {
-    mockedConnectDevice.mockResolvedValue(response(201, undefined) as never);
+  it("addDevice resolves Ok for 202 and maps 409 to a dedicated error", async () => {
+    mockedConnectDevice.mockResolvedValue(response(202, undefined) as never);
     const ok = await addDevice("d1", "key");
     expect(ok.isOk).toBe(true);
 

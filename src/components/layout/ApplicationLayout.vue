@@ -7,6 +7,7 @@ import { LANDING_URL } from "@/constants/contacts";
 import IconLogout from "@/components/icons/IconLogout.vue";
 import IconPulse from "@/components/icons/IconPulse.vue";
 import IconPerson from "@/components/icons/IconPerson.vue";
+import NotificationsMenu from "@/components/notifications/NotificationsMenu.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -49,7 +50,7 @@ const logoutHandler = async () => {
 
     <!-- ====== Боковое меню (десктоп) ====== -->
     <aside
-      class="hidden h-fit lg:flex bg-ink-900 text-white flex-col lg:w-64 lg:min-h-screen lg:sticky lg:top-0"
+      class="hidden h-fit z-40 lg:flex bg-ink-900 text-white flex-col lg:w-64 lg:min-h-screen lg:sticky lg:top-0"
     >
       <!-- Логотип -->
       <div class="hidden lg:block p-5 border-b border-ink-800">
@@ -97,6 +98,7 @@ const logoutHandler = async () => {
 
       <!-- Низ: выход и поддержка -->
       <div class="p-4 border-t border-ink-800 space-y-3">
+        <notifications-menu variant="popover" />
         <button
           class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-ink-300 hover:text-red-400 hover:bg-ink-800 transition-colors touch-target"
           @click="logoutHandler"
@@ -133,21 +135,28 @@ const logoutHandler = async () => {
       <nav
         class="lg:hidden bg-white border-t border-ink-200 flex justify-around py-2 sticky bottom-0 z-30 safe-bottom"
       >
-        <router-link
-          v-for="item in NAVIGATION_ITEMS"
+        <template
+          v-for="(item, index) in NAVIGATION_ITEMS"
           :key="item.link"
-          :to="item.link"
-          class="flex flex-col items-center gap-0.5 px-3 py-1 text-ink-400 hover:text-brand-600 transition-colors touch-target"
-          active-class="!text-brand-600"
         >
-          <component
-            :is="item.icon"
-            class="size-6"
+          <router-link
+            :to="item.link"
+            class="flex flex-col items-center gap-0.5 px-1 py-1 text-ink-400 hover:text-brand-600 transition-colors touch-target"
+            active-class="!text-brand-600"
+          >
+            <component
+              :is="item.icon"
+              class="size-6"
+            />
+            <span class="text-xs font-medium">{{ item.label }}</span>
+          </router-link>
+          <notifications-menu
+            v-if="index === 0"
+            variant="modal"
           />
-          <span class="text-xs font-medium">{{ item.label }}</span>
-        </router-link>
+        </template>
         <button
-          class="flex flex-col items-center gap-0.5 px-3 py-1 text-ink-400 hover:text-red-500 transition-colors touch-target"
+          class="flex flex-col items-center gap-0.5 px-1 py-1 text-ink-400 hover:text-red-500 transition-colors touch-target"
           @click="logoutHandler"
         >
           <icon-logout class="size-6" />

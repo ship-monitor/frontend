@@ -90,7 +90,7 @@ const to = new Date().toISOString();
 
 // 4. Device metrics (battery).
 const battery = await call(
-  `/api/v2/devices/${device.id}/metrics/battery-level?from=${from}&to=${to}&limit=10`,
+  `/api/v2/devices/${device.id}/metrics/battery-level?from=${from}&to=${to}&limit=1000`,
   { token: login.data.token },
 );
 if (battery.status !== 200 || !Array.isArray(battery.data?.values)) {
@@ -117,7 +117,7 @@ const sensor = sensors.data.sensors[0];
 ok(`sensors: ${sensors.data.sensors.length} (${sensor.name})`);
 
 const temperature = await call(
-  `/api/v2/devices/${device.id}/sensors/${sensor.id}/metrics/temperature?from=${from}&to=${to}&limit=10`,
+  `/api/v2/devices/${device.id}/sensors/${sensor.id}/metrics/temperature?from=${from}&to=${to}&limit=1000`,
   { token: login.data.token },
 );
 if (temperature.status !== 200 || !Array.isArray(temperature.data?.values)) {

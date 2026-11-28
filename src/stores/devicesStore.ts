@@ -4,6 +4,7 @@ import {
   getDeviceOnlineStatus,
   getSensorsWithTemperatures,
   getUserDevices,
+  type MetricsSummary,
   type SensorWithTemperature,
 } from "@/data";
 import { useAuthStore } from "@/stores/authStore";
@@ -60,6 +61,26 @@ function displayName(id: string, name: string): string {
   return id.substring(0, 8);
 }
 
+function isDown(status: DeviceStatus | undefined): boolean {
+  return status === "offline" || status === "error";
+}
+
+type MetricsSnapshot = Pick<
+  MetricsSummary,
+  "batteryLevel" | "powerConnected"
+>;
+
+async function fetchMetrics(
+  deviceId: string
+): Promise<MetricsSnapshot | null> {
+  const result = await getDeviceMetricsSummary(deviceId);
+  if (result.isErr) {
+    console.error("Failed to load device metrics: %s", result.error);
+    return null;
+  }
+  return result.value;
+}
+
 export const useDevicesStore = defineStore("devices-store", {
   state: () => ({
     devices: [] as DeviceSummary[],
@@ -83,23 +104,30 @@ export const useDevicesStore = defineStore("devices-store", {
       }
       this.loadError = null;
 
+      const previousDevices = new Map(
+        this.devices.map((device) => [device.id, device] as const)
+      );
+
       const snapshot = await Promise.all(
         devicesResult.value.map(async (device) => {
+          const previous = previousDevices.get(device.id);
+          const statusRequest = getDeviceOnlineStatus(device.id);
+
+          const metricsRequest =
+            previous && isDown(previous.status)
+              ? statusRequest.then((status): Promise<MetricsSnapshot | null> =>
+                  status.isOk && !status.value.online
+                    ? Promise.resolve(previous)
+                    : fetchMetrics(device.id)
+                )
+              : fetchMetrics(device.id);
+
           const [status, metrics] = await Promise.all([
-            getDeviceOnlineStatus(device.id),
-            getDeviceMetricsSummary(device.id).then((r) =>
-              r.isErr
-                ? (console.error("Failed to load device metrics: %s", r.error),
-                  null)
-                : r.value
-            ),
+            statusRequest,
+            metricsRequest,
           ]);
           return { device, status, metrics };
         })
-      );
-
-      const previousStatus = new Map(
-        this.devices.map((device) => [device.id, device.status])
       );
 
       this.devices = snapshot.map(({ device, status, metrics }) => {
@@ -109,7 +137,11 @@ export const useDevicesStore = defineStore("devices-store", {
         return {
           id: device.id,
           name: displayName(device.id, device.name),
-          status: resolveStatus(ok, history, previousStatus.get(device.id)),
+          status: resolveStatus(
+            ok,
+            history,
+            previousDevices.get(device.id)?.status
+          ),
           batteryLevel: metrics?.batteryLevel ?? null,
           powerConnected: metrics?.powerConnected ?? null,
         };

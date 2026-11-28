@@ -42,8 +42,10 @@ hub-service (workers)
 ## Локальный стенд (WSL)
 
 Общий порядок подъёма: контейнеры → бэкенд → хаб → Vite. Фоновые процессы —
-с `persistent: true`; после остановки wsl-обёртки убивать остаток:
-`pkill -f exe/server` внутри WSL.
+с `persistent: true`; после остановки wsl-обёртки убивать остаток внутри WSL:
+`pkill -f 'go-build.*/(exe/)?server$'` (хаб — тот же шаблон с `service`).
+`go run` держит бинарник в `~/.cache/go-build/<hash>-d/`, поэтому старый
+шаблон `exe/server` никого не находит.
 
 ```powershell
 # WSL: & "C:\Program Files\WSL\wsl.exe" -d Ubuntu -u root
@@ -70,14 +72,11 @@ npm run dev
 
 ## Протокол pull cloud (обязателен)
 
-В рабочем дереве cloud живут локальные незакоммиченные правки (named volumes
-в `docker-compose.yml`; логирующий error handler в
-`internal/v2/di/connector.go`; NULL-плейсхолдер `updated_at` в INSERT
-устройства в `internal/v2/repositories/device/device.go` — баг Петрова,
-ожидает апстрима). Поэтому:
+В рабочем дереве cloud живёт локальная незакоммиченная правка (named volumes
+и `restart: always` у postgres/valkey в `docker-compose.yml`). Поэтому:
 
 ```bash
-git stash push -m "local fixes" -- docker-compose.yml internal/v2/di/connector.go internal/v2/repositories/device/device.go
+git stash push -m "local fixes" -- docker-compose.yml
 git pull --ff-only origin main
 git stash pop   # при конфликте — версию cloud поверх, свои дубли отбросить
 ```
@@ -91,16 +90,26 @@ git stash pop   # при конфликте — версию cloud поверх,
 4. E2E на стенде: health без авторизации, логин, devices (firmware-поля),
    метрики по имени (`/devices/{id}/metrics/{metric}` — батарея/питание,
    `/devices/{id}/sensors/{sid}/metrics/{metric}` — температура).
-5. Перезапуск бэкенда: `pkill -f exe/server` + новый фоновый процесс.
+5. Перезапуск бэкенда: `pkill -f 'go-build.*/(exe/)?server$'` + новый фоновый процесс.
 
 ## Известные особенности API
 
-- `from`/`to` в metrics-эндпоинтах опциональны (ISO-строки), `limit` ≥ 10.
-- Старые query-эндпоинты (`?metric=`) задепрекейчены — используем ByName.
+- `from`/`to` в metrics-эндпоинтах опциональны (ISO-строки), `limit` 10–1000.
+  Точки возвращаются от старых к новым, и `limit` отрезает новейшие — последний
+  элемент ответа не является «последним значением». Его ищет `readLatest` в
+  `src/data/index.ts` (окна 5 мин → 8 ч → 24 ч, затем достраничивание).
+- Старые query-эндпоинты (`?metric=`) удалены — используем ByName.
 - `security_key` устройства в БД не хранится (by design); connect асинхронный:
-  201 = запрос отправлен, approve не ждём.
+  202 = запрос отправлен, approve не ждём.
 - Сенсоры пересоздаются с новыми uuid на каждый старт хаба: старые метрики
   в ClickHouse остаются привязаны к старым uuid.
+- Уведомления: эндпоинт один — `GET /devices/{id}/notifications` (`cursor`,
+  `limit` ≤ 100, от новых к старым), без фильтров и без отметки «прочитано»
+  (`isRead` всегда `false`). Страница `/notifications` фильтрует на клиенте
+  по загруженному (`filterNotifications`) и при пустом фильтре сама
+  достранивает вглубь (`loadMoreUntil`, до 5 страниц по 100 на устройство);
+  в DOM держит окно по 50 строк (`useNotificationsPage`) — без окна 12 тыс.
+  строк замораживали страницу примерно на 10 с.
 
 ## Грабли окружения (Windows)
 
@@ -109,7 +118,18 @@ git stash pop   # при конфликте — версию cloud поверх,
 - Кириллица: правки файлов с русским текстом — полным `write` или
   `[IO.File]::ReadAllText/WriteAllText` с `UTF8Encoding($false)`;
   после правок проверять отсутствие U+FFFD.
-- WSL может засыпать (idle-shutdown) — стенд поднимается заново по шагам выше.
+- WSL останавливает дистрибутив через ~15 с после завершения последней сессии
+  `wsl.exe` (idle-shutdown; сама VM живёт ещё ~60 с). Пока стенд поднимается,
+  нужна открытая сессия — её держат запущенные бэкенд или хаб; WSL-шаги
+  объединять в один вызов. Контейнеры с `restart: always` возвращаются сами при
+  следующем обращении к WSL, бэкенд и хаб — перезапуском.
 - В cloud при старте ворнинг «No CORS origins specified» — не мешает
   (запросы идут через Vite-прокси), чинится настройкой `CORS_ORIGINS` в .env
   cloud (зона Петрова).
+- Vite может не заметить точечную правку `.ts`/`.vue`-файла и продолжать
+  отдавать закэшированный модуль — проверка в браузере тогда идёт по старому
+  коду. Строка `hmr update` в журнале не гарантирует свежесть: для `.vue` она
+  бывает только с границей `styles.css`. Перед проверкой в браузере
+  переписывать изменённые файлы теми же байтами
+  (`WriteAllBytes(p, ReadAllBytes(p))`) и загружать страницу заново; в dev-
+  сборке свежесть кода видно по составу `setupState` компонента.

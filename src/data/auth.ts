@@ -19,7 +19,7 @@ const saveTokens = (data: unknown, requireRefreshToken: boolean): boolean => {
       ? (data as Record<string, unknown>)
       : {};
   const token = record["token"];
-  if (record["success"] !== true || typeof token !== "string" || !token) {
+  if (typeof token !== "string" || !token) {
     return false;
   }
   const refresh = record["refreshToken"];

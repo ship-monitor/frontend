@@ -20,12 +20,14 @@ Guidance for AI agents working in this repository.
 
 - `../cloud` — зона Петрова: локальные правки не коммитить; pull только по
   протоколу stash → `pull --ff-only` → stash pop (в дереве живут локальные
-  фиксы `docker-compose.yml` и `internal/v2/di/connector.go`).
+  фикс `docker-compose.yml`).
 - После изменений `../cloud/specs/openapi.yml` — регенерировать клиент
   (`npm run api:generate`).
 - Стенд: WSL; контейнеры cloud → `go run ./cmd/server` (:6767) → хаб
   (`../hub-service`, `go run ./cmd/service`) → `npm run dev` (:5173).
-  После остановки wsl-обёрток: `pkill -f exe/server` внутри WSL.
+  После остановки wsl-обёрток внутри WSL: `pkill -f 'go-build.*/(exe/)?server$'`
+  (хаб — тот же шаблон с `service`). `go run` кладёт бинарник в
+  `~/.cache/go-build/…-d/`, поэтому старый шаблон `exe/server` никого не находит.
 
 ## Cabinet (корень репозитория)
 

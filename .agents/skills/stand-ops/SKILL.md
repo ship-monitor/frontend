@@ -32,7 +32,15 @@ npm run e2e:smoke   # health → login → devices → battery → sensor temper
 
 Order: containers → backend → hub → Vite. Background processes run with
 `persistent: true`. After stopping WSL wrappers, kill leftovers inside WSL:
-`pkill -f exe/server`.
+`pkill -f 'go-build.*/(exe/)?server$'` (hub: same pattern with `service`).
+`go run` keeps the binary in `~/.cache/go-build/<hash>-d/`, so the old
+`exe/server` pattern matches nothing.
+
+WSL stops the distro ~15 s after the last `wsl.exe` session ends (the VM
+lingers ~60 s more). Keep a session open — a running backend or hub does —
+while bringing the stand up, and chain WSL steps in one call. All containers
+carry `restart: always` (local compose fix) and come back on the next WSL
+call by themselves; backend and hub must be started again.
 
 ```powershell
 # WSL: & "C:\Program Files\WSL\wsl.exe" -d Ubuntu -u root
@@ -63,11 +71,12 @@ after restarts.
 
 ## Cloud pull protocol (mandatory)
 
-`../cloud` is Petrov's repo; local uncommitted fixes live in its tree
-(docker-compose.yml named volumes, error-logging handler). Pull:
+`../cloud` is Petrov's repo; a local uncommitted fix lives in its tree
+(docker-compose.yml: named volumes, `restart: always` for postgres and
+valkey). Pull:
 
 ```bash
-git stash push -m "local fixes" -- docker-compose.yml internal/v2/di/connector.go internal/v2/repositories/device/device.go
+git stash push -m "local fixes" -- docker-compose.yml
 git pull --ff-only origin main
 git stash pop   # on conflict prefer cloud's version, drop local duplicates
 ```
@@ -82,6 +91,9 @@ layer, run lint/type-check/test, restart backend, `npm run e2e:smoke`.
   device-level temperature in UI.
 - Sensors get new uuid on every hub start (by design); ClickHouse history
   stays bound to old uuids.
-- Metrics endpoint `limit` must be ≥ 10.
+- Metrics endpoint: `limit` is 10–1000, points come oldest-first and `limit`
+  cuts the newest ones. The last element of a wide window is NOT the latest
+  value; `readLatest` in `src/data/index.ts` narrows the window (5 min → 8 h
+  → 24 h) and pages forward.
 - Cloud `.env` is gitignored: Petrov's values (e.g. `CORS_ORIGINS`) never
   arrive via git — maintain the local copy by hand.

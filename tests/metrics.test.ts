@@ -76,7 +76,7 @@ describe("device metrics summary", () => {
       const range = call[2]!;
       expect(Number.isNaN(Date.parse(range.$from!))).toBe(false);
       expect(Number.isNaN(Date.parse(range.to!))).toBe(false);
-      expect(range.limit).toBe(10);
+      expect(range.limit).toBe(1000);
     }
   });
 

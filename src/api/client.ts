@@ -27,7 +27,7 @@ const saveTokens = (data: unknown): boolean => {
       : {};
   const token = record["token"];
   const refresh = record["refreshToken"];
-  if (record["success"] !== true || typeof token !== "string" || !token) {
+  if (typeof token !== "string" || !token) {
     return false;
   }
   if (typeof refresh !== "string" || !refresh) {

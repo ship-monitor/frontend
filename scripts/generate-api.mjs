@@ -2,7 +2,12 @@ import { spawnSync } from "node:child_process";
 import { platform } from "node:os";
 import { resolve } from "node:path";
 
-const args = ["oazapfts", "../cloud/specs/openapi.yml", "src/api/index.ts"];
+const args = [
+  "oazapfts",
+  "--useUnknown",
+  "../cloud/specs/openapi.yml",
+  "src/api/index.ts",
+];
 
 if (platform() === "win32") {
   // CLI oazapfts падает на Windows (__dirname в ESM-бандле), поэтому

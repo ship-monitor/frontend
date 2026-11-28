@@ -13,7 +13,7 @@ export const defaults: Oazapfts.Defaults<Oazapfts.CustomHeaders> = {
 const oazapfts = Oazapfts.runtime(defaults);
 export const servers = {
     localDevelopmentServer: "http://localhost:8080",
-    productionServer: "https://api.ship-monitor.ru"
+    productionServer: "https://api.coldstat.ru"
 };
 export type ServiceStatus = "ok" | "warn" | "fail";
 export type Problem = {
@@ -55,6 +55,33 @@ export type SensorRead = {
     revision: string;
     /** Software name and version */
     software: string;
+};
+export type NotificationSeverity = "info" | "warning" | "critical";
+export type Notification = {
+    severity: NotificationSeverity;
+    isRead: boolean;
+};
+export type NotificationRead = {
+    id: string;
+    deviceId: string;
+    sensorId?: string;
+    "type": string;
+    severity: NotificationSeverity;
+    /** Time event was occurred at */
+    occurredAt: string;
+    /** Time event was reported at by device */
+    reportedAt: string;
+    /** Time event notification war received by cloud server */
+    receivedAt: string;
+    isRead: boolean;
+    data?: {
+        [key: string]: unknown;
+    };
+};
+export type Pagination = {
+    /** Opaque cursor for the next page; omitted on the last page */
+    nextCursor?: string;
+    hasMore: boolean;
 };
 export type MetricType = "GAUGE" | "COUNTER" | "HISTOGRAM";
 export type Metric = {
@@ -103,7 +130,6 @@ export function loginUser(body: {
     return oazapfts.fetchJson<{
         status: 200;
         data: {
-            success?: boolean;
             token: string;
             refreshToken: string;
         };
@@ -122,7 +148,6 @@ export function refreshToken(body: {
     return oazapfts.fetchJson<{
         status: 200;
         data: {
-            success?: boolean;
             token: string;
             refreshToken: string;
         };
@@ -159,7 +184,7 @@ export function connectDevice(body: {
     securityKey: string;
 }, opts?: Oazapfts.RequestOpts) {
     return oazapfts.fetchJson<{
-        status: 201;
+        status: 202;
     } | {
         status: 409;
         data: Problem;
@@ -235,6 +260,26 @@ export function getSensors(deviceId: string, opts?: Oazapfts.RequestOpts) {
         ...opts
     });
 }
+export function getDeviceNotifications(deviceId: string, { cursor, limit }: {
+    cursor?: string;
+    limit?: number;
+} = {}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.fetchJson<{
+        status: 200;
+        data: {
+            notifications: NotificationRead[];
+            pagination: Pagination;
+        };
+    } | {
+        status: number;
+        data: Problem;
+    }>(`/api/v2/devices/${encodeURIComponent(deviceId)}/notifications${QS.query(QS.explode({
+        cursor,
+        limit
+    }))}`, {
+        ...opts
+    });
+}
 export function editSensor(deviceId: string, sensorId: string, body: {
     displayName: string;
 }, opts?: Oazapfts.RequestOpts) {
@@ -285,46 +330,6 @@ export function getSensorMetricsByName(deviceId: string, sensorId: string, metri
     }>(`/api/v2/devices/${encodeURIComponent(deviceId)}/sensors/${encodeURIComponent(sensorId)}/metrics/${encodeURIComponent(metric)}${QS.query(QS.explode({
         "from": $from,
         to,
-        limit
-    }))}`, {
-        ...opts
-    });
-}
-export function getSensorMetrics(deviceId: string, sensorId: string, metric: string, { $from, to, limit }: {
-    $from?: string;
-    to?: string;
-    limit?: number;
-} = {}, opts?: Oazapfts.RequestOpts) {
-    return oazapfts.fetchJson<{
-        status: 200;
-        data: Metrics;
-    } | {
-        status: number;
-        data: Problem;
-    }>(`/api/v2/devices/${encodeURIComponent(deviceId)}/sensors/${encodeURIComponent(sensorId)}/metrics${QS.query(QS.explode({
-        "from": $from,
-        to,
-        metric,
-        limit
-    }))}`, {
-        ...opts
-    });
-}
-export function getDeviceMetrics(deviceId: string, metric: string, { $from, to, limit }: {
-    $from?: string;
-    to?: string;
-    limit?: number;
-} = {}, opts?: Oazapfts.RequestOpts) {
-    return oazapfts.fetchJson<{
-        status: 200;
-        data: Metrics;
-    } | {
-        status: number;
-        data: Problem;
-    }>(`/api/v2/devices/${encodeURIComponent(deviceId)}/metrics${QS.query(QS.explode({
-        "from": $from,
-        to,
-        metric,
         limit
     }))}`, {
         ...opts

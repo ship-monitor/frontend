@@ -12,4 +12,15 @@ describe("route builders", () => {
   it("substitutes the device id", () => {
     expect(route.deviceDetails("abc-123")).toBe(`/devices/abc-123`);
   });
+
+  it("builds the notifications route with an optional filter", () => {
+    expect(route.notifications()).toEqual({
+      path: ROUTES.NOTIFICATIONS,
+      query: {},
+    });
+    expect(route.notifications({ device: "abc-123" })).toEqual({
+      path: ROUTES.NOTIFICATIONS,
+      query: { device: "abc-123" },
+    });
+  });
 });

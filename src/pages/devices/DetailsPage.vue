@@ -80,6 +80,11 @@
         :error="sensorsError"
       />
 
+      <DeviceNotificationsCard
+        :device-id="deviceId"
+        :sensors="sensors"
+      />
+
       <FirmwareModal
         :open="firmwareOpen"
         :firmware="deviceFirmware ?? undefined"
@@ -107,6 +112,7 @@ import DeviceInfoTab from "@/components/devices/DeviceInfoTab.vue";
 import FirmwareModal from "@/components/devices/FirmwareModal.vue";
 import DisconnectModal from "@/components/devices/DisconnectModal.vue";
 import SensorsCard from "@/components/devices/SensorsCard.vue";
+import DeviceNotificationsCard from "@/components/notifications/DeviceNotificationsCard.vue";
 import AppMenu, { type AppMenuItem } from "@/components/ui/AppMenu.vue";
 import { useDeviceDetails } from "@/composables/useDeviceDetails";
 

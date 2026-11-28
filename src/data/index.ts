@@ -157,7 +157,7 @@ export const addDevice = async (
   if (response.status === 409) {
     return Result.err("Устройство уже подключено");
   }
-  if (response.status !== 201) {
+  if (response.status !== 202) {
     return Result.err(
       problemDetails(errorData(response), "Не удалось подключить устройство")
     );
@@ -334,7 +334,11 @@ export const emptyMetricsSummary: MetricsSummary = {
   powerUpdatedAt: null,
 };
 
-const METRICS_WINDOW_MS = 24 * 60 * 60 * 1000;
+const METRICS_LOOKBACK_MS = 24 * 60 * 60 * 1000;
+const METRICS_RECENT_WINDOW_MS = 5 * 60 * 1000;
+const METRICS_WIDE_WINDOW_MS = 8 * 60 * 60 * 1000;
+const METRICS_PAGE_LIMIT = 1000;
+const METRICS_ERROR = "Не удалось загрузить метрики";
 
 const parseMetricValues = (
   data: unknown
@@ -369,26 +373,107 @@ const parseMetricValues = (
 
 type MetricValues = Array<{ name: string; value: number; timestamp: number }>;
 
-type MetricResponse = Promise<{ status: number; data?: unknown }>;
+type MetricPoint = MetricValues[number];
 
-const readMetricWindow = async (run: () => MetricResponse): Promise<MetricValues> => {
-  const response = await run();
-  if (response.status !== 200) {
-    throw new Error(
-      problemDetails(errorData(response), "Не удалось загрузить метрики")
-    );
+type MetricQuery = { $from: string; to: string; limit: number };
+
+type MetricRun = (query: MetricQuery) => Promise<{ status: number; data?: unknown }>;
+
+type MetricRead =
+  | { ok: true; points: MetricValues }
+  | { ok: false; message: string };
+
+type LatestRead =
+  | { ok: true; latest: MetricPoint | undefined }
+  | { ok: false; message: string };
+
+const lastPoint = (points: MetricValues): MetricPoint | undefined =>
+  points[points.length - 1];
+
+const metricQuery = (from: number, to: number): MetricQuery => ({
+  $from: new Date(from).toISOString(),
+  to: new Date(to).toISOString(),
+  limit: METRICS_PAGE_LIMIT,
+});
+
+const readMetricPage = async (
+  run: MetricRun,
+  query: MetricQuery,
+  fallback: string
+): Promise<MetricRead> => {
+  let response;
+  try {
+    response = await run(query);
+  } catch {
+    return { ok: false, message: "Не удалось связаться с сервером" };
   }
-  return parseMetricValues(response.data);
+
+  if (response.status !== 200) {
+    return {
+      ok: false,
+      message: problemDetails(errorData(response), fallback),
+    };
+  }
+
+  return { ok: true, points: parseMetricValues(response.data) };
+};
+
+const readNewest = async (
+  run: MetricRun,
+  from: number,
+  to: number,
+  fallback: string
+): Promise<MetricRead> => {
+  let start = from;
+  let newest: MetricValues = [];
+
+  for (;;) {
+    const read = await readMetricPage(run, metricQuery(start, to), fallback);
+    if (!read.ok) return read;
+
+    const last = lastPoint(read.points);
+    if (read.points.length > 0) newest = read.points;
+
+    if (
+      read.points.length < METRICS_PAGE_LIMIT ||
+      !last ||
+      last.timestamp < start ||
+      last.timestamp >= to
+    ) {
+      return { ok: true, points: newest };
+    }
+
+    start = last.timestamp + 1;
+  }
+};
+
+const readLatest = async (
+  run: MetricRun,
+  fallback: string
+): Promise<LatestRead> => {
+  const to = Date.now();
+
+  for (const span of [
+    METRICS_RECENT_WINDOW_MS,
+    METRICS_WIDE_WINDOW_MS,
+    METRICS_LOOKBACK_MS,
+  ]) {
+    const read = await readNewest(run, to - span, to, fallback);
+    if (!read.ok) return read;
+
+    const latest = lastPoint(read.points);
+    if (latest) return { ok: true, latest };
+  }
+
+  return { ok: true, latest: undefined };
 };
 
 const summarizeMetrics = (
-  battery: PromiseSettledResult<MetricValues>,
-  power: PromiseSettledResult<MetricValues>
+  battery: LatestRead,
+  power: LatestRead
 ): Result<MetricsSummary, APIError> => {
-  const lastOf = (result: PromiseSettledResult<MetricValues>) =>
-    result.status === "fulfilled" ? result.value[result.value.length - 1] : undefined;
-  const batteryLast = lastOf(battery);
-  const powerLast = lastOf(power);
+  const batteryLast = battery.ok ? battery.latest : undefined;
+  const powerLast = power.ok ? power.latest : undefined;
 
   return Result.ok({
     batteryLevel: batteryLast ? batteryLast.value : null,
@@ -398,27 +483,24 @@ const summarizeMetrics = (
   });
 };
 
-const metricsWindow = () => {
-  const from = new Date(Date.now() - METRICS_WINDOW_MS).toISOString();
-  const to = new Date().toISOString();
-  return { $from: from, to, limit: 10 };
-};
-
 // У хаба нет температуры: summary агрегирует только метрики устройства
 // (батарея, питание). Температура — метрика датчика и запрашивается
 // отдельно по /sensors/{id}/metrics/{metric}.
 export const getDeviceMetricsSummary = async (
   deviceId: string
 ): Promise<Result<MetricsSummary, APIError>> => {
-  const query = metricsWindow();
-  const [batteryValues, powerValues] = await Promise.allSettled([
-    readMetricWindow(() =>
-      getDeviceMetricsByNameOp(deviceId, BATTERY_METRIC, query)
+  const [battery, power] = await Promise.all([
+    readLatest(
+      (query) => getDeviceMetricsByNameOp(deviceId, BATTERY_METRIC, query),
+      METRICS_ERROR
     ),
-    readMetricWindow(() => getDeviceMetricsByNameOp(deviceId, POWER_METRIC, query)),
+    readLatest(
+      (query) => getDeviceMetricsByNameOp(deviceId, POWER_METRIC, query),
+      METRICS_ERROR
+    ),
   ]);
 
-  return summarizeMetrics(batteryValues, powerValues);
+  return summarizeMetrics(battery, power);
 };
 
 // Батарея и питание публикуются и датчиками — тот же профиль метрик,
@@ -427,17 +509,20 @@ export const getSensorMetricsSummary = async (
   deviceId: string,
   sensorId: string
 ): Promise<Result<MetricsSummary, APIError>> => {
-  const query = metricsWindow();
-  const [batteryValues, powerValues] = await Promise.allSettled([
-    readMetricWindow(() =>
-      getSensorMetricsByNameOp(deviceId, sensorId, BATTERY_METRIC, query)
+  const [battery, power] = await Promise.all([
+    readLatest(
+      (query) =>
+        getSensorMetricsByNameOp(deviceId, sensorId, BATTERY_METRIC, query),
+      METRICS_ERROR
     ),
-    readMetricWindow(() =>
-      getSensorMetricsByNameOp(deviceId, sensorId, POWER_METRIC, query)
+    readLatest(
+      (query) =>
+        getSensorMetricsByNameOp(deviceId, sensorId, POWER_METRIC, query),
+      METRICS_ERROR
     ),
   ]);
 
-  return summarizeMetrics(batteryValues, powerValues);
+  return summarizeMetrics(battery, power);
 };
 
 const TEMPERATURE_METRIC = "temperature";
@@ -453,8 +538,8 @@ export type SensorTemperature = {
   history: TemperaturePoint[];
 };
 
-const SENSOR_METRICS_WINDOW_MS = 24 * 60 * 60 * 1000;
-const LATEST_METRIC_LIMIT = 10;
+const SENSOR_METRICS_ERROR = "Не удалось загрузить метрики датчика";
+const TEMPERATURE_HISTORY_MS = 60 * 60 * 1000;
 
 export type SensorWithTemperature = Sensor & { temperature: number | null };
 
@@ -463,24 +548,13 @@ const getSensorLatestTemperature = async (
   deviceId: string,
   sensorId: string
 ): Promise<number | null> => {
-  const from = new Date(Date.now() - SENSOR_METRICS_WINDOW_MS).toISOString();
-  const to = new Date().toISOString();
-  try {
-    const response = await getSensorMetricsByNameOp(
-      deviceId,
-      sensorId,
-      TEMPERATURE_METRIC,
-      { $from: from, to, limit: LATEST_METRIC_LIMIT }
-    );
-    if (response.status !== 200) return null;
-    const points = parseMetricValues(response.data).filter(
-      (point) => point.name === TEMPERATURE_METRIC
-    );
-    const last = points[points.length - 1];
-    return last ? last.value : null;
-  } catch {
-    return null;
-  }
+  const read = await readLatest(
+    (query) =>
+      getSensorMetricsByNameOp(deviceId, sensorId, TEMPERATURE_METRIC, query),
+    SENSOR_METRICS_ERROR
+  );
+  const latest = read.ok ? read.latest : undefined;
+  return latest && latest.name === TEMPERATURE_METRIC ? latest.value : null;
 };
 
 // Датчики устройства с текущей температурой для карточек-списков.
@@ -499,33 +573,32 @@ export const getSensorsWithTemperatures = async (
   return Result.ok(sensors);
 };
 
-// Температура — метрика датчика: окно 24 часа, на графике показываем
-// последний час.
+// Температура — метрика датчика: последнее значение ищем за 24 часа,
+// на графике показываем час до него.
 export const getSensorTemperature = async (
   deviceId: string,
   sensorId: string
 ): Promise<Result<SensorTemperature, APIError>> => {
-  const from = new Date(Date.now() - SENSOR_METRICS_WINDOW_MS).toISOString();
-  const to = new Date().toISOString();
+  const run: MetricRun = (query) =>
+    getSensorMetricsByNameOp(deviceId, sensorId, TEMPERATURE_METRIC, query);
 
-  let response;
-  try {
-    response = await getSensorMetricsByNameOp(deviceId, sensorId, TEMPERATURE_METRIC, {
-      $from: from,
-      to,
-      limit: 1000,
-    });
-  } catch {
-    return Result.err("Не удалось связаться с сервером");
+  const latestRead = await readLatest(run, SENSOR_METRICS_ERROR);
+  if (!latestRead.ok) return Result.err(latestRead.message);
+
+  const latest = latestRead.latest;
+  if (!latest || latest.name !== TEMPERATURE_METRIC) {
+    return Result.ok({ current: null, updatedAt: null, history: [] });
   }
 
-  if (response.status !== 200) {
-    return Result.err(
-      problemDetails(errorData(response), "Не удалось загрузить метрики датчика")
-    );
-  }
+  const historyRead = await readNewest(
+    run,
+    latest.timestamp - TEMPERATURE_HISTORY_MS,
+    latest.timestamp,
+    SENSOR_METRICS_ERROR
+  );
+  if (!historyRead.ok) return Result.err(historyRead.message);
 
-  const history = parseMetricValues(response.data)
+  const history = historyRead.points
     .filter((point) => point.name === TEMPERATURE_METRIC)
     .map((point) => ({ value: point.value, timestamp: point.timestamp }))
     .sort((a, b) => a.timestamp - b.timestamp);
@@ -556,3 +629,9 @@ const HEALTH_TIMEOUT_MS = 5000;export const checkServerHealth = async (): Promis
 };
 
 export { login, register, logout, refreshSession } from "./auth";
+export {
+  getDeviceNotifications,
+  type DeviceNotification,
+  type NotificationPage,
+  type NotificationSeverity,
+} from "./notifications";

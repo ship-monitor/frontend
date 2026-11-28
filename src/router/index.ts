@@ -55,6 +55,12 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requireAuth: true, layout: "app" } as CustomRouteMeta,
   },
   {
+    path: ROUTES.NOTIFICATIONS,
+    name: "Notifications",
+    component: () => import("../pages/NotificationsPage.vue"),
+    meta: { requireAuth: true, layout: "app" } as CustomRouteMeta,
+  },
+  {
     path: ROUTES.PROFILE,
     name: "Profile",
     component: () => import("../pages/ProfilePage.vue"),
